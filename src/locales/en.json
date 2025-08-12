@@ -1,0 +1,9 @@
+{
+  "dashboard": "Dashboard",
+  "orders": "Orders",
+  "inventory": "Inventory",
+  "batches": "Batches",
+  "admin": "Admin",
+  "login": "Login",
+  "app_name": "Butcher Cashier"
+}
