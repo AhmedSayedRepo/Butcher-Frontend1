@@ -1,3 +1,8 @@
+// app/layout.tsx
+import '../src/i18n';            // <-- IMPORTANT: initialize i18n first
+import './globals.css';
+import { ReactNode } from 'react';
+import Navbar from '../components/Navbar';
 import './globals.css'
 import { ReactNode } from 'react'
 import Navbar from '../components/Navbar'
