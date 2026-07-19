@@ -5,11 +5,12 @@ It includes:
 - Next.js app router (app/)
 - TailwindCSS (3.4.13) setup
 - react-i18next client-side i18n with English/Arabic
-- Demo API routes for products/orders/parse-order so the UI works out-of-the-box
+- Login flow wired to the real backend (see lib/api.ts, app/login/page.tsx)
 
 Local dev:
 1. npm install
-2. npm run dev
+2. cp .env.example .env.local
+3. npm run dev
 
 Deploy to Vercel:
 - Import this repo (root contains package.json)
@@ -17,7 +18,9 @@ Deploy to Vercel:
 - Output: handled by Next on Vercel
 
 Environment variables:
-- NEXT_PUBLIC_API_URL -> optional (if you want to call a separate backend instead of demo routes)
+- NEXT_PUBLIC_API_URL -> required, points at the Butcher-Backend deployment (see ../backend)
 
 Notes:
-- This is a frontend replacement. The full backend (Express/Postgres) should be deployed separately (Railway) and the frontend pointed to it.
+- The old `pages/api/*` demo routes were removed. The UI now calls the real backend
+  directly (see ../CONTRACT.md for exact response shapes).
+- The backend (Express/Postgres) is deployed separately (Railway) — see ../backend/README.md.

@@ -1,3 +1,5 @@
+// TODO (Plan Phase 3): replace hardcoded numbers with real data from
+// GET /api/orders and GET /api/products (e.g. today's order count, low-stock count).
 import Link from 'next/link'
 export default function Page() {
   return (
