@@ -1,9 +1,83 @@
 {
   "dashboard": "Dashboard",
   "orders": "Orders",
+  "new_order": "New Order",
   "inventory": "Inventory",
   "batches": "Batches",
   "admin": "Admin",
   "login": "Login",
-  "app_name": "Butcher Cashier"
+  "logout": "Logout",
+  "help": "Help & Guide",
+  "app_name": "Butcher Cashier",
+  "help_page": {
+    "title": "Help & Guide",
+    "intro": "A quick guide to using Butcher Cashier.",
+    "sections": [
+      { "heading": "Dashboard", "body": "See today's order count, current low-stock alerts, and how many products you're tracking." },
+      { "heading": "New Order", "body": "Pick a product, enter the weight in kg, and add it to the cart. The total updates live, and the server checks stock automatically before saving the order." },
+      { "heading": "Orders", "body": "View every past order and its total." },
+      { "heading": "Inventory", "body": "View all products. Once logged in, you can also add new products and edit the price or stock of existing ones." },
+      { "heading": "Login", "body": "Sign in with your email and password to create orders or manage inventory. Logged-out visitors can still view orders, inventory, and the dashboard." },
+      { "heading": "Language", "body": "Use the EN/AR button in the top bar to switch the interface language at any time." }
+    ]
+  },
+  "dashboard_page": {
+    "todays_orders": "Today's Orders",
+    "log_in_to_view": "Log in to view",
+    "stock_alerts": "Stock Alerts (<{{threshold}}kg)",
+    "products_tracked": "Products Tracked",
+    "go_to_orders": "Go to Orders",
+    "go_to_inventory": "Go to Inventory"
+  },
+  "orders_page": {
+    "please_login": "Please log in to view orders.",
+    "failed_to_load": "Failed to load orders.",
+    "no_orders": "No orders",
+    "walk_in": "Walk-in"
+  },
+  "new_order_page": {
+    "title": "New Order",
+    "customer_label": "Customer (optional)",
+    "customer_placeholder": "Walk-in",
+    "product_label": "Product",
+    "kg_label": "Kg",
+    "add_to_order": "Add to order",
+    "no_items_yet": "No items yet",
+    "total": "Total",
+    "submit": "Submit order",
+    "submitting": "Submitting…",
+    "in_stock": "in stock",
+    "remove": "Remove",
+    "error_pick_product": "Pick a product and enter a valid kg amount.",
+    "error_add_item": "Add at least one item to the order.",
+    "error_load_products": "Failed to load products.",
+    "error_submit": "Failed to submit order."
+  },
+  "inventory_page": {
+    "name_label": "Name",
+    "unit_label": "Unit",
+    "price_label": "Price/kg",
+    "stock_label": "Stock (kg)",
+    "add_product": "Add product",
+    "adding": "Adding…",
+    "no_products": "No products",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "error_load": "Failed to load inventory.",
+    "error_create": "Failed to create product.",
+    "error_save": "Failed to save product."
+  },
+  "login_page": {
+    "title": "Sign in",
+    "email_placeholder": "Email",
+    "password_placeholder": "Password",
+    "signing_in": "Signing in…",
+    "sign_in": "Sign in",
+    "error_default": "Login failed"
+  },
+  "admin_page": {
+    "subtitle": "Users, Branding, Settings"
+  }
 }

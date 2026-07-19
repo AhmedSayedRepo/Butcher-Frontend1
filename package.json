@@ -2,27 +2,38 @@
   "name": "butcher-next",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "^8.5.10"
+    }
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "axios": "^1.4.0",
     "debug": "^4.4.1",
     "i18next": "^23.0.0",
-    "next": "14.2.35",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
     "react-i18next": "^13.0.0",
     "supports-color": "^9.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",
-    "@types/react": "^18.2.66",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.31",
+    "eslint": "^9.35.0",
+    "eslint-config-next": "16.2.7",
+    "postcss": "^8.5.10",
     "tailwindcss": "3.4.13",
     "typescript": "^5.5.4"
   }
