@@ -24,13 +24,18 @@ export default function HelpPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-2">{t('help_page.title')}</h1>
-      <p className="text-gray-600 mb-6">{t('help_page.intro')}</p>
-      <div className="space-y-4">
-        {sections.map((s) => (
-          <div key={s.heading} className="bg-white p-4 rounded shadow">
-            <h2 className="font-semibold mb-1">{s.heading}</h2>
-            <p className="text-sm text-gray-700">{s.body}</p>
+      <h1 className="mb-2 text-2xl font-semibold tracking-tight text-stone-900">{t('help_page.title')}</h1>
+      <p className="mb-6 text-stone-500">{t('help_page.intro')}</p>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {sections.map((s, i) => (
+          <div key={s.heading} className="rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+            <div className="mb-2 flex items-center gap-2.5">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700">
+                {i + 1}
+              </span>
+              <h2 className="font-semibold text-stone-900">{s.heading}</h2>
+            </div>
+            <p className="text-sm leading-relaxed text-stone-600">{s.body}</p>
           </div>
         ))}
       </div>

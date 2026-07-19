@@ -31,15 +31,61 @@
 import '../src/i18n'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import api from '../lib/api'
 import { useAuth } from '../lib/useAuth'
+
+// UI polish pass: added active-link highlighting (usePathname), a mobile
+// hamburger menu (the original 6-link + 2-button bar had no small-screen
+// handling at all and would wrap/overflow badly), a small brand mark, and a
+// sticky/blurred header. Layout and i18n/RTL behavior are unchanged.
+const NAV_ITEMS = [
+  { href: '/', key: 'dashboard' },
+  { href: '/orders', key: 'orders' },
+  { href: '/orders/new', key: 'new_order' },
+  { href: '/inventory', key: 'inventory' },
+  { href: '/admin', key: 'admin' },
+  { href: '/help', key: 'help' },
+] as const
+
+function BrandMark() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      <rect width="28" height="28" rx="8" className="fill-brand-600" />
+      <path
+        d="M8 18.5 17 9.5M17 9.5h-4M17 9.5v4"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9" cy="19" r="2" className="fill-white" />
+    </svg>
+  )
+}
 
 export default function Navbar() {
   const { t, i18n } = useTranslation()
   const router = useRouter()
+  const pathname = usePathname()
   const user = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // Close the mobile menu on route change so it doesn't stay open after
+  // navigating. Deliberately NOT a `useEffect([pathname])` — react-hooks'
+  // set-state-in-effect rule flags synchronous setState-in-effect because it
+  // causes an extra render pass; React's own docs recommend this pattern
+  // instead for "reset state when a prop changes": track the previous value
+  // in state and adjust *during render* (this is the one sanctioned case for
+  // calling setState while rendering — it's a no-op if the values match, and
+  // otherwise short-circuits straight to the corrected render, one render
+  // total instead of two). See https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevPathname, setPrevPathname] = useState(pathname)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname)
+    setMenuOpen(false)
+  }
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -58,25 +104,110 @@ export default function Navbar() {
     }
   }
 
+  function linkClasses(href: string) {
+    const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+    return [
+      'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+      active
+        ? 'bg-brand-50 text-brand-700'
+        : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900',
+    ].join(' ')
+  }
+
   return (
-    <header className="bg-white shadow p-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="text-lg font-semibold">{t('app_name')}</div>
-        <nav className="flex items-center gap-3">
-          <Link href="/" className="px-3 py-1">{t('dashboard')}</Link>
-          <Link href="/orders" className="px-3 py-1">{t('orders')}</Link>
-          <Link href="/orders/new" className="px-3 py-1">{t('new_order')}</Link>
-          <Link href="/inventory" className="px-3 py-1">{t('inventory')}</Link>
-          <Link href="/admin" className="px-3 py-1">{t('admin')}</Link>
-          <Link href="/help" className="px-3 py-1">{t('help')}</Link>
-          <button onClick={switchLang} className="px-3 py-1 border rounded">EN/AR</button>
-          {user ? (
-            <button onClick={logout} className="px-3 py-1 border rounded">{t('logout')}</button>
-          ) : (
-            <Link href="/login" className="px-3 py-1 border rounded">{t('login')}</Link>
-          )}
+    <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <BrandMark />
+          <span className="text-lg font-semibold tracking-tight text-stone-900">{t('app_name')}</span>
+        </Link>
+
+        {/* Desktop nav */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {NAV_ITEMS.map((item) => (
+            <Link key={item.href} href={item.href} className={linkClasses(item.href)}>
+              {t(item.key)}
+            </Link>
+          ))}
         </nav>
+
+        <div className="hidden lg:flex items-center gap-2">
+          <button
+            onClick={switchLang}
+            className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100"
+          >
+            EN/AR
+          </button>
+          {user ? (
+            <button
+              onClick={logout}
+              className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100"
+            >
+              {t('logout')}
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-lg bg-brand-600 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700"
+            >
+              {t('login')}
+            </Link>
+          )}
+        </div>
+
+        {/* Mobile hamburger */}
+        <button
+          type="button"
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-expanded={menuOpen}
+          aria-label="Toggle menu"
+          className="lg:hidden rounded-lg p-2 text-stone-700 hover:bg-stone-100"
+        >
+          {menuOpen ? (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          ) : (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          )}
+        </button>
       </div>
+
+      {/* Mobile menu panel */}
+      {menuOpen && (
+        <nav className="lg:hidden border-t border-stone-200 bg-white px-4 py-3 space-y-1">
+          {NAV_ITEMS.map((item) => (
+            <Link key={item.href} href={item.href} className={`block ${linkClasses(item.href)}`}>
+              {t(item.key)}
+            </Link>
+          ))}
+          <div className="flex items-center gap-2 pt-2">
+            <button
+              onClick={switchLang}
+              className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-100"
+            >
+              EN/AR
+            </button>
+            {user ? (
+              <button
+                onClick={logout}
+                className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-100"
+              >
+                {t('logout')}
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-lg bg-brand-600 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+              >
+                {t('login')}
+              </Link>
+            )}
+          </div>
+        </nav>
+      )}
     </header>
   )
 }

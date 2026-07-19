@@ -89,74 +89,103 @@ export default function InventoryPage() {
     }
   }
 
+  const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
+  const labelClasses = 'mb-1 block text-sm font-medium text-stone-700'
+  const LOW_STOCK_THRESHOLD_KG = 5
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">{t('inventory')}</h1>
-      {error && <div className="bg-red-50 text-red-700 p-3 rounded mb-3">{error}</div>}
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight text-stone-900">{t('inventory')}</h1>
+      {error && (
+        <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
 
       {loggedIn && (
-        <form onSubmit={onCreate} className="bg-white p-4 rounded shadow mb-4 grid grid-cols-2 md:grid-cols-5 gap-2 items-end">
-          <label className="text-sm">
-            {t('inventory_page.name_label')}
-            <input className="w-full border rounded p-2" value={newDraft.name}
-              onChange={e => setNewDraft({ ...newDraft, name: e.target.value })} required />
-          </label>
-          <label className="text-sm">
-            {t('inventory_page.unit_label')}
-            <input className="w-full border rounded p-2" value={newDraft.unit}
-              onChange={e => setNewDraft({ ...newDraft, unit: e.target.value })} required />
-          </label>
-          <label className="text-sm">
-            {t('inventory_page.price_label')}
-            <input type="number" step="0.01" min="0.01" className="w-full border rounded p-2" value={newDraft.pricePerKg}
-              onChange={e => setNewDraft({ ...newDraft, pricePerKg: e.target.value })} required />
-          </label>
-          <label className="text-sm">
-            {t('inventory_page.stock_label')}
-            <input type="number" step="0.001" min="0" className="w-full border rounded p-2" value={newDraft.stockKg}
-              onChange={e => setNewDraft({ ...newDraft, stockKg: e.target.value })} required />
-          </label>
-          <button type="submit" disabled={creating} className="bg-blue-600 text-white rounded p-2 disabled:opacity-50">
-            {creating ? t('inventory_page.adding') : t('inventory_page.add_product')}
-          </button>
+        <form onSubmit={onCreate} className="mb-6 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:items-end">
+            <label>
+              <span className={labelClasses}>{t('inventory_page.name_label')}</span>
+              <input className={inputClasses} value={newDraft.name}
+                onChange={e => setNewDraft({ ...newDraft, name: e.target.value })} required />
+            </label>
+            <label>
+              <span className={labelClasses}>{t('inventory_page.unit_label')}</span>
+              <input className={inputClasses} value={newDraft.unit}
+                onChange={e => setNewDraft({ ...newDraft, unit: e.target.value })} required />
+            </label>
+            <label>
+              <span className={labelClasses}>{t('inventory_page.price_label')}</span>
+              <input type="number" step="0.01" min="0.01" className={inputClasses} value={newDraft.pricePerKg}
+                onChange={e => setNewDraft({ ...newDraft, pricePerKg: e.target.value })} required />
+            </label>
+            <label>
+              <span className={labelClasses}>{t('inventory_page.stock_label')}</span>
+              <input type="number" step="0.001" min="0" className={inputClasses} value={newDraft.stockKg}
+                onChange={e => setNewDraft({ ...newDraft, stockKg: e.target.value })} required />
+            </label>
+            <button type="submit" disabled={creating}
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+              {creating ? t('inventory_page.adding') : t('inventory_page.add_product')}
+            </button>
+          </div>
         </form>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {products.length === 0 ? (
-          <div className="bg-white p-4 rounded shadow">{t('inventory_page.no_products')}</div>
+          <div className="col-span-full rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-500">
+            {t('inventory_page.no_products')}
+          </div>
         ) : (
-          products.map((p) => (
-            <div key={p.id} className="bg-white p-4 rounded shadow">
-              {editingId === p.id ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <input className="border rounded p-2 col-span-2" value={editDraft.name}
-                    onChange={e => setEditDraft({ ...editDraft, name: e.target.value })} />
-                  <input type="number" step="0.01" min="0.01" className="border rounded p-2" value={editDraft.pricePerKg}
-                    onChange={e => setEditDraft({ ...editDraft, pricePerKg: e.target.value })} />
-                  <input type="number" step="0.001" min="0" className="border rounded p-2" value={editDraft.stockKg}
-                    onChange={e => setEditDraft({ ...editDraft, stockKg: e.target.value })} />
-                  <div className="col-span-2 flex gap-2 justify-end">
-                    <button onClick={() => setEditingId(null)} className="px-3 py-1 border rounded">{t('inventory_page.cancel')}</button>
-                    <button onClick={() => onSaveEdit(p.id)} disabled={saving}
-                      className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50">
-                      {saving ? t('inventory_page.saving') : t('inventory_page.save')}
-                    </button>
+          products.map((p) => {
+            const lowStock = Number(p.stockKg) < LOW_STOCK_THRESHOLD_KG
+            return (
+              <div key={p.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover">
+                {editingId === p.id ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <input className={`${inputClasses} col-span-2`} value={editDraft.name}
+                      onChange={e => setEditDraft({ ...editDraft, name: e.target.value })} />
+                    <input type="number" step="0.01" min="0.01" className={inputClasses} value={editDraft.pricePerKg}
+                      onChange={e => setEditDraft({ ...editDraft, pricePerKg: e.target.value })} />
+                    <input type="number" step="0.001" min="0" className={inputClasses} value={editDraft.stockKg}
+                      onChange={e => setEditDraft({ ...editDraft, stockKg: e.target.value })} />
+                    <div className="col-span-2 flex justify-end gap-2 pt-1">
+                      <button onClick={() => setEditingId(null)}
+                        className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+                        {t('inventory_page.cancel')}
+                      </button>
+                      <button onClick={() => onSaveEdit(p.id)} disabled={saving}
+                        className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                        {saving ? t('inventory_page.saving') : t('inventory_page.save')}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="flex justify-between items-center">
-                  <div>{p.name}</div>
-                  <div className="flex items-center gap-3">
-                    <div>{Number(p.stockKg).toFixed(3)} kg @ {Number(p.pricePerKg).toFixed(2)}/kg</div>
-                    {loggedIn && (
-                      <button onClick={() => startEdit(p)} className="px-2 py-1 border rounded text-sm">{t('inventory_page.edit')}</button>
-                    )}
+                ) : (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-stone-900">{p.name}</p>
+                      <p className="text-sm text-stone-500">
+                        {Number(p.stockKg).toFixed(3)} kg @ {Number(p.pricePerKg).toFixed(2)}/kg
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {lowStock && (
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          low stock
+                        </span>
+                      )}
+                      {loggedIn && (
+                        <button onClick={() => startEdit(p)}
+                          className="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50">
+                          {t('inventory_page.edit')}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))
+                )}
+              </div>
+            )
+          })
         )}
       </div>
     </div>

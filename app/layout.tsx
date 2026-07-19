@@ -9,7 +9,13 @@
 // instead, which is already a Client Component.
 import './globals.css'
 import { ReactNode } from 'react'
+import { Inter } from 'next/font/google'
 import Navbar from '../components/Navbar'
+
+// UI polish pass: self-hosted via next/font (no runtime request to Google,
+// downloaded once at build time and served from our own domain) instead of
+// the default system font stack, for a more considered look across the app.
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 export const metadata = {
   title: 'Butcher Cashier',
@@ -18,10 +24,10 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-gray-50 min-h-screen">
+    <html lang="en" className={inter.variable}>
+      <body className="bg-stone-50 min-h-screen font-sans text-stone-900 antialiased">
         <Navbar />
-        <div className="max-w-7xl mx-auto p-4">{children}</div>
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</div>
       </body>
     </html>
   )

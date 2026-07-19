@@ -3,3 +3,44 @@
 @tailwind utilities;
 
 html, body { height: 100%; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background-color: theme('colors.brand.100');
+  color: theme('colors.brand.900');
+}
+
+/* Consistent, visible keyboard-focus ring app-wide (accessibility) instead of
+   relying on each component to remember to add one. */
+:focus-visible {
+  outline: 2px solid theme('colors.brand.500');
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Custom scrollbar so long tables/lists don't look jarring against the
+   warmer background palette (Chrome/Edge/Safari; Firefox falls back to its
+   own default, which is fine). */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: theme('colors.stone.300');
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: theme('colors.stone.400');
+}

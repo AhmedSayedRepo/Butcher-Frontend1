@@ -78,22 +78,27 @@ export default function NewOrderPage() {
     }
   }
 
+  const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
+  const labelClasses = 'mb-1 block text-sm font-medium text-stone-700'
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">{t('new_order_page.title')}</h1>
-      {error && <div className="bg-red-50 text-red-700 p-3 rounded mb-3">{error}</div>}
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight text-stone-900">{t('new_order_page.title')}</h1>
+      {error && (
+        <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
 
-      <div className="bg-white p-4 rounded shadow mb-4">
-        <label className="block text-sm mb-3">
-          {t('new_order_page.customer_label')}
-          <input className="w-full border rounded p-2 mt-1" value={customer}
+      <div className="mb-4 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+        <label className="mb-4 block">
+          <span className={labelClasses}>{t('new_order_page.customer_label')}</span>
+          <input className={inputClasses} value={customer}
             onChange={e => setCustomer(e.target.value)} placeholder={t('new_order_page.customer_placeholder')} />
         </label>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
-          <label className="text-sm md:col-span-2">
-            {t('new_order_page.product_label')}
-            <select className="w-full border rounded p-2 mt-1" value={selectedId}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
+          <label className="md:col-span-2">
+            <span className={labelClasses}>{t('new_order_page.product_label')}</span>
+            <select className={inputClasses} value={selectedId}
               onChange={e => setSelectedId(e.target.value)}>
               {products.map(p => (
                 <option key={p.id} value={p.id}>
@@ -102,50 +107,64 @@ export default function NewOrderPage() {
               ))}
             </select>
           </label>
-          <label className="text-sm">
-            {t('new_order_page.kg_label')}
-            <input type="number" step="0.001" min="0.001" className="w-full border rounded p-2 mt-1"
+          <label>
+            <span className={labelClasses}>{t('new_order_page.kg_label')}</span>
+            <input type="number" step="0.001" min="0.001" className={inputClasses}
               value={kg} onChange={e => setKg(e.target.value)} />
           </label>
-          <button onClick={addLine} className="px-3 py-2 border rounded bg-gray-100">{t('new_order_page.add_to_order')}</button>
+          <button
+            onClick={addLine}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-stone-300 bg-stone-50 px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            {t('new_order_page.add_to_order')}
+          </button>
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded shadow mb-4">
+      <div className="mb-4 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-card">
         {cart.length === 0 ? (
-          <div className="text-gray-500">{t('new_order_page.no_items_yet')}</div>
+          <div className="p-8 text-center text-sm text-stone-400">{t('new_order_page.no_items_yet')}</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left border-b">
-                <th className="py-1">{t('new_order_page.product_label')}</th>
-                <th className="py-1">{t('new_order_page.kg_label')}</th>
-                <th className="py-1">{t('inventory_page.price_label')}</th>
-                <th></th>
+              <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+                <th className="px-4 py-2.5">{t('new_order_page.product_label')}</th>
+                <th className="px-4 py-2.5">{t('new_order_page.kg_label')}</th>
+                <th className="px-4 py-2.5">{t('inventory_page.price_label')}</th>
+                <th className="px-4 py-2.5"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-stone-100">
               {cart.map(l => (
-                <tr key={l.productId} className="border-b last:border-0">
-                  <td className="py-1">{l.name}</td>
-                  <td className="py-1">{l.kg.toFixed(3)}</td>
-                  <td className="py-1">{(l.pricePerKg * l.kg).toFixed(2)}</td>
-                  <td className="py-1 text-right">
-                    <button onClick={() => removeLine(l.productId)} className="text-red-600 text-xs">{t('new_order_page.remove')}</button>
+                <tr key={l.productId} className="transition-colors hover:bg-stone-50">
+                  <td className="px-4 py-2.5 font-medium text-stone-900">{l.name}</td>
+                  <td className="px-4 py-2.5 text-stone-600">{l.kg.toFixed(3)}</td>
+                  <td className="px-4 py-2.5 text-stone-600">{(l.pricePerKg * l.kg).toFixed(2)}</td>
+                  <td className="px-4 py-2.5 text-right">
+                    <button onClick={() => removeLine(l.productId)} className="text-xs font-medium text-red-600 hover:text-red-700">{t('new_order_page.remove')}</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-        <div className="mt-3 flex justify-between items-center font-semibold">
-          <div>{t('new_order_page.total')}</div>
-          <div>{total.toFixed(2)}</div>
+        <div className="flex items-center justify-between border-t border-stone-200 bg-stone-50 px-4 py-3">
+          <div className="text-sm font-medium text-stone-600">{t('new_order_page.total')}</div>
+          <div className="text-lg font-semibold text-stone-900">{total.toFixed(2)}</div>
         </div>
       </div>
 
       <button onClick={submitOrder} disabled={submitting || cart.length === 0}
-        className="w-full bg-blue-600 text-white rounded p-3 disabled:opacity-50">
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+        {submitting && (
+          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+          </svg>
+        )}
         {submitting ? t('new_order_page.submitting') : t('new_order_page.submit')}
       </button>
     </div>
