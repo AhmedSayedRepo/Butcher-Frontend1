@@ -23,17 +23,33 @@
   },
   "dashboard_page": {
     "todays_orders": "Today's Orders",
+    "orders_in_progress": "Orders In Progress",
     "log_in_to_view": "Log in to view",
     "stock_alerts": "Stock Alerts (<{{threshold}}kg)",
     "products_tracked": "Products Tracked",
     "go_to_orders": "Go to Orders",
-    "go_to_inventory": "Go to Inventory"
+    "go_to_inventory": "Go to Inventory",
+    "revenue_chart_title": "Revenue",
+    "top_products_chart_title": "Top products (kg sold)",
+    "days": "{{count}}d",
+    "no_sales_yet": "No sales yet"
   },
   "orders_page": {
     "please_login": "Please log in to view orders.",
     "failed_to_load": "Failed to load orders.",
     "no_orders": "No orders",
-    "walk_in": "Walk-in"
+    "walk_in": "Walk-in",
+    "drafts": "Drafts",
+    "promote": "Confirm order",
+    "promoting": "Confirming…",
+    "advance_to": "Move to {{status}}",
+    "cancel_order": "Cancel",
+    "status_created": "Created",
+    "status_in_progress": "In Progress",
+    "status_on_the_way": "On the Way",
+    "status_in_premise": "In Premise",
+    "error_status": "Failed to update order status.",
+    "error_promote": "Failed to confirm draft order."
   },
   "new_order_page": {
     "title": "New Order",
@@ -46,6 +62,12 @@
     "total": "Total",
     "submit": "Submit order",
     "submitting": "Submitting…",
+    "save_draft": "Save as draft",
+    "saving_draft": "Saving draft…",
+    "recent_products": "Recent",
+    "receipt_title": "Receipt",
+    "print_receipt": "Print receipt",
+    "done": "Done",
     "in_stock": "in stock",
     "remove": "Remove",
     "error_pick_product": "Pick a product and enter a valid kg amount.",
@@ -55,6 +77,9 @@
   },
   "inventory_page": {
     "name_label": "Name",
+    "category_label": "Category",
+    "all_categories": "All categories",
+    "threshold_label": "Low-stock alert (kg)",
     "unit_label": "Unit",
     "price_label": "Price/kg",
     "stock_label": "Stock (kg)",
@@ -65,9 +90,11 @@
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving…",
+    "reason_placeholder": "Reason for stock change (restock, correction, shrinkage…)",
     "error_load": "Failed to load inventory.",
     "error_create": "Failed to create product.",
-    "error_save": "Failed to save product."
+    "error_save": "Failed to save product.",
+    "error_reason_required": "A reason is required when changing stock."
   },
   "login_page": {
     "title": "Sign in",
@@ -77,7 +104,56 @@
     "sign_in": "Sign in",
     "error_default": "Login failed"
   },
+  "dismantle_page": {
+    "subtitle": "Record a carcass breakdown against a template and see the yield variance.",
+    "no_access": "You don't have permission to record dismantle events.",
+    "template_label": "Template",
+    "source_label": "Source",
+    "source_placeholder": "e.g. Calf #48, supplier X",
+    "input_weight_label": "Carcass weight (kg)",
+    "cut_label": "Cut",
+    "expected_yield_label": "Expected yield",
+    "actual_weight_label": "Actual weight (kg)",
+    "stock_into_label": "Stock into",
+    "record_only": "Record only (no product)",
+    "submit": "Record breakdown",
+    "submitting": "Recording…",
+    "recent_events": "Recent breakdowns",
+    "no_events": "No breakdowns recorded yet",
+    "waste": "Waste",
+    "per_kilo": "per kg carcass",
+    "error_load_templates": "Failed to load templates.",
+    "error_load_events": "Failed to load breakdowns.",
+    "error_no_outputs": "Enter at least one cut's actual weight.",
+    "error_submit": "Failed to record breakdown."
+  },
   "admin_page": {
-    "subtitle": "Users, Branding, Settings"
+    "subtitle": "Users, Branding, Settings",
+    "manage_users": "Manage Users"
+  },
+  "admin_users_page": {
+    "title": "User Management",
+    "subtitle": "Manage roles and permissions",
+    "no_access": "Admins only.",
+    "col_email": "Email",
+    "col_role": "Role",
+    "col_caps": "Capabilities",
+    "col_created": "Created",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "error_load": "Failed to load users.",
+    "error_save": "Failed to save changes.",
+    "role_cashier": "Cashier",
+    "role_manager": "Manager",
+    "role_admin": "Admin",
+    "cap_manage_users": "Manage users",
+    "cap_manage_inventory": "Manage inventory",
+    "cap_manage_orders": "Manage orders",
+    "cap_dismantle_carcass": "Dismantle carcasses",
+    "confirm_demote_title": "Remove your own admin access?",
+    "confirm_demote_message": "You're changing your own role away from Admin. You'll lose access to this screen until another admin restores it.",
+    "confirm_demote_confirm": "Yes, change my role",
+    "confirm_demote_cancel": "Cancel"
   }
 }

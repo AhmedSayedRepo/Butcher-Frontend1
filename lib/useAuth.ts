@@ -7,7 +7,11 @@
 import { useEffect, useState } from 'react'
 import api from './api'
 
-export type CurrentUser = { id: string, email: string, role: string }
+// v2 replan (Phase D): `caps` mirrors backend/src/lib/caps.ts's effective-caps
+// computation (role defaults + per-user overrides), already resolved server-side
+// by GET /auth/me — the frontend never re-derives caps from role itself, so
+// there's exactly one place (the backend) that decides what a role implies.
+export type CurrentUser = { id: string, email: string, role: string, caps: string[] }
 
 // undefined = still loading, null = confirmed logged out
 export function useAuth(): CurrentUser | null | undefined {

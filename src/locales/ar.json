@@ -23,17 +23,33 @@
   },
   "dashboard_page": {
     "todays_orders": "طلبات اليوم",
+    "orders_in_progress": "طلبات قيد التنفيذ",
     "log_in_to_view": "سجّل الدخول للعرض",
     "stock_alerts": "تنبيهات نقص المخزون (أقل من {{threshold}} كجم)",
     "products_tracked": "المنتجات المتابَعة",
     "go_to_orders": "الذهاب إلى الطلبات",
-    "go_to_inventory": "الذهاب إلى المخزون"
+    "go_to_inventory": "الذهاب إلى المخزون",
+    "revenue_chart_title": "الإيرادات",
+    "top_products_chart_title": "أكثر المنتجات مبيعًا (كجم)",
+    "days": "{{count}} أيام",
+    "no_sales_yet": "لا توجد مبيعات بعد"
   },
   "orders_page": {
     "please_login": "يرجى تسجيل الدخول لعرض الطلبات.",
     "failed_to_load": "فشل تحميل الطلبات.",
     "no_orders": "لا توجد طلبات",
-    "walk_in": "زبون عابر"
+    "walk_in": "زبون عابر",
+    "drafts": "المسودات",
+    "promote": "تأكيد الطلب",
+    "promoting": "جارٍ التأكيد…",
+    "advance_to": "نقل إلى {{status}}",
+    "cancel_order": "إلغاء",
+    "status_created": "تم الإنشاء",
+    "status_in_progress": "قيد التنفيذ",
+    "status_on_the_way": "في الطريق",
+    "status_in_premise": "في المتجر",
+    "error_status": "فشل تحديث حالة الطلب.",
+    "error_promote": "فشل تأكيد الطلب المسوَّد."
   },
   "new_order_page": {
     "title": "طلب جديد",
@@ -46,6 +62,12 @@
     "total": "الإجمالي",
     "submit": "إرسال الطلب",
     "submitting": "جارٍ الإرسال…",
+    "save_draft": "حفظ كمسودة",
+    "saving_draft": "جارٍ حفظ المسودة…",
+    "recent_products": "الأخيرة",
+    "receipt_title": "إيصال",
+    "print_receipt": "طباعة الإيصال",
+    "done": "تم",
     "in_stock": "متوفر في المخزون",
     "remove": "إزالة",
     "error_pick_product": "اختر منتجًا وأدخل وزنًا صحيحًا بالكيلوجرام.",
@@ -55,6 +77,9 @@
   },
   "inventory_page": {
     "name_label": "الاسم",
+    "category_label": "الفئة",
+    "all_categories": "كل الفئات",
+    "threshold_label": "حد تنبيه نقص المخزون (كجم)",
     "unit_label": "الوحدة",
     "price_label": "السعر/كجم",
     "stock_label": "المخزون (كجم)",
@@ -65,9 +90,11 @@
     "cancel": "إلغاء",
     "save": "حفظ",
     "saving": "جارٍ الحفظ…",
+    "reason_placeholder": "سبب تغيير المخزون (إعادة تخزين، تصحيح، هدر…)",
     "error_load": "فشل تحميل المخزون.",
     "error_create": "فشل إنشاء المنتج.",
-    "error_save": "فشل حفظ المنتج."
+    "error_save": "فشل حفظ المنتج.",
+    "error_reason_required": "سبب التغيير مطلوب عند تعديل المخزون."
   },
   "login_page": {
     "title": "تسجيل الدخول",
@@ -77,7 +104,56 @@
     "sign_in": "تسجيل الدخول",
     "error_default": "فشل تسجيل الدخول"
   },
+  "dismantle_page": {
+    "subtitle": "سجّل تقطيع ذبيحة وفق نموذج واطّلع على فروقات المردود.",
+    "no_access": "ليس لديك صلاحية تسجيل عمليات التقطيع.",
+    "template_label": "النموذج",
+    "source_label": "المصدر",
+    "source_placeholder": "مثال: عجل رقم 48، المورّد س",
+    "input_weight_label": "وزن الذبيحة (كجم)",
+    "cut_label": "القطعة",
+    "expected_yield_label": "المردود المتوقع",
+    "actual_weight_label": "الوزن الفعلي (كجم)",
+    "stock_into_label": "إضافة إلى المخزون",
+    "record_only": "تسجيل فقط (بدون منتج)",
+    "submit": "تسجيل التقطيع",
+    "submitting": "جارٍ التسجيل…",
+    "recent_events": "عمليات التقطيع الأخيرة",
+    "no_events": "لا توجد عمليات تقطيع مسجَّلة بعد",
+    "waste": "الهدر",
+    "per_kilo": "لكل كجم من الذبيحة",
+    "error_load_templates": "فشل تحميل النماذج.",
+    "error_load_events": "فشل تحميل عمليات التقطيع.",
+    "error_no_outputs": "أدخل الوزن الفعلي لقطعة واحدة على الأقل.",
+    "error_submit": "فشل تسجيل عملية التقطيع."
+  },
   "admin_page": {
-    "subtitle": "المستخدمون، الهوية البصرية، الإعدادات"
+    "subtitle": "المستخدمون، الهوية البصرية، الإعدادات",
+    "manage_users": "إدارة المستخدمين"
+  },
+  "admin_users_page": {
+    "title": "إدارة المستخدمين",
+    "subtitle": "إدارة الأدوار والصلاحيات",
+    "no_access": "للمسؤولين فقط.",
+    "col_email": "البريد الإلكتروني",
+    "col_role": "الدور",
+    "col_caps": "الصلاحيات",
+    "col_created": "تاريخ الإنشاء",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم الحفظ",
+    "error_load": "فشل تحميل المستخدمين.",
+    "error_save": "فشل حفظ التغييرات.",
+    "role_cashier": "كاشير",
+    "role_manager": "مدير",
+    "role_admin": "مسؤول",
+    "cap_manage_users": "إدارة المستخدمين",
+    "cap_manage_inventory": "إدارة المخزون",
+    "cap_manage_orders": "إدارة الطلبات",
+    "cap_dismantle_carcass": "تقطيع الذبائح",
+    "confirm_demote_title": "إزالة صلاحية المسؤول الخاصة بك؟",
+    "confirm_demote_message": "أنت بصدد تغيير دورك الخاص من مسؤول إلى دور آخر. ستفقد الوصول إلى هذه الشاشة حتى يقوم مسؤول آخر باستعادته.",
+    "confirm_demote_confirm": "نعم، غيّر دوري",
+    "confirm_demote_cancel": "إلغاء"
   }
 }

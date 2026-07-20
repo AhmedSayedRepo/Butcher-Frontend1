@@ -1,11 +1,34 @@
 'use client'
 import { useTranslation } from 'react-i18next'
+import Link from 'next/link'
+import { useAuth } from '../../lib/useAuth'
 
+// v2 replan, Phase D: was a static placeholder ("still a static placeholder,
+// no real users/branding/settings functionality" — ROADMAP.md). Now links to
+// the real /admin/users screen once it exists; branding/settings remain
+// unbuilt placeholders (not in the Phase D scope).
 export default function AdminPage(){
   const { t } = useTranslation()
+  const user = useAuth()
+  const caps = user != null && Array.isArray(user.caps) ? user.caps : []
+  const canManageUsers = caps.includes('manage_users')
+
   return (
     <div>
       <h1 className="mb-6 text-2xl font-semibold tracking-tight text-stone-900">{t('admin')}</h1>
+
+      {canManageUsers && (
+        <Link
+          href="/admin/users"
+          className="mb-4 flex items-center justify-between rounded-xl border border-stone-200 bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover"
+        >
+          <span className="font-medium text-stone-900">{t('admin_page.manage_users')}</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </Link>
+      )}
+
       <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center">
         <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-stone-100 text-stone-500">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

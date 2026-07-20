@@ -40,11 +40,15 @@ import { useAuth } from '../lib/useAuth'
 // hamburger menu (the original 6-link + 2-button bar had no small-screen
 // handling at all and would wrap/overflow badly), a small brand mark, and a
 // sticky/blurred header. Layout and i18n/RTL behavior are unchanged.
+// v2 replan (Phase B.5): "batches" links to the new carcass-dismantling
+// module — the label was already translated in both locale files ahead of
+// this phase being built (see src/locales/{en,ar}.json).
 const NAV_ITEMS = [
   { href: '/', key: 'dashboard' },
   { href: '/orders', key: 'orders' },
   { href: '/orders/new', key: 'new_order' },
   { href: '/inventory', key: 'inventory' },
+  { href: '/dismantle', key: 'batches' },
   { href: '/admin', key: 'admin' },
   { href: '/help', key: 'help' },
 ] as const

@@ -1,0 +1,230 @@
+// v2 replan (Phase B.5) — carcass dismantling module. Pick a seeded template
+// (12 across calf/sheep/goat, see Butcher-Project-Plan-v2.md), record a
+// carcass breakdown against it, and see the auto-calculated yield variance
+// the backend computes on read (content-per-kilo per cut, waste % overall —
+// see backend/src/routes/dismantleEvents.ts's withComputedFields).
+'use client'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import api from '../../lib/api'
+import { extractApiErrorMessage } from '../../lib/apiError'
+import { useAuth } from '../../lib/useAuth'
+import { DismantleEvent, DismantleTemplate, Product } from '../../lib/types'
+
+type CutInput = { actualWeightKg: string, productId: string }
+
+export default function DismantlePage() {
+  const { t } = useTranslation()
+  const user = useAuth()
+  const canDismantle = user != null && Array.isArray(user.caps) && user.caps.includes('dismantle_carcass')
+
+  const [templates, setTemplates] = useState<DismantleTemplate[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [events, setEvents] = useState<DismantleEvent[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  const [templateId, setTemplateId] = useState('')
+  const [sourceLabel, setSourceLabel] = useState('')
+  const [inputWeightKg, setInputWeightKg] = useState('')
+  const [cutInputs, setCutInputs] = useState<Record<string, CutInput>>({})
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    api.get<DismantleTemplate[]>('/api/dismantle-templates')
+      .then(r => {
+        setTemplates(r.data)
+        if (r.data.length > 0) setTemplateId(r.data[0].id)
+      })
+      .catch(() => setError(t('dismantle_page.error_load_templates')))
+    api.get<Product[]>('/api/products').then(r => setProducts(r.data)).catch(() => undefined)
+  }, [t])
+
+  function loadEvents() {
+    if (!canDismantle) return
+    api.get<DismantleEvent[]>('/api/dismantle-events')
+      .then(r => setEvents(r.data))
+      .catch(() => setError(t('dismantle_page.error_load_events')))
+  }
+
+  useEffect(() => {
+    loadEvents()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-run only when the capability itself changes, not on every render
+  }, [canDismantle])
+
+  const selectedTemplate = templates.find(tpl => tpl.id === templateId) ?? null
+
+  function cutInput(cutName: string): CutInput {
+    return cutInputs[cutName] ?? { actualWeightKg: '', productId: '' }
+  }
+
+  function setCutInput(cutName: string, next: Partial<CutInput>) {
+    setCutInputs(prev => ({ ...prev, [cutName]: { ...cutInput(cutName), ...next } }))
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    if (selectedTemplate === null) return
+
+    const outputs = selectedTemplate.cuts
+      .map(cut => {
+        const input = cutInput(cut.cutName)
+        const weight = Number(input.actualWeightKg)
+        if (!input.actualWeightKg || weight <= 0) return null
+        return {
+          cutName: cut.cutName,
+          actualWeightKg: weight,
+          isOffal: cut.isOffal,
+          productId: input.productId === '' ? undefined : input.productId
+        }
+      })
+      .filter((o): o is NonNullable<typeof o> => o !== null)
+
+    if (outputs.length === 0) {
+      setError(t('dismantle_page.error_no_outputs'))
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await api.post('/api/dismantle-events', {
+        templateId,
+        sourceLabel,
+        inputWeightKg: Number(inputWeightKg),
+        outputs
+      })
+      setSourceLabel('')
+      setInputWeightKg('')
+      setCutInputs({})
+      loadEvents()
+    } catch (err) {
+      setError(extractApiErrorMessage(err) ?? t('dismantle_page.error_submit'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
+  const labelClasses = 'mb-1 block text-sm font-medium text-stone-700'
+  const PERCENT_MULTIPLIER = 100
+
+  return (
+    <div>
+      <h1 className="mb-2 text-2xl font-semibold tracking-tight text-stone-900">{t('batches')}</h1>
+      <p className="mb-6 text-stone-500">{t('dismantle_page.subtitle')}</p>
+
+      {error && (
+        <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
+
+      {!canDismantle && (
+        <div className="mb-6 rounded-xl border border-dashed border-stone-300 bg-white p-6 text-center text-sm text-stone-500">
+          {t('dismantle_page.no_access')}
+        </div>
+      )}
+
+      {canDismantle && (
+        <form onSubmit={onSubmit} className="mb-8 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <label>
+              <span className={labelClasses}>{t('dismantle_page.template_label')}</span>
+              <select className={inputClasses} value={templateId} onChange={e => { setTemplateId(e.target.value); setCutInputs({}) }}>
+                {templates.map(tpl => (
+                  <option key={tpl.id} value={tpl.id}>{tpl.animalType} — {tpl.name}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span className={labelClasses}>{t('dismantle_page.source_label')}</span>
+              <input className={inputClasses} value={sourceLabel} onChange={e => setSourceLabel(e.target.value)}
+                placeholder={t('dismantle_page.source_placeholder')} required />
+            </label>
+            <label>
+              <span className={labelClasses}>{t('dismantle_page.input_weight_label')}</span>
+              <input type="number" step="0.001" min="0.001" className={inputClasses} value={inputWeightKg}
+                onChange={e => setInputWeightKg(e.target.value)} required />
+            </label>
+          </div>
+
+          {selectedTemplate !== null && (
+            <div className="overflow-hidden rounded-lg border border-stone-200">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+                    <th className="px-3 py-2">{t('dismantle_page.cut_label')}</th>
+                    <th className="px-3 py-2">{t('dismantle_page.expected_yield_label')}</th>
+                    <th className="px-3 py-2">{t('dismantle_page.actual_weight_label')}</th>
+                    <th className="px-3 py-2">{t('dismantle_page.stock_into_label')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {selectedTemplate.cuts.map(cut => (
+                    <tr key={cut.id}>
+                      <td className="px-3 py-2 font-medium text-stone-900">
+                        {cut.cutName}
+                        {cut.isOffal && <span className="ms-1.5 rounded-full bg-stone-100 px-1.5 py-0.5 text-xs text-stone-500">offal</span>}
+                      </td>
+                      <td className="px-3 py-2 text-stone-500">{Number(cut.expectedYieldPct).toFixed(1)}%</td>
+                      <td className="px-3 py-2">
+                        <input type="number" step="0.001" min="0" className={`${inputClasses} w-28`}
+                          value={cutInput(cut.cutName).actualWeightKg}
+                          onChange={e => setCutInput(cut.cutName, { actualWeightKg: e.target.value })} />
+                      </td>
+                      <td className="px-3 py-2">
+                        <select className={`${inputClasses} w-40`} value={cutInput(cut.cutName).productId}
+                          onChange={e => setCutInput(cut.cutName, { productId: e.target.value })}>
+                          <option value="">{t('dismantle_page.record_only')}</option>
+                          {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <button type="submit" disabled={submitting}
+            className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+            {submitting ? t('dismantle_page.submitting') : t('dismantle_page.submit')}
+          </button>
+        </form>
+      )}
+
+      {canDismantle && (
+        <div>
+          <h2 className="mb-3 text-lg font-semibold text-stone-900">{t('dismantle_page.recent_events')}</h2>
+          {events.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-sm text-stone-500">
+              {t('dismantle_page.no_events')}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {events.map(ev => (
+                <div key={ev.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-medium text-stone-900">{ev.sourceLabel}</p>
+                      <p className="text-xs text-stone-500">{ev.template.animalType} — {ev.template.name} · {Number(ev.inputWeightKg).toFixed(3)} kg</p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${ev.wastePct > PERCENT_MULTIPLIER / 10 ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
+                      {t('dismantle_page.waste')}: {ev.wastePct.toFixed(1)}%
+                    </span>
+                  </div>
+                  <ul className="space-y-1 text-sm text-stone-600">
+                    {ev.outputs.map(o => (
+                      <li key={o.id} className="flex justify-between">
+                        <span>{o.cutName}</span>
+                        <span>{Number(o.actualWeightKg).toFixed(3)} kg ({(o.contentPerKiloKg * PERCENT_MULTIPLIER).toFixed(1)}% {t('dismantle_page.per_kilo')})</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

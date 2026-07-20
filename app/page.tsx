@@ -5,34 +5,42 @@
 // that actually exists. Orders requires auth (GET /api/orders is behind the
 // `auth` middleware), so logged-out visitors see a prompt instead of a 401-driven
 // blank stat.
+//
+// v2 replan (Phase A — Dashboard 2.0): adds a "currently in progress" KPI
+// card (each card links to the relevant filtered view, per the plan), plus
+// two charts computed client-side from the same GET /api/orders response
+// already fetched here — a 7/30-day revenue line chart and a top-5
+// products-by-kg-sold bar chart. No new backend endpoint yet (see the plan's
+// note on a future server-side /api/dashboard/summary aggregate once client-
+// side aggregation gets slow).
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
+import {
+  ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
+} from 'recharts'
 import api from '../lib/api'
 import { useAuth } from '../lib/useAuth'
 import { Order, Product } from '../lib/types'
 
 const LOW_STOCK_THRESHOLD_KG = 5
+const DAYS_7 = 7
+const DAYS_30 = 30
+const TOP_PRODUCTS_LIMIT = 5
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+const RANGE_OPTIONS: Array<typeof DAYS_7 | typeof DAYS_30> = [DAYS_7, DAYS_30]
 
 export default function Page() {
   const { t } = useTranslation()
   const user = useAuth()
   const loggedIn = !!user
-  const [todaysOrders, setTodaysOrders] = useState<number | null>(null)
-  const [stockAlerts, setStockAlerts] = useState<number | null>(null)
-  const [productCount, setProductCount] = useState<number | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
+  const [orders, setOrders] = useState<Order[] | null>(null)
+  const [rangeDays, setRangeDays] = useState<typeof DAYS_7 | typeof DAYS_30>(DAYS_7)
 
   useEffect(() => {
-    api.get<Product[]>('/api/products')
-      .then(r => {
-        setProductCount(r.data.length)
-        setStockAlerts(r.data.filter(p => Number(p.stockKg) < LOW_STOCK_THRESHOLD_KG).length)
-      })
-      .catch(() => {
-        setProductCount(null)
-        setStockAlerts(null)
-      })
+    api.get<Product[]>('/api/products').then(r => setProducts(r.data)).catch(() => setProducts([]))
   }, [])
 
   useEffect(() => {
@@ -40,15 +48,44 @@ export default function Page() {
     // cookie isn't readable client-side), so this only fires once `loggedIn`
     // flips true, rather than racing it on mount.
     if (!loggedIn) return
-    api.get<Order[]>('/api/orders')
-      .then(r => {
-        const today = new Date().toDateString()
-        setTodaysOrders(r.data.filter(o => new Date(o.createdAt).toDateString() === today).length)
-      })
-      .catch(() => setTodaysOrders(null))
+    api.get<Order[]>('/api/orders').then(r => setOrders(r.data)).catch(() => setOrders(null))
   }, [loggedIn])
 
-  const hasAlerts = (stockAlerts ?? 0) > 0
+  const stockAlerts = products.filter(p => Number(p.stockKg) < LOW_STOCK_THRESHOLD_KG).length
+  const hasAlerts = stockAlerts > 0
+  const productCount = products.length
+
+  const today = new Date().toDateString()
+  const nonCancelled = useMemo(() => (orders ?? []).filter(o => o.status !== 'CANCELLED' && o.status !== 'DRAFT'), [orders])
+  const todaysOrders = orders === null ? null : nonCancelled.filter(o => new Date(o.createdAt).toDateString() === today).length
+  const inProgressCount = orders === null ? null : orders.filter(o => o.status === 'IN_PROGRESS').length
+
+  const revenueByDay = useMemo(() => {
+    const days: { date: string, label: string, revenue: number }[] = []
+    for (let i = rangeDays - 1; i >= 0; i--) {
+      const d = new Date(Date.now() - i * MS_PER_DAY)
+      const key = d.toDateString()
+      const revenue = nonCancelled
+        .filter(o => new Date(o.createdAt).toDateString() === key)
+        .reduce((sum, o) => sum + Number(o.totalAmount), 0)
+      days.push({ date: key, label: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), revenue })
+    }
+    return days
+  }, [nonCancelled, rangeDays])
+
+  const topProducts = useMemo(() => {
+    const nameById = new Map(products.map(p => [p.id, p.name]))
+    const kgById = new Map<string, number>()
+    for (const o of nonCancelled) {
+      for (const item of o.items) {
+        kgById.set(item.productId, (kgById.get(item.productId) ?? 0) + Number(item.kg))
+      }
+    }
+    return Array.from(kgById.entries())
+      .map(([productId, kg]) => ({ name: nameById.get(productId) ?? productId, kg: Number(kg.toFixed(2)) }))
+      .sort((a, b) => b.kg - a.kg)
+      .slice(0, TOP_PRODUCTS_LIMIT)
+  }, [nonCancelled, products])
 
   return (
     <div>
@@ -57,8 +94,9 @@ export default function Page() {
         <p className="mt-1 text-sm text-stone-500">{t('app_name')}</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
+          href="/orders"
           label={t('dashboard_page.todays_orders')}
           value={loggedIn ? todaysOrders : null}
           pending={!loggedIn}
@@ -67,18 +105,73 @@ export default function Page() {
           accent="brand"
         />
         <StatCard
+          href="/orders"
+          label={t('dashboard_page.orders_in_progress')}
+          value={loggedIn ? inProgressCount : null}
+          pending={!loggedIn}
+          pendingLabel={t('dashboard_page.log_in_to_view')}
+          icon={<ClockIcon />}
+          accent="brand"
+        />
+        <StatCard
+          href="/inventory"
           label={t('dashboard_page.stock_alerts', { threshold: LOW_STOCK_THRESHOLD_KG })}
           value={stockAlerts}
           icon={<AlertIcon />}
           accent={hasAlerts ? 'amber' : 'green'}
         />
         <StatCard
+          href="/inventory"
           label={t('dashboard_page.products_tracked')}
           value={productCount}
           icon={<BoxIcon />}
           accent="stone"
         />
       </div>
+
+      {loggedIn && orders !== null && orders.length > 0 && (
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-stone-900">{t('dashboard_page.revenue_chart_title')}</h2>
+              <div className="flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs font-medium">
+                {RANGE_OPTIONS.map(d => (
+                  <button key={d} onClick={() => setRangeDays(d)}
+                    className={`rounded-md px-2 py-1 transition-colors ${rangeDays === d ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+                    {t('dashboard_page.days', { count: d })}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={revenueByDay}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0efee" />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#78716c' }} tickLine={false} axisLine={{ stroke: '#e7e5e4' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#78716c' }} tickLine={false} axisLine={false} width={36} />
+                <Tooltip formatter={(value: number) => value.toFixed(2)} labelStyle={{ color: '#1c1917' }} />
+                <Line type="monotone" dataKey="revenue" stroke="#b8392a" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+            <h2 className="mb-3 text-sm font-semibold text-stone-900">{t('dashboard_page.top_products_chart_title')}</h2>
+            {topProducts.length === 0 ? (
+              <div className="flex h-[220px] items-center justify-center text-sm text-stone-400">{t('dashboard_page.no_sales_yet')}</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={topProducts} layout="vertical" margin={{ left: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0efee" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#78716c' }} tickLine={false} axisLine={{ stroke: '#e7e5e4' }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#78716c' }} tickLine={false} axisLine={false} width={90} />
+                  <Tooltip formatter={(value: number) => `${value} kg`} labelStyle={{ color: '#1c1917' }} />
+                  <Bar dataKey="kg" fill="#b8392a" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
@@ -112,6 +205,7 @@ const ACCENT_STYLES = {
 } as const
 
 function StatCard({
+  href,
   label,
   value,
   icon,
@@ -119,6 +213,7 @@ function StatCard({
   pending,
   pendingLabel,
 }: {
+  href: string
   label: string
   value: number | null
   icon: React.ReactNode
@@ -127,7 +222,10 @@ function StatCard({
   pendingLabel?: string
 }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover">
+    <Link
+      href={href}
+      className="block rounded-xl border border-stone-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-stone-500">{label}</p>
@@ -141,7 +239,7 @@ function StatCard({
           {icon}
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -150,6 +248,15 @@ function ReceiptIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" />
       <path d="M9 8h6M9 12h6" />
+    </svg>
+  )
+}
+
+function ClockIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
     </svg>
   )
 }

@@ -44,3 +44,21 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background-color: theme('colors.stone.400');
 }
+
+/* v2 replan (Phase E — cashier module): printable receipt. Everything is
+   hidden on print except an element carrying `.receipt-print-area` (the
+   navbar, page chrome, buttons, etc. all disappear) — simpler than
+   restructuring the app shell to know about a print mode, since this is the
+   only page that ever needs to print. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-print-area, .receipt-print-area * {
+    visibility: visible;
+  }
+  .receipt-print-area {
+    position: absolute;
+    inset: 0;
+  }
+}
