@@ -10,7 +10,7 @@ import Link from 'next/link'
 import api from '../../../lib/api'
 import { extractApiErrorMessage } from '../../../lib/apiError'
 import { useAuth } from '../../../lib/useAuth'
-import { CashSummary, CashTransaction, CashTransactionType } from '../../../lib/types'
+import { CashSummary, CashTransaction, CashTransactionType, DailyClosing } from '../../../lib/types'
 
 const RANGES = ['day', 'week', 'month', 'year'] as const
 // v3 follow-up: each summary card now links to the records that make up its
@@ -37,9 +37,34 @@ export default function CashManagementPage() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
+  // v3.1 replan (Phase L — closing day, ADR-015): a human-readable "#1, #2,
+  // #3..." order sequence needs a reset point, and that reset should be a
+  // deliberate staff action (not a silent midnight cron) since shops don't
+  // all close at the same time or even close daily. `closings` is the
+  // audit trail of past resets.
+  const [closings, setClosings] = useState<DailyClosing[]>([])
+  const [confirmingClose, setConfirmingClose] = useState(false)
+  const [closingDay, setClosingDay] = useState(false)
+  const [closeError, setCloseError] = useState<string | null>(null)
+
   function load() {
     api.get<CashTransaction[]>('/api/cash-transactions').then(r => setTransactions(r.data)).catch(() => setTransactions([]))
     api.get<CashSummary>('/api/cash-transactions/summary', { params: { range } }).then(r => setSummary(r.data)).catch(() => setSummary(null))
+    api.get<DailyClosing[]>('/api/shop-settings/closings').then(r => setClosings(r.data)).catch(() => setClosings([]))
+  }
+
+  async function closeDay() {
+    setClosingDay(true)
+    setCloseError(null)
+    try {
+      await api.post('/api/shop-settings/close-day')
+      setConfirmingClose(false)
+      load()
+    } catch (err) {
+      setCloseError(extractApiErrorMessage(err) ?? t('cash_page.error_close_day'))
+    } finally {
+      setClosingDay(false)
+    }
   }
 
   useEffect(() => {
@@ -86,8 +111,34 @@ export default function CashManagementPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight text-stone-900">{t('cash_page.title')}</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight text-stone-900">{t('cash_page.title')}</h1>
+        {/* v3.1 replan (Phase L, ADR-015): a deliberate staff action, not an
+            automatic midnight reset — shifts/closing times vary by shop. */}
+        <button onClick={() => setConfirmingClose(true)}
+          className="rounded-lg border border-stone-300 bg-white px-3.5 py-1.5 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50">
+          {t('cash_page.close_day')}
+        </button>
+      </div>
       {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {closeError !== null && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{closeError}</div>}
+
+      {confirmingClose && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm font-medium text-amber-900">{t('cash_page.confirm_close_title')}</p>
+          <p className="mt-1 text-sm text-amber-800">{t('cash_page.confirm_close_message')}</p>
+          <div className="mt-3 flex justify-end gap-2">
+            <button onClick={() => setConfirmingClose(false)} disabled={closingDay}
+              className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50">
+              {t('cash_page.confirm_close_cancel')}
+            </button>
+            <button onClick={closeDay} disabled={closingDay}
+              className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50">
+              {closingDay ? t('cash_page.closing') : t('cash_page.confirm_close_confirm')}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mb-6 flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs font-medium w-fit">
         {RANGES.map(r => (
@@ -164,6 +215,36 @@ export default function CashManagementPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {closings.length > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('cash_page.recent_closings')}</h2>
+          <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-card">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+                  <th className="px-4 py-2.5">{t('cash_page.closed_at')}</th>
+                  <th className="px-4 py-2.5">{t('cash_page.closed_by')}</th>
+                  <th className="px-4 py-2.5">{t('cash_page.closing_order_count')}</th>
+                  <th className="px-4 py-2.5">{t('cash_page.total_revenue')}</th>
+                  <th className="px-4 py-2.5">{t('cash_page.net_position')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {closings.map(c => (
+                  <tr key={c.id}>
+                    <td className="px-4 py-2.5 text-stone-500">{new Date(c.closedAt).toLocaleString()}</td>
+                    <td className="px-4 py-2.5 text-stone-500">{c.closedByUser.email}</td>
+                    <td className="px-4 py-2.5 font-medium text-stone-900">{c.orderCount}</td>
+                    <td className="px-4 py-2.5 font-medium text-stone-900">{Number(c.totalRevenue).toFixed(2)}</td>
+                    <td className="px-4 py-2.5 font-medium text-stone-900">{Number(c.netPosition).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

@@ -29,6 +29,11 @@ export type OrderStatus = 'DRAFT' | 'CREATED' | 'IN_PROGRESS' | 'ON_THE_WAY' | '
 
 export type Order = {
   id: string
+  // v3.1 replan (Phase L — daily order numbering, ADR-015). Human-friendly
+  // "#N" sequence, reset by the closing-day action — display only, never
+  // the real key (that's still `id`). Null for orders created before this
+  // migration.
+  dailyNumber: number | null
   customer: string | null
   totalAmount: string
   status: OrderStatus
@@ -88,11 +93,29 @@ export type CashSummary = {
   totalRevenue: string
 }
 
+// v3.1 replan (Phase L — closing day, ADR-015). One row per "closing day"
+// action — a permanent snapshot, not editable.
+export type DailyClosing = {
+  id: string
+  closedAt: string
+  closedBy: string
+  orderCount: number
+  totalRevenue: string
+  cashIn: string
+  cashOut: string
+  netPosition: string
+  closedByUser: { email: string }
+}
+
 // v3 replan (Phase J — pending-order alerting). Single-row shop-wide config.
 export type ShopSettings = {
   id: string
   pendingOrderAlertMinutes: number
   alertSoundEnabled: boolean
+  // v3.1 replan (Phase L). Current running daily-order counter and when it
+  // was last reset by the closing-day action.
+  dailyOrderCounter: number
+  lastClosedAt: string | null
 }
 
 // v2 replan (Phase B): audit trail row for a direct stock edit.

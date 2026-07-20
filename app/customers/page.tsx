@@ -36,7 +36,6 @@ export default function CustomersPage() {
     if (!loggedIn) return
     const handle = setTimeout(() => load(query), 250)
     return () => clearTimeout(handle)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `load` is defined fresh each render, only `query`/`loggedIn` should retrigger this.
   }, [query, loggedIn])
 
   async function addCustomer(e: React.FormEvent) {

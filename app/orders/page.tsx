@@ -25,10 +25,17 @@ const COLUMNS: { status: OrderStatus, key: string }[] = [
   { status: 'IN_PREMISE', key: 'in_premise' }
 ]
 
-const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
-  CREATED: 'IN_PROGRESS',
-  IN_PROGRESS: 'ON_THE_WAY',
-  ON_THE_WAY: 'IN_PREMISE'
+// v3.1 follow-up: ON_THE_WAY and IN_PREMISE are alternate terminal branches
+// (delivery vs. walk-in/pickup), not a forced chain — a delivery order was
+// previously stuck being marched through "On the Way" *then* "In Premise"
+// even though it never physically sits in the shop, and an in-premise order
+// had no path to "On the Way" at all. IN_PROGRESS now offers both as a
+// branching choice; the backend already allowed setting either status
+// regardless of the current one (routes/orders.ts's PROMOTABLE_STATUSES),
+// so this was purely a frontend restriction.
+const NEXT_STATUSES: Partial<Record<OrderStatus, OrderStatus[]>> = {
+  CREATED: ['IN_PROGRESS'],
+  IN_PROGRESS: ['ON_THE_WAY', 'IN_PREMISE']
 }
 
 export default function OrdersPage() {
@@ -64,9 +71,7 @@ export default function OrdersPage() {
   const drafts = orders.filter(o => o.status === 'DRAFT')
   const byColumn = (status: OrderStatus) => orders.filter(o => o.status === status)
 
-  async function advance(order: Order) {
-    const next = NEXT_STATUS[order.status]
-    if (next === undefined) return
+  async function advance(order: Order, next: OrderStatus) {
     setError(null)
     setBusyId(order.id)
     try {
@@ -106,20 +111,31 @@ export default function OrdersPage() {
   }
 
   function OrderCard({ order }: { order: Order }) {
-    const next = NEXT_STATUS[order.status]
+    const nextOptions = NEXT_STATUSES[order.status] ?? []
     return (
       <div className="rounded-lg border border-stone-200 bg-white p-3 shadow-card">
         <div className="mb-1 flex items-center justify-between gap-2">
-          <p className="truncate text-sm font-medium text-stone-900">{order.customer || t('orders_page.walk_in')}</p>
+          <p className="truncate text-sm font-medium text-stone-900">
+            {order.dailyNumber !== null && <span className="text-stone-400">#{order.dailyNumber} · </span>}
+            {order.customer || t('orders_page.walk_in')}
+          </p>
           <span className="shrink-0 text-sm font-semibold text-stone-900">{Number(order.totalAmount).toFixed(2)}</span>
         </div>
         <p className="mb-2 text-xs text-stone-500">{new Date(order.createdAt).toLocaleString()}</p>
-        {canManageOrders && next !== undefined && (
-          <div className="flex gap-2">
-            <button onClick={() => advance(order)} disabled={busyId === order.id}
-              className="rounded-md bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-50">
-              {t('orders_page.advance_to', { status: t(`orders_page.status_${NEXT_STATUS[order.status]?.toLowerCase()}`) })}
-            </button>
+        {canManageOrders && (
+          // v3.1 follow-up: Cancel is no longer bundled behind "has a next
+          // status" — previously that meant ON_THE_WAY/IN_PREMISE orders
+          // (both now terminal branches, not just IN_PREMISE) had no
+          // actions at all once they got there. Any non-cancelled order can
+          // be cancelled regardless of stage; only the advance button(s)
+          // depend on what's next.
+          <div className="flex flex-wrap gap-2">
+            {nextOptions.map((next) => (
+              <button key={next} onClick={() => advance(order, next)} disabled={busyId === order.id}
+                className="rounded-md bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-50">
+                {t('orders_page.advance_to', { status: t(`orders_page.status_${next.toLowerCase()}`) })}
+              </button>
+            ))}
             <button onClick={() => cancel(order)} disabled={busyId === order.id}
               className="rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
               {t('orders_page.cancel_order')}
@@ -166,7 +182,10 @@ export default function OrdersPage() {
                 {drafts.map(o => (
                   <div key={o.id} className="rounded-lg border border-dashed border-stone-300 bg-stone-50 p-3">
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-medium text-stone-900">{o.customer || t('orders_page.walk_in')}</p>
+                      <p className="truncate text-sm font-medium text-stone-900">
+                        {o.dailyNumber !== null && <span className="text-stone-400">#{o.dailyNumber} · </span>}
+                        {o.customer || t('orders_page.walk_in')}
+                      </p>
                       <span className="shrink-0 text-sm font-semibold text-stone-900">{Number(o.totalAmount).toFixed(2)}</span>
                     </div>
                     {/* v3 replan (Phase I): source badge for every non-cashier

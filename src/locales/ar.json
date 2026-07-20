@@ -283,6 +283,17 @@
     "error_save": "فشل حفظ القيد.",
     "filter_showing_in": "عرض الوارد فقط",
     "filter_showing_out": "عرض الصادر فقط",
-    "filter_clear": "عرض الكل"
+    "filter_clear": "عرض الكل",
+    "close_day": "إغلاق اليوم",
+    "closing": "جارٍ الإغلاق…",
+    "confirm_close_title": "إغلاق اليوم؟",
+    "confirm_close_message": "سيؤدي هذا لإعادة ترقيم الطلبات إلى #1 وتسجيل لقطة دائمة للطلبات والإيرادات والنقدية منذ آخر إغلاق. لا يؤثر هذا على سجل النقدية نفسه — تبقى كل القيود في الجدول أدناه.",
+    "confirm_close_cancel": "إلغاء",
+    "confirm_close_confirm": "نعم، أغلق اليوم",
+    "error_close_day": "فشل إغلاق اليوم.",
+    "recent_closings": "الإغلاقات الأخيرة",
+    "closed_at": "وقت الإغلاق",
+    "closed_by": "أُغلق بواسطة",
+    "closing_order_count": "الطلبات"
   }
 }

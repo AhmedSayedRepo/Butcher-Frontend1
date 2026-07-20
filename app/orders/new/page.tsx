@@ -179,7 +179,10 @@ export default function NewOrderPage() {
     return (
       <div>
         <div className="receipt-print-area mx-auto max-w-sm rounded-xl border border-stone-200 bg-white p-6 shadow-card">
-          <h1 className="mb-1 text-lg font-semibold text-stone-900">{t('new_order_page.receipt_title')}</h1>
+          <h1 className="mb-1 text-lg font-semibold text-stone-900">
+            {t('new_order_page.receipt_title')}
+            {receipt.dailyNumber !== null && <span className="ms-2 text-stone-400">#{receipt.dailyNumber}</span>}
+          </h1>
           <p className="mb-4 text-xs text-stone-500">
             {receipt.customer || t('orders_page.walk_in')} · {new Date(receipt.createdAt).toLocaleString()}
           </p>

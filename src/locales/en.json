@@ -283,6 +283,17 @@
     "error_save": "Failed to save entry.",
     "filter_showing_in": "Showing cash in only",
     "filter_showing_out": "Showing cash out only",
-    "filter_clear": "Show all"
+    "filter_clear": "Show all",
+    "close_day": "Close day",
+    "closing": "Closing…",
+    "confirm_close_title": "Close out the day?",
+    "confirm_close_message": "This resets order numbering back to #1 and records a permanent snapshot of orders, revenue, and cash since the last closing. It doesn't affect the cash ledger itself — every entry stays in the table below.",
+    "confirm_close_cancel": "Cancel",
+    "confirm_close_confirm": "Yes, close the day",
+    "error_close_day": "Failed to close the day.",
+    "recent_closings": "Recent closings",
+    "closed_at": "Closed at",
+    "closed_by": "Closed by",
+    "closing_order_count": "Orders"
   }
 }
