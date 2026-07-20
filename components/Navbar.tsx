@@ -43,10 +43,15 @@ import { useAuth } from '../lib/useAuth'
 // v2 replan (Phase B.5): "batches" links to the new carcass-dismantling
 // module — the label was already translated in both locale files ahead of
 // this phase being built (see src/locales/{en,ar}.json).
+// v3 replan (Phase H/I): "customers" and "inbox" (social/phone draft entry)
+// added — both are ordinary order-taking-adjacent actions any logged-in
+// staff member uses, same tier as "new_order", not admin-gated.
 const NAV_ITEMS = [
   { href: '/', key: 'dashboard' },
   { href: '/orders', key: 'orders' },
   { href: '/orders/new', key: 'new_order' },
+  { href: '/orders/inbox', key: 'inbox' },
+  { href: '/customers', key: 'customers' },
   { href: '/inventory', key: 'inventory' },
   { href: '/dismantle', key: 'batches' },
   { href: '/admin', key: 'admin' },

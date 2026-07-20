@@ -1,17 +1,44 @@
 'use client'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
+import api from '../../lib/api'
 import { useAuth } from '../../lib/useAuth'
+import { ShopSettings } from '../../lib/types'
 
 // v2 replan, Phase D: was a static placeholder ("still a static placeholder,
 // no real users/branding/settings functionality" — ROADMAP.md). Now links to
-// the real /admin/users screen once it exists; branding/settings remain
-// unbuilt placeholders (not in the Phase D scope).
+// the real /admin/users screen, plus (v3 replan) /admin/cash and this page's
+// own inline shop-settings form for Phase J's alert threshold.
 export default function AdminPage(){
   const { t } = useTranslation()
   const user = useAuth()
   const caps = user != null && Array.isArray(user.caps) ? user.caps : []
   const canManageUsers = caps.includes('manage_users')
+  const canManageCash = caps.includes('manage_cash')
+  const isAdmin = user != null && user.role === 'admin'
+
+  const [settings, setSettings] = useState<ShopSettings | null>(null)
+  const [minutes, setMinutes] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!isAdmin) return
+    api.get<ShopSettings>('/api/shop-settings').then(r => { setSettings(r.data); setMinutes(String(r.data.pendingOrderAlertMinutes)) }).catch(() => setSettings(null))
+  }, [isAdmin])
+
+  async function saveSettings(e: React.FormEvent) {
+    e.preventDefault()
+    const value = Number(minutes)
+    if (!value || value <= 0) return
+    setSaving(true)
+    try {
+      const r = await api.patch<ShopSettings>('/api/shop-settings', { pendingOrderAlertMinutes: value })
+      setSettings(r.data)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div>
@@ -27,6 +54,34 @@ export default function AdminPage(){
             <path d="M9 18l6-6-6-6" />
           </svg>
         </Link>
+      )}
+
+      {canManageCash && (
+        <Link
+          href="/admin/cash"
+          className="mb-4 flex items-center justify-between rounded-xl border border-stone-200 bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover"
+        >
+          <span className="font-medium text-stone-900">{t('admin_page.manage_cash')}</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </Link>
+      )}
+
+      {/* v3 replan (Phase J, ADR-010): shop-wide alert threshold — admin-only,
+          same policy tier as user management. */}
+      {isAdmin && settings !== null && (
+        <form onSubmit={saveSettings} className="mb-4 rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+          <p className="mb-2 text-sm font-medium text-stone-900">{t('admin_page.alert_threshold_label')}</p>
+          <div className="flex items-center gap-2">
+            <input type="number" min="1" className="w-24 rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              value={minutes} onChange={e => setMinutes(e.target.value)} />
+            <span className="text-sm text-stone-500">{t('admin_page.minutes')}</span>
+            <button type="submit" disabled={saving} className="ml-auto rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+              {saving ? t('customers_page.saving') : t('customers_page.save')}
+            </button>
+          </div>
+        </form>
       )}
 
       <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center">

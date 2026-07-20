@@ -2,6 +2,8 @@
   "dashboard": "Dashboard",
   "orders": "Orders",
   "new_order": "New Order",
+  "inbox": "Inbox",
+  "customers": "Customers",
   "inventory": "Inventory",
   "batches": "Batches",
   "admin": "Admin",
@@ -36,7 +38,10 @@
     "revenue_chart_title": "Revenue",
     "top_products_chart_title": "Top products (kg sold)",
     "days": "{{count}}d",
-    "no_sales_yet": "No sales yet"
+    "no_sales_yet": "No sales yet",
+    "pending_by_source_title": "Pending orders by source",
+    "stale_orders_badge": "{{count}} order(s) over {{minutes}}m",
+    "stale_orders_notification": "{{count}} order(s) waiting longer than the alert threshold"
   },
   "orders_page": {
     "please_login": "Please log in to view orders.",
@@ -52,9 +57,15 @@
     "status_in_progress": "In Progress",
     "status_on_the_way": "On the Way",
     "status_in_premise": "In Premise",
+    "status_draft": "Draft",
+    "status_cancelled": "Cancelled",
     "error_status": "Failed to update order status.",
     "error_promote": "Failed to confirm draft order.",
-    "source_whatsapp": "WhatsApp"
+    "source_whatsapp": "WhatsApp",
+    "source_in_premise": "In-premise",
+    "source_social": "Social",
+    "source_phone": "Phone",
+    "source_cashier": "Cashier"
   },
   "new_order_page": {
     "title": "New Order",
@@ -78,7 +89,11 @@
     "error_pick_product": "Pick a product and enter a valid kg amount.",
     "error_add_item": "Add at least one item to the order.",
     "error_load_products": "Failed to load products.",
-    "error_submit": "Failed to submit order."
+    "error_submit": "Failed to submit order.",
+    "barcode_label": "Scan barcode",
+    "barcode_placeholder": "Scan or type a barcode, then Enter",
+    "error_barcode_not_found": "No product found for barcode {{code}}.",
+    "customer_linked": "Linked to {{name}}"
   },
   "inventory_page": {
     "name_label": "Name",
@@ -100,7 +115,8 @@
     "error_create": "Failed to create product.",
     "error_save": "Failed to save product.",
     "error_reason_required": "A reason is required when changing stock.",
-    "low_stock_tag": "low stock"
+    "low_stock_tag": "low stock",
+    "barcode_label": "Barcode"
   },
   "login_page": {
     "title": "Sign in",
@@ -136,7 +152,10 @@
   },
   "admin_page": {
     "subtitle": "Users, Branding, Settings",
-    "manage_users": "Manage Users"
+    "manage_users": "Manage Users",
+    "manage_cash": "Cash Management",
+    "alert_threshold_label": "Pending-order alert threshold",
+    "minutes": "minutes"
   },
   "admin_users_page": {
     "title": "User Management",
@@ -158,9 +177,67 @@
     "cap_manage_inventory": "Manage inventory",
     "cap_manage_orders": "Manage orders",
     "cap_dismantle_carcass": "Dismantle carcasses",
+    "cap_manage_cash": "Manage cash",
     "confirm_demote_title": "Remove your own admin access?",
     "confirm_demote_message": "You're changing your own role away from Admin. You'll lose access to this screen until another admin restores it.",
     "confirm_demote_confirm": "Yes, change my role",
     "confirm_demote_cancel": "Cancel"
+  },
+  "customers_page": {
+    "title": "Customers",
+    "add_customer": "Add customer",
+    "name_placeholder": "Name",
+    "phone_placeholder": "Phone",
+    "search_placeholder": "Search by name or phone…",
+    "no_customers": "No customers yet",
+    "view_profile": "View profile",
+    "saving": "Saving…",
+    "save": "Save",
+    "loading": "Loading…",
+    "total_spend": "Total spend",
+    "last_order": "Last order",
+    "notes": "Notes",
+    "order_history": "Order history",
+    "no_orders_yet": "No orders yet",
+    "delete_customer": "Delete customer",
+    "delete_confirm": "This permanently erases their record. Are you sure?",
+    "confirm_delete": "Yes, delete",
+    "deleting": "Deleting…",
+    "cancel": "Cancel",
+    "error_save": "Failed to save customer.",
+    "error_load": "Failed to load customer.",
+    "error_delete": "Failed to delete customer."
+  },
+  "inbox_page": {
+    "title": "Order Inbox",
+    "source_social": "Social media",
+    "source_phone": "Phone",
+    "message_label_social": "Message text (paste the DM)",
+    "message_label_phone": "Call notes",
+    "message_placeholder": "What the customer said…",
+    "delivery_address_label": "Delivery address",
+    "save_draft": "Save as draft",
+    "error_load_products": "Failed to load products."
+  },
+  "cash_page": {
+    "title": "Cash Management",
+    "no_access": "You don't have permission to view cash management.",
+    "range_day": "Day",
+    "range_week": "Week",
+    "range_month": "Month",
+    "range_year": "Year",
+    "cash_in": "Cash in",
+    "cash_out": "Cash out",
+    "net_position": "Net position",
+    "total_revenue": "Total revenue",
+    "type_in": "In",
+    "type_out": "Out",
+    "category_placeholder": "Category (deposit, supplier, petty cash…)",
+    "amount_placeholder": "Amount",
+    "note_placeholder": "Note (optional)",
+    "add_entry": "Add entry",
+    "saving": "Saving…",
+    "no_entries": "No entries yet",
+    "error_save": "Failed to save entry."
   }
 }

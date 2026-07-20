@@ -12,7 +12,9 @@ import { extractApiErrorMessage } from '../../../lib/apiError'
 import { useAuth } from '../../../lib/useAuth'
 
 const ROLES = ['cashier', 'manager', 'admin'] as const
-const CAPS = ['manage_users', 'manage_inventory', 'manage_orders', 'dismantle_carcass'] as const
+// v3 replan (Phase K, ADR-012): `manage_cash` added — must mirror
+// backend/src/lib/caps.ts's CAPS list exactly, same as before.
+const CAPS = ['manage_users', 'manage_inventory', 'manage_orders', 'dismantle_carcass', 'manage_cash'] as const
 type RoleT = (typeof ROLES)[number]
 type CapT = (typeof CAPS)[number]
 

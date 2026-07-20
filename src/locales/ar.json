@@ -2,6 +2,8 @@
   "dashboard": "لوحة التحكم",
   "orders": "الطلبات",
   "new_order": "طلب جديد",
+  "inbox": "الوارد",
+  "customers": "العملاء",
   "inventory": "المخزون",
   "batches": "الدفعات",
   "admin": "المسؤول",
@@ -36,7 +38,10 @@
     "revenue_chart_title": "الإيرادات",
     "top_products_chart_title": "أكثر المنتجات مبيعًا (كجم)",
     "days": "{{count}} أيام",
-    "no_sales_yet": "لا توجد مبيعات بعد"
+    "no_sales_yet": "لا توجد مبيعات بعد",
+    "pending_by_source_title": "الطلبات المعلَّقة حسب المصدر",
+    "stale_orders_badge": "{{count}} طلب متأخر أكثر من {{minutes}} دقيقة",
+    "stale_orders_notification": "{{count}} طلب بانتظار أطول من حد التنبيه"
   },
   "orders_page": {
     "please_login": "يرجى تسجيل الدخول لعرض الطلبات.",
@@ -52,9 +57,15 @@
     "status_in_progress": "قيد التنفيذ",
     "status_on_the_way": "في الطريق",
     "status_in_premise": "في المتجر",
+    "status_draft": "مسودة",
+    "status_cancelled": "ملغى",
     "error_status": "فشل تحديث حالة الطلب.",
     "error_promote": "فشل تأكيد الطلب المسوَّد.",
-    "source_whatsapp": "واتساب"
+    "source_whatsapp": "واتساب",
+    "source_in_premise": "داخل المتجر",
+    "source_social": "وسائل التواصل",
+    "source_phone": "هاتف",
+    "source_cashier": "الكاشير"
   },
   "new_order_page": {
     "title": "طلب جديد",
@@ -78,7 +89,11 @@
     "error_pick_product": "اختر منتجًا وأدخل وزنًا صحيحًا بالكيلوجرام.",
     "error_add_item": "أضف عنصرًا واحدًا على الأقل إلى الطلب.",
     "error_load_products": "فشل تحميل المنتجات.",
-    "error_submit": "فشل إرسال الطلب."
+    "error_submit": "فشل إرسال الطلب.",
+    "barcode_label": "مسح الباركود",
+    "barcode_placeholder": "امسح أو أدخل الباركود ثم اضغط Enter",
+    "error_barcode_not_found": "لا يوجد منتج بهذا الباركود {{code}}.",
+    "customer_linked": "مرتبط بـ {{name}}"
   },
   "inventory_page": {
     "name_label": "الاسم",
@@ -100,7 +115,8 @@
     "error_create": "فشل إنشاء المنتج.",
     "error_save": "فشل حفظ المنتج.",
     "error_reason_required": "سبب التغيير مطلوب عند تعديل المخزون.",
-    "low_stock_tag": "مخزون منخفض"
+    "low_stock_tag": "مخزون منخفض",
+    "barcode_label": "الباركود"
   },
   "login_page": {
     "title": "تسجيل الدخول",
@@ -136,7 +152,10 @@
   },
   "admin_page": {
     "subtitle": "المستخدمون، الهوية البصرية، الإعدادات",
-    "manage_users": "إدارة المستخدمين"
+    "manage_users": "إدارة المستخدمين",
+    "manage_cash": "إدارة النقدية",
+    "alert_threshold_label": "حد تنبيه الطلبات المعلَّقة",
+    "minutes": "دقيقة"
   },
   "admin_users_page": {
     "title": "إدارة المستخدمين",
@@ -158,9 +177,67 @@
     "cap_manage_inventory": "إدارة المخزون",
     "cap_manage_orders": "إدارة الطلبات",
     "cap_dismantle_carcass": "تقطيع الذبائح",
+    "cap_manage_cash": "إدارة النقدية",
     "confirm_demote_title": "إزالة صلاحية المسؤول الخاصة بك؟",
     "confirm_demote_message": "أنت بصدد تغيير دورك الخاص من مسؤول إلى دور آخر. ستفقد الوصول إلى هذه الشاشة حتى يقوم مسؤول آخر باستعادته.",
     "confirm_demote_confirm": "نعم، غيّر دوري",
     "confirm_demote_cancel": "إلغاء"
+  },
+  "customers_page": {
+    "title": "العملاء",
+    "add_customer": "إضافة عميل",
+    "name_placeholder": "الاسم",
+    "phone_placeholder": "الهاتف",
+    "search_placeholder": "ابحث بالاسم أو رقم الهاتف…",
+    "no_customers": "لا يوجد عملاء بعد",
+    "view_profile": "عرض الملف",
+    "saving": "جارٍ الحفظ…",
+    "save": "حفظ",
+    "loading": "جارٍ التحميل…",
+    "total_spend": "إجمالي الإنفاق",
+    "last_order": "آخر طلب",
+    "notes": "ملاحظات",
+    "order_history": "سجل الطلبات",
+    "no_orders_yet": "لا توجد طلبات بعد",
+    "delete_customer": "حذف العميل",
+    "delete_confirm": "سيؤدي هذا لحذف سجل العميل نهائيًا. هل أنت متأكد؟",
+    "confirm_delete": "نعم، احذف",
+    "deleting": "جارٍ الحذف…",
+    "cancel": "إلغاء",
+    "error_save": "فشل حفظ العميل.",
+    "error_load": "فشل تحميل بيانات العميل.",
+    "error_delete": "فشل حذف العميل."
+  },
+  "inbox_page": {
+    "title": "وارد الطلبات",
+    "source_social": "وسائل التواصل",
+    "source_phone": "هاتف",
+    "message_label_social": "نص الرسالة (الصق المحادثة)",
+    "message_label_phone": "ملاحظات المكالمة",
+    "message_placeholder": "ما قاله العميل…",
+    "delivery_address_label": "عنوان التوصيل",
+    "save_draft": "حفظ كمسودة",
+    "error_load_products": "فشل تحميل المنتجات."
+  },
+  "cash_page": {
+    "title": "إدارة النقدية",
+    "no_access": "ليس لديك صلاحية عرض إدارة النقدية.",
+    "range_day": "يوم",
+    "range_week": "أسبوع",
+    "range_month": "شهر",
+    "range_year": "سنة",
+    "cash_in": "وارد نقدي",
+    "cash_out": "صادر نقدي",
+    "net_position": "الصافي",
+    "total_revenue": "إجمالي الإيرادات",
+    "type_in": "وارد",
+    "type_out": "صادر",
+    "category_placeholder": "الفئة (إيداع، مورّد، مصروفات نثرية…)",
+    "amount_placeholder": "المبلغ",
+    "note_placeholder": "ملاحظة (اختياري)",
+    "add_entry": "إضافة قيد",
+    "saving": "جارٍ الحفظ…",
+    "no_entries": "لا توجد قيود بعد",
+    "error_save": "فشل حفظ القيد."
   }
 }

@@ -21,9 +21,9 @@ import { extractApiErrorMessage } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import { Product } from '../../lib/types'
 
-type Draft = { name: string, unit: string, category: string, pricePerKg: string, stockKg: string, lowStockAlertKg: string }
+type Draft = { name: string, unit: string, category: string, pricePerKg: string, stockKg: string, lowStockAlertKg: string, barcode: string }
 
-const EMPTY_DRAFT: Draft = { name: '', unit: 'kg', category: '', pricePerKg: '', stockKg: '', lowStockAlertKg: '' }
+const EMPTY_DRAFT: Draft = { name: '', unit: 'kg', category: '', pricePerKg: '', stockKg: '', lowStockAlertKg: '', barcode: '' }
 const DEFAULT_LOW_STOCK_THRESHOLD_KG = 5
 const ALL_CATEGORIES = '__all__'
 
@@ -86,7 +86,8 @@ export default function InventoryPage() {
         category: newDraft.category === '' ? undefined : newDraft.category,
         pricePerKg: Number(newDraft.pricePerKg),
         stockKg: Number(newDraft.stockKg),
-        lowStockAlertKg: newDraft.lowStockAlertKg === '' ? undefined : Number(newDraft.lowStockAlertKg)
+        lowStockAlertKg: newDraft.lowStockAlertKg === '' ? undefined : Number(newDraft.lowStockAlertKg),
+        barcode: newDraft.barcode === '' ? undefined : newDraft.barcode
       })
       setNewDraft(EMPTY_DRAFT)
       load()
@@ -106,7 +107,8 @@ export default function InventoryPage() {
       category: p.category ?? '',
       pricePerKg: p.pricePerKg,
       stockKg: p.stockKg,
-      lowStockAlertKg: p.lowStockAlertKg ?? ''
+      lowStockAlertKg: p.lowStockAlertKg ?? '',
+      barcode: p.barcode ?? ''
     })
   }
 
@@ -129,6 +131,7 @@ export default function InventoryPage() {
         pricePerKg: Number(editDraft.pricePerKg),
         stockKg: Number(editDraft.stockKg),
         lowStockAlertKg: editDraft.lowStockAlertKg === '' ? undefined : Number(editDraft.lowStockAlertKg),
+        barcode: editDraft.barcode === '' ? undefined : editDraft.barcode,
         reason: stockWillChange(p) ? editReason.trim() : undefined
       })
       setEditingId(null)
@@ -195,12 +198,19 @@ export default function InventoryPage() {
               {creating ? t('inventory_page.adding') : t('inventory_page.add_product')}
             </button>
           </div>
-          <label className="mt-3 block max-w-xs">
-            <span className={labelClasses}>{t('inventory_page.threshold_label')}</span>
-            <input type="number" step="0.001" min="0" className={inputClasses} value={newDraft.lowStockAlertKg}
-              placeholder={String(DEFAULT_LOW_STOCK_THRESHOLD_KG)}
-              onChange={e => setNewDraft({ ...newDraft, lowStockAlertKg: e.target.value })} />
-          </label>
+          <div className="mt-3 grid grid-cols-2 gap-3 md:max-w-md">
+            <label>
+              <span className={labelClasses}>{t('inventory_page.threshold_label')}</span>
+              <input type="number" step="0.001" min="0" className={inputClasses} value={newDraft.lowStockAlertKg}
+                placeholder={String(DEFAULT_LOW_STOCK_THRESHOLD_KG)}
+                onChange={e => setNewDraft({ ...newDraft, lowStockAlertKg: e.target.value })} />
+            </label>
+            <label>
+              <span className={labelClasses}>{t('inventory_page.barcode_label')}</span>
+              <input className={inputClasses} value={newDraft.barcode}
+                onChange={e => setNewDraft({ ...newDraft, barcode: e.target.value })} />
+            </label>
+          </div>
           <datalist id="inventory-categories">
             {categories.map(c => <option key={c} value={c} />)}
           </datalist>
@@ -231,6 +241,9 @@ export default function InventoryPage() {
                     <input type="number" step="0.001" min="0" className={inputClasses} value={editDraft.lowStockAlertKg}
                       placeholder={t('inventory_page.threshold_label')}
                       onChange={e => setEditDraft({ ...editDraft, lowStockAlertKg: e.target.value })} />
+                    <input className={inputClasses} value={editDraft.barcode}
+                      placeholder={t('inventory_page.barcode_label')}
+                      onChange={e => setEditDraft({ ...editDraft, barcode: e.target.value })} />
                     {stockWillChange(p) && (
                       <input className={`${inputClasses} col-span-2`} value={editReason}
                         placeholder={t('inventory_page.reason_placeholder')}

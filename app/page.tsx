@@ -14,7 +14,7 @@
 // note on a future server-side /api/dashboard/summary aggregate once client-
 // side aggregation gets slow).
 'use client'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import {
@@ -22,7 +22,7 @@ import {
 } from 'recharts'
 import api from '../lib/api'
 import { useAuth } from '../lib/useAuth'
-import { Order, Product } from '../lib/types'
+import { Order, Product, ShopSettings } from '../lib/types'
 
 const LOW_STOCK_THRESHOLD_KG = 5
 const DAYS_7 = 7
@@ -30,6 +30,12 @@ const DAYS_30 = 30
 const TOP_PRODUCTS_LIMIT = 5
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 const RANGE_OPTIONS: Array<typeof DAYS_7 | typeof DAYS_30> = [DAYS_7, DAYS_30]
+// v3 replan (Phase J — pending-order alerting, ADR-010). Polling interval
+// for re-fetching orders while the dashboard tab is open — same
+// "in-app/browser only, no push provider" default the ADR settled on.
+const ORDERS_POLL_MS = 45 * 1000
+const MS_PER_MINUTE = 60 * 1000
+const SOURCE_LABELS = ['in_premise', 'social', 'phone', 'whatsapp', 'cashier'] as const
 
 export default function Page() {
   const { t } = useTranslation()
@@ -48,8 +54,53 @@ export default function Page() {
     // cookie isn't readable client-side), so this only fires once `loggedIn`
     // flips true, rather than racing it on mount.
     if (!loggedIn) return
-    api.get<Order[]>('/api/orders').then(r => setOrders(r.data)).catch(() => setOrders(null))
+    function fetchOrders() {
+      api.get<Order[]>('/api/orders').then(r => setOrders(r.data)).catch(() => setOrders(null))
+    }
+    fetchOrders()
+    // v3 replan (Phase J, ADR-010): polls the same existing endpoint the
+    // rest of this page already uses — no new aggregate endpoint, no
+    // websockets. Stops the moment this component unmounts.
+    const interval = setInterval(fetchOrders, ORDERS_POLL_MS)
+    return () => clearInterval(interval)
   }, [loggedIn])
+
+  const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null)
+  useEffect(() => {
+    if (!loggedIn) return
+    api.get<ShopSettings>('/api/shop-settings').then(r => setShopSettings(r.data)).catch(() => setShopSettings(null))
+  }, [loggedIn])
+
+  const drafts = useMemo(() => (orders ?? []).filter(o => o.status === 'DRAFT'), [orders])
+  const draftsBySource = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const o of drafts) counts.set(o.source, (counts.get(o.source) ?? 0) + 1)
+    return counts
+  }, [drafts])
+  const alertThresholdMinutes = shopSettings?.pendingOrderAlertMinutes ?? null
+  const staleDrafts = useMemo(() => {
+    if (alertThresholdMinutes === null) return []
+    const cutoff = Date.now() - alertThresholdMinutes * MS_PER_MINUTE
+    return drafts.filter(o => new Date(o.createdAt).getTime() < cutoff)
+  }, [drafts, alertThresholdMinutes])
+
+  // v3 replan (Phase J, ADR-010): optional browser Notification, permission
+  // requested once a stale draft actually exists (not eagerly on page load —
+  // asking for a permission with no immediate reason is exactly the kind of
+  // prompt users reflexively dismiss). Fires at most once per render of a
+  // newly-stale set, not on every poll tick, via the ref below.
+  const notifiedCountRef = useRef(0)
+  useEffect(() => {
+    if (staleDrafts.length === 0 || typeof Notification === 'undefined') return
+    if (staleDrafts.length <= notifiedCountRef.current) return
+    notifiedCountRef.current = staleDrafts.length
+    if (Notification.permission === 'granted') {
+      new Notification(t('dashboard_page.stale_orders_notification', { count: staleDrafts.length }))
+    } else if (Notification.permission !== 'denied') {
+      void Notification.requestPermission()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` is stable enough here; re-running on every translation-fn identity change isn't the intent.
+  }, [staleDrafts.length])
 
   const stockAlerts = products.filter(p => Number(p.stockKg) < LOW_STOCK_THRESHOLD_KG).length
   const hasAlerts = stockAlerts > 0
@@ -128,6 +179,32 @@ export default function Page() {
           accent="stone"
         />
       </div>
+
+      {/* v3 replan (Phase J — dashboard source segmentation + alerts).
+          Derived client-side from the same GET /api/orders response as
+          everything else on this page — no new aggregate endpoint. */}
+      {loggedIn && drafts.length > 0 && (
+        <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-stone-900">{t('dashboard_page.pending_by_source_title')}</h2>
+            {staleDrafts.length > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
+                <AlertIcon />
+                {t('dashboard_page.stale_orders_badge', { count: staleDrafts.length, minutes: alertThresholdMinutes })}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {SOURCE_LABELS.filter(s => (draftsBySource.get(s) ?? 0) > 0).map(s => (
+              <Link key={s} href="/orders"
+                className="flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm hover:bg-stone-100">
+                <span className="font-medium text-stone-900">{draftsBySource.get(s)}</span>
+                <span className="text-stone-500">{t(`orders_page.source_${s}`)}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {loggedIn && orders !== null && orders.length > 0 && (
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">

@@ -9,6 +9,8 @@ export type Product = {
   pricePerKg: string
   stockKg: string
   lowStockAlertKg: string | null
+  // v3 replan (Phase I.1 — barcode scanning, ADR-008).
+  barcode: string | null
   createdAt: string
   updatedAt: string
 }
@@ -34,9 +36,62 @@ export type Order = {
   // v3 replan (Phase I.2): raw inbound text for WhatsApp-originated drafts,
   // null for every other order.
   customerMessage: string | null
+  // v3 replan (Phase H — CRM): optional link to a Customer record.
+  customerId: string | null
+  // v3 replan (Phase I.3 — phone delivery orders).
+  deliveryAddress: string | null
+  // v3 replan (Phase K — cash management). Defaults "cash" on every order.
+  paymentMethod: string
   createdAt: string
   userId: string
   items: OrderItem[]
+}
+
+// v3 replan (Phase H — CRM). Deliberately minimal — see ADR-013.
+export type Customer = {
+  id: string
+  name: string
+  phone: string | null
+  notes: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+// Returned by GET /api/customers/:id — the Customer record plus its
+// computed order-history summary (see routes/customers.ts).
+export type CustomerProfile = Customer & {
+  orders: Order[]
+  totalSpend: string
+  lastOrderAt: string | null
+}
+
+// v3 replan (Phase K — cash management, ADR-011). Append-only ledger,
+// tracked separately from Order.totalAmount — see the ADR for why these two
+// figures are never merged.
+export type CashTransactionType = 'IN' | 'OUT'
+
+export type CashTransaction = {
+  id: string
+  type: CashTransactionType
+  category: string
+  amount: string
+  note: string | null
+  userId: string
+  createdAt: string
+}
+
+export type CashSummary = {
+  cashIn: string
+  cashOut: string
+  netPosition: string
+  totalRevenue: string
+}
+
+// v3 replan (Phase J — pending-order alerting). Single-row shop-wide config.
+export type ShopSettings = {
+  id: string
+  pendingOrderAlertMinutes: number
+  alertSoundEnabled: boolean
 }
 
 // v2 replan (Phase B): audit trail row for a direct stock edit.

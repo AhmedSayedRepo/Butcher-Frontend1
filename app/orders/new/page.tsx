@@ -18,17 +18,19 @@
 //   summary instead of redirecting immediately — window.print() via
 //   app/globals.css's `.receipt-print-area` rule, not a generated PDF.
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import api from '../../../lib/api'
 import { extractApiErrorMessage } from '../../../lib/apiError'
-import { Order, Product } from '../../../lib/types'
+import { Customer, Order, Product } from '../../../lib/types'
 
 type CartLine = { productId: string, name: string, pricePerKg: number, kg: number }
 
 const KG_PRESETS = [0.25, 0.5, 1, 2, 5]
 const RECENT_PRODUCTS_LIMIT = 6
+const CUSTOMER_SEARCH_MIN_LENGTH = 2
+const CUSTOMER_SEARCH_DEBOUNCE_MS = 300
 
 export default function NewOrderPage() {
   const { t } = useTranslation()
@@ -43,6 +45,21 @@ export default function NewOrderPage() {
   const [submitting, setSubmitting] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
   const [receipt, setReceipt] = useState<Order | null>(null)
+  // v3 replan (Phase I.1 — barcode scanning, ADR-008): a scanner is a
+  // keyboard-emulation device — it types the code into this input then sends
+  // Enter, same as a person typing + pressing Enter. No device SDK involved.
+  const [barcodeInput, setBarcodeInput] = useState('')
+  const [barcodeError, setBarcodeError] = useState<string | null>(null)
+  // v3 replan (Phase H — CRM): optional link to a real Customer record,
+  // alongside the existing free-text `customer` field above (untouched).
+  const [customerQuery, setCustomerQuery] = useState('')
+  const [customerResults, setCustomerResults] = useState<Customer[]>([])
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  // v3 replan — idempotency guard: one UUID per submit *attempt*, so a
+  // retried request (network hiccup, double-click before the button
+  // disables) replays the same order instead of creating a second one. A
+  // fresh click after a completed attempt gets a fresh UUID.
+  const idempotencyKeyRef = useRef(crypto.randomUUID())
 
   useEffect(() => {
     api.get<Product[]>('/api/products')
@@ -52,6 +69,52 @@ export default function NewOrderPage() {
       })
       .catch(() => setError(t('new_order_page.error_load_products')))
   }, [t])
+
+  useEffect(() => {
+    if (customerQuery.trim().length < CUSTOMER_SEARCH_MIN_LENGTH) {
+      setCustomerResults([])
+      return
+    }
+    const handle = setTimeout(() => {
+      api.get<Customer[]>('/api/customers', { params: { q: customerQuery } })
+        .then(r => setCustomerResults(r.data))
+        .catch(() => setCustomerResults([]))
+    }, CUSTOMER_SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(handle)
+  }, [customerQuery])
+
+  function pickCustomer(c: Customer) {
+    setSelectedCustomer(c)
+    setCustomer(c.name)
+    setCustomerQuery('')
+    setCustomerResults([])
+  }
+
+  function addProductToCart(product: Product, amount: number) {
+    setCart(prev => {
+      const existing = prev.find(l => l.productId === product.id)
+      if (existing) {
+        return prev.map(l => l.productId === product.id ? { ...l, kg: l.kg + amount } : l)
+      }
+      return [...prev, { productId: product.id, name: product.name, pricePerKg: Number(product.pricePerKg), kg: amount }]
+    })
+    setRecentIds(prev => [product.id, ...prev.filter(id => id !== product.id)].slice(0, RECENT_PRODUCTS_LIMIT))
+  }
+
+  const BARCODE_DEFAULT_KG = 1
+
+  async function submitBarcode() {
+    const code = barcodeInput.trim()
+    setBarcodeInput('')
+    if (code === '') return
+    setBarcodeError(null)
+    try {
+      const res = await api.get<Product>(`/api/products/by-barcode/${encodeURIComponent(code)}`)
+      addProductToCart(res.data, BARCODE_DEFAULT_KG)
+    } catch {
+      setBarcodeError(t('new_order_page.error_barcode_not_found', { code }))
+    }
+  }
 
   function pickProduct(productId: string) {
     setSelectedId(productId)
@@ -65,14 +128,7 @@ export default function NewOrderPage() {
       setError(t('new_order_page.error_pick_product'))
       return
     }
-    setCart(prev => {
-      const existing = prev.find(l => l.productId === product.id)
-      if (existing) {
-        return prev.map(l => l.productId === product.id ? { ...l, kg: l.kg + amount } : l)
-      }
-      return [...prev, { productId: product.id, name: product.name, pricePerKg: Number(product.pricePerKg), kg: amount }]
-    })
-    setRecentIds(prev => [product.id, ...prev.filter(id => id !== product.id)].slice(0, RECENT_PRODUCTS_LIMIT))
+    addProductToCart(product, amount)
     setKg('')
   }
 
@@ -96,8 +152,14 @@ export default function NewOrderPage() {
     try {
       const res = await api.post<Order>(asDraft ? '/api/orders/draft' : '/api/orders', {
         customer: customer || undefined,
+        customerId: selectedCustomer?.id,
         items: cart.map(l => ({ productId: l.productId, kg: l.kg }))
-      })
+      }, { headers: { 'Idempotency-Key': idempotencyKeyRef.current } })
+      // Attempt settled successfully — the next submit is a genuinely new
+      // attempt, so it gets a fresh key. A failed attempt (catch below)
+      // deliberately keeps the same key, so a retry of the *same* click
+      // still dedupes against whatever the server already did with it.
+      idempotencyKeyRef.current = crypto.randomUUID()
       if (asDraft) {
         router.push('/orders')
       } else {
@@ -156,10 +218,47 @@ export default function NewOrderPage() {
       )}
 
       <div className="mb-4 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
-        <label className="mb-4 block">
+        <label className="mb-1 block">
           <span className={labelClasses}>{t('new_order_page.customer_label')}</span>
           <input className={inputClasses} value={customer}
-            onChange={e => setCustomer(e.target.value)} placeholder={t('new_order_page.customer_placeholder')} />
+            onChange={e => { setCustomer(e.target.value); setCustomerQuery(e.target.value); setSelectedCustomer(null) }}
+            placeholder={t('new_order_page.customer_placeholder')} />
+        </label>
+        {/* v3 replan (Phase H — CRM): typeahead against GET /api/customers.
+            Picking a result links the order to a real Customer record on
+            top of the free-text name above; typing without picking still
+            works exactly as before. */}
+        {customerResults.length > 0 && (
+          <div className="mb-2 overflow-hidden rounded-lg border border-stone-200">
+            {customerResults.map(c => (
+              <button key={c.id} type="button" onClick={() => pickCustomer(c)}
+                className="block w-full border-b border-stone-100 px-3 py-2 text-left text-sm last:border-b-0 hover:bg-stone-50">
+                <span className="font-medium text-stone-900">{c.name}</span>
+                {c.phone !== null && <span className="ml-2 text-stone-500">{c.phone}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+        {selectedCustomer !== null && (
+          <div className="mb-4 text-xs text-brand-700">{t('new_order_page.customer_linked', { name: selectedCustomer.name })}</div>
+        )}
+        {selectedCustomer === null && customerResults.length === 0 && <div className="mb-4" />}
+
+        {/* v3 replan (Phase I.1 — barcode scanning, ADR-008). A USB/Bluetooth
+            scanner types the code as keystrokes and sends Enter — this is a
+            plain text input that submits on Enter, same as a person typing
+            a code by hand. Degrades gracefully with no scanner attached. */}
+        <label className="mb-4 block">
+          <span className={labelClasses}>{t('new_order_page.barcode_label')}</span>
+          <input
+            className={inputClasses}
+            value={barcodeInput}
+            onChange={e => setBarcodeInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void submitBarcode() } }}
+            placeholder={t('new_order_page.barcode_placeholder')}
+            autoComplete="off"
+          />
+          {barcodeError !== null && <span className="mt-1 block text-xs text-red-600">{barcodeError}</span>}
         </label>
 
         {recentProducts.length > 0 && (

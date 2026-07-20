@@ -169,13 +169,22 @@ export default function OrdersPage() {
                       <p className="truncate text-sm font-medium text-stone-900">{o.customer || t('orders_page.walk_in')}</p>
                       <span className="shrink-0 text-sm font-semibold text-stone-900">{Number(o.totalAmount).toFixed(2)}</span>
                     </div>
-                    {o.source === 'whatsapp' && (
-                      <span className="mb-1 inline-block rounded-full bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700">
-                        {t('orders_page.source_whatsapp')}
+                    {/* v3 replan (Phase I): source badge for every non-cashier
+                        source, not just WhatsApp — in_premise orders don't
+                        get a badge (they're the walk-in default, same as
+                        before this phase). */}
+                    {o.source !== 'cashier' && o.source !== 'in_premise' && (
+                      <span className={`mb-1 inline-block rounded-full px-1.5 py-0.5 text-xs font-medium ${
+                        o.source === 'whatsapp' ? 'bg-green-50 text-green-700' : 'bg-sky-50 text-sky-700'
+                      }`}>
+                        {t(`orders_page.source_${o.source}`)}
                       </span>
                     )}
                     {o.customerMessage && (
-                      <p className="mb-2 line-clamp-2 text-xs italic text-stone-500">&ldquo;{o.customerMessage}&rdquo;</p>
+                      <p className="mb-1 line-clamp-2 text-xs italic text-stone-500">&ldquo;{o.customerMessage}&rdquo;</p>
+                    )}
+                    {o.deliveryAddress && (
+                      <p className="mb-2 line-clamp-1 text-xs text-stone-500">📍 {o.deliveryAddress}</p>
                     )}
                     <button onClick={() => promote(o)} disabled={busyId === o.id}
                       className="mt-1 rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
