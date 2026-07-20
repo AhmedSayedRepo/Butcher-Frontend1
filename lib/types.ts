@@ -135,6 +135,13 @@ export type ShopSettings = {
   // totalAmount elsewhere in this file) — parse with Number() before math.
   defaultLowStockThresholdKg: string
   mailSenderName: string
+  // v3.1 follow-up 9 (ADR-016). `smtpUser` is plaintext (just an email
+  // address, not a secret). The app password itself is never sent to the
+  // client — `smtpAppPasswordSet` only says whether one is configured
+  // (server- or env-var-sourced), so the UI can show "configured" without
+  // ever seeing the real value.
+  smtpUser: string | null
+  smtpAppPasswordSet: boolean
 }
 
 // v2 replan (Phase B): audit trail row for a direct stock edit.

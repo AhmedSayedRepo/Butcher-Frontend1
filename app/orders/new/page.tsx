@@ -55,6 +55,14 @@ export default function NewOrderPage() {
   const [customerQuery, setCustomerQuery] = useState('')
   const [customerResults, setCustomerResults] = useState<Customer[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  // v3.1 follow-up 8: this screen was originally walk-in-only (source
+  // always defaulted to "cashier" server-side, no address field at all) —
+  // added so a cashier taking a phone-in delivery order doesn't have to
+  // switch to /orders/inbox for it. Off by default so the plain walk-in
+  // flow is unchanged; when on, the order is submitted with source "phone"
+  // (an existing, already-supported source value) and the address.
+  const [isDelivery, setIsDelivery] = useState(false)
+  const [deliveryAddress, setDeliveryAddress] = useState('')
   // v3 replan — idempotency guard: one UUID per submit *attempt*, so a
   // retried request (network hiccup, double-click before the button
   // disables) replays the same order instead of creating a second one. A
@@ -88,6 +96,13 @@ export default function NewOrderPage() {
     setCustomer(c.name)
     setCustomerQuery('')
     setCustomerResults([])
+    // Prefills the address field regardless of whether delivery is toggled
+    // on yet — harmless if it stays hidden, and already there if the
+    // cashier flips the toggle on afterward. Same behavior as the Inbox
+    // page's customer picker.
+    if (c.address !== null && c.address !== '') {
+      setDeliveryAddress(c.address)
+    }
   }
 
   function addProductToCart(product: Product, amount: number) {
@@ -153,6 +168,12 @@ export default function NewOrderPage() {
       const res = await api.post<Order>(asDraft ? '/api/orders/draft' : '/api/orders', {
         customer: customer || undefined,
         customerId: selectedCustomer?.id,
+        // Leaving source/deliveryAddress undefined when the delivery toggle
+        // is off keeps this identical to the pre-existing walk-in behavior
+        // (backend defaults source to "cashier"). "phone" is an existing,
+        // already-supported source value — same one /orders/inbox uses.
+        source: isDelivery ? 'phone' : undefined,
+        deliveryAddress: isDelivery ? (deliveryAddress || undefined) : undefined,
         items: cart.map(l => ({ productId: l.productId, kg: l.kg }))
       }, { headers: { 'Idempotency-Key': idempotencyKeyRef.current } })
       // Attempt settled successfully — the next submit is a genuinely new
@@ -256,6 +277,23 @@ export default function NewOrderPage() {
           <div className="mb-4 text-xs text-brand-700">{t('new_order_page.customer_linked', { name: selectedCustomer.name })}</div>
         )}
         {selectedCustomer === null && customerResults.length === 0 && <div className="mb-4" />}
+
+        {/* v3.1 follow-up 8: off by default so plain walk-in checkout is
+            unchanged; toggling on reveals the address field and tags the
+            order source "phone" on submit. */}
+        <label className="mb-4 flex items-center gap-2 text-sm font-medium text-stone-700">
+          <input type="checkbox" checked={isDelivery}
+            onChange={e => setIsDelivery(e.target.checked)}
+            className="h-4 w-4 rounded border-stone-300 text-brand-600 focus:ring-brand-500" />
+          {t('new_order_page.delivery_toggle_label')}
+        </label>
+        {isDelivery && (
+          <label className="mb-4 block">
+            <span className={labelClasses}>{t('new_order_page.delivery_address_label')}</span>
+            <textarea className={inputClasses} rows={2} value={deliveryAddress}
+              onChange={e => setDeliveryAddress(e.target.value)} />
+          </label>
+        )}
 
         {/* v3 replan (Phase I.1 — barcode scanning, ADR-008). A USB/Bluetooth
             scanner types the code as keystrokes and sends Enter — this is a

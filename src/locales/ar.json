@@ -110,7 +110,9 @@
     "barcode_label": "مسح الباركود",
     "barcode_placeholder": "امسح أو أدخل الباركود ثم اضغط Enter",
     "error_barcode_not_found": "لا يوجد منتج بهذا الباركود {{code}}.",
-    "customer_linked": "مرتبط بـ {{name}}"
+    "customer_linked": "مرتبط بـ {{name}}",
+    "delivery_toggle_label": "هذا طلب توصيل",
+    "delivery_address_label": "عنوان التوصيل"
   },
   "inventory_page": {
     "name_label": "الاسم",
@@ -205,17 +207,26 @@
     "saved": "تم حفظ الإعدادات.",
     "error_minutes": "أدخل حد تنبيه للطلبات المعلَّقة أكبر من 0.",
     "error_threshold": "أدخل حد مخزون منخفض أكبر من 0.",
-    "error_sender_name": "أدخل اسم المُرسل.",
     "error_save": "تعذّر حفظ الإعدادات.",
     "section_alerts": "التنبيهات والمخزون",
     "section_email": "البريد الإلكتروني الصادر",
+    "optional_badge": "اختياري",
+    "update": "تحديث",
+    "updating": "جارٍ التحديث…",
     "pending_order_minutes_label": "حد تنبيه الطلبات المعلَّقة",
     "pending_order_minutes_hint": "المدة التي يمكن أن تبقى فيها المسودة دون تأكيد قبل تمييزها كمتأخرة في لوحة التحكم.",
     "alert_sound_label": "تشغيل صوت عند وجود تنبيهات جديدة",
     "low_stock_threshold_label": "حد المخزون المنخفض الافتراضي",
     "low_stock_threshold_hint": "يُستخدم لأي منتج ليس له حد خاص محدد في المخزون.",
     "sender_name_label": "اسم المُرسل",
-    "sender_name_hint": "يظهر كاسم \"المُرسل\" في رسائل الدعوة وإعادة تعيين كلمة المرور، مثل \"Butcher Cashier <you@gmail.com>\"."
+    "sender_name_hint": "يظهر كاسم \"المُرسل\" في رسائل الدعوة وإعادة تعيين كلمة المرور، مثل \"Butcher Cashier <you@gmail.com>\".",
+    "smtp_user_label": "عنوان بريد Gmail",
+    "smtp_user_hint": "حساب Google الذي يرسل هذه الرسائل. يجب تفعيل التحقق بخطوتين وإنشاء كلمة مرور التطبيق له.",
+    "smtp_password_label": "كلمة مرور تطبيق Gmail",
+    "smtp_password_placeholder_set": "•••••••••••••• (تم الإعداد)",
+    "smtp_password_placeholder_unset": "غير مُعدّة",
+    "smtp_password_hint_configured": "توجد كلمة مرور محفوظة بالفعل. اكتب كلمة جديدة واضغط تحديث لاستبدالها، أو اتركها فارغة — لن يؤدي التحديث إلى مسحها.",
+    "smtp_password_hint_unconfigured": "كلمة مرور التطبيق المكوّنة من 16 حرفًا من myaccount.google.com/apppasswords (بدون مسافات)."
   },
   "admin_users_page": {
     "title": "إدارة المستخدمين",

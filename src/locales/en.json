@@ -110,7 +110,9 @@
     "barcode_label": "Scan barcode",
     "barcode_placeholder": "Scan or type a barcode, then Enter",
     "error_barcode_not_found": "No product found for barcode {{code}}.",
-    "customer_linked": "Linked to {{name}}"
+    "customer_linked": "Linked to {{name}}",
+    "delivery_toggle_label": "This is a delivery order",
+    "delivery_address_label": "Delivery address"
   },
   "inventory_page": {
     "name_label": "Name",
@@ -205,17 +207,26 @@
     "saved": "Settings saved.",
     "error_minutes": "Enter a pending-order alert threshold greater than 0.",
     "error_threshold": "Enter a low-stock threshold greater than 0.",
-    "error_sender_name": "Enter a sender name.",
     "error_save": "Couldn't save settings.",
     "section_alerts": "Alerts & Stock",
     "section_email": "Outgoing Email",
+    "optional_badge": "optional",
+    "update": "Update",
+    "updating": "Updating…",
     "pending_order_minutes_label": "Pending-order alert threshold",
     "pending_order_minutes_hint": "How long a draft order can sit unconfirmed before it's flagged as stale on the dashboard.",
     "alert_sound_label": "Play a sound for new alerts",
     "low_stock_threshold_label": "Default low-stock threshold",
     "low_stock_threshold_hint": "Used for any product without its own threshold set in Inventory.",
     "sender_name_label": "Sender name",
-    "sender_name_hint": "Shown as the \"From\" name on invite and password-reset emails, e.g. \"Butcher Cashier <you@gmail.com>\"."
+    "sender_name_hint": "Shown as the \"From\" name on invite and password-reset emails, e.g. \"Butcher Cashier <you@gmail.com>\".",
+    "smtp_user_label": "Gmail address",
+    "smtp_user_hint": "The Google Account that sends these emails. Needs 2-Step Verification enabled and an app password generated for it.",
+    "smtp_password_label": "Gmail app password",
+    "smtp_password_placeholder_set": "•••••••••••••• (configured)",
+    "smtp_password_placeholder_unset": "Not set",
+    "smtp_password_hint_configured": "A password is already saved. Type a new one and click Update to replace it, or leave this blank — Update won't clear it.",
+    "smtp_password_hint_unconfigured": "16-character app password from myaccount.google.com/apppasswords (no spaces)."
   },
   "admin_users_page": {
     "title": "User Management",
