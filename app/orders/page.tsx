@@ -169,6 +169,14 @@ export default function OrdersPage() {
                       <p className="truncate text-sm font-medium text-stone-900">{o.customer || t('orders_page.walk_in')}</p>
                       <span className="shrink-0 text-sm font-semibold text-stone-900">{Number(o.totalAmount).toFixed(2)}</span>
                     </div>
+                    {o.source === 'whatsapp' && (
+                      <span className="mb-1 inline-block rounded-full bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700">
+                        {t('orders_page.source_whatsapp')}
+                      </span>
+                    )}
+                    {o.customerMessage && (
+                      <p className="mb-2 line-clamp-2 text-xs italic text-stone-500">&ldquo;{o.customerMessage}&rdquo;</p>
+                    )}
                     <button onClick={() => promote(o)} disabled={busyId === o.id}
                       className="mt-1 rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
                       {busyId === o.id ? t('orders_page.promoting') : t('orders_page.promote')}

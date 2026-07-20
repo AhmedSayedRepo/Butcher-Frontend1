@@ -10,11 +10,12 @@ import api from '../../lib/api'
 import { extractApiErrorMessage } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import { DismantleEvent, DismantleTemplate, Product } from '../../lib/types'
+import { ANIMAL_TYPE_AR, CUT_NAME_AR, TEMPLATE_NAME_AR, localizedName } from '../../lib/dismantleNames'
 
 type CutInput = { actualWeightKg: string, productId: string }
 
 export default function DismantlePage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const user = useAuth()
   const canDismantle = user != null && Array.isArray(user.caps) && user.caps.includes('dismantle_carcass')
 
@@ -130,7 +131,9 @@ export default function DismantlePage() {
               <span className={labelClasses}>{t('dismantle_page.template_label')}</span>
               <select className={inputClasses} value={templateId} onChange={e => { setTemplateId(e.target.value); setCutInputs({}) }}>
                 {templates.map(tpl => (
-                  <option key={tpl.id} value={tpl.id}>{tpl.animalType} — {tpl.name}</option>
+                  <option key={tpl.id} value={tpl.id}>
+                    {localizedName(tpl.animalType, i18n.language, ANIMAL_TYPE_AR)} — {localizedName(tpl.name, i18n.language, TEMPLATE_NAME_AR)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -161,8 +164,8 @@ export default function DismantlePage() {
                   {selectedTemplate.cuts.map(cut => (
                     <tr key={cut.id}>
                       <td className="px-3 py-2 font-medium text-stone-900">
-                        {cut.cutName}
-                        {cut.isOffal && <span className="ms-1.5 rounded-full bg-stone-100 px-1.5 py-0.5 text-xs text-stone-500">offal</span>}
+                        {localizedName(cut.cutName, i18n.language, CUT_NAME_AR)}
+                        {cut.isOffal && <span className="ms-1.5 rounded-full bg-stone-100 px-1.5 py-0.5 text-xs text-stone-500">{t('dismantle_page.offal_tag')}</span>}
                       </td>
                       <td className="px-3 py-2 text-stone-500">{Number(cut.expectedYieldPct).toFixed(1)}%</td>
                       <td className="px-3 py-2">
@@ -205,7 +208,9 @@ export default function DismantlePage() {
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="font-medium text-stone-900">{ev.sourceLabel}</p>
-                      <p className="text-xs text-stone-500">{ev.template.animalType} — {ev.template.name} · {Number(ev.inputWeightKg).toFixed(3)} kg</p>
+                      <p className="text-xs text-stone-500">
+                        {localizedName(ev.template.animalType, i18n.language, ANIMAL_TYPE_AR)} — {localizedName(ev.template.name, i18n.language, TEMPLATE_NAME_AR)} · {Number(ev.inputWeightKg).toFixed(3)} kg
+                      </p>
                     </div>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${ev.wastePct > PERCENT_MULTIPLIER / 10 ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
                       {t('dismantle_page.waste')}: {ev.wastePct.toFixed(1)}%
@@ -214,7 +219,7 @@ export default function DismantlePage() {
                   <ul className="space-y-1 text-sm text-stone-600">
                     {ev.outputs.map(o => (
                       <li key={o.id} className="flex justify-between">
-                        <span>{o.cutName}</span>
+                        <span>{localizedName(o.cutName, i18n.language, CUT_NAME_AR)}</span>
                         <span>{Number(o.actualWeightKg).toFixed(3)} kg ({(o.contentPerKiloKg * PERCENT_MULTIPLIER).toFixed(1)}% {t('dismantle_page.per_kilo')})</span>
                       </li>
                     ))}

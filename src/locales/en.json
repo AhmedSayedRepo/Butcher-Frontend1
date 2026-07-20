@@ -9,6 +9,7 @@
   "logout": "Logout",
   "help": "Help & Guide",
   "app_name": "Butcher Cashier",
+  "toggle_menu": "Toggle menu",
   "auth_gate": {
     "loading": "Checking your session…"
   },
@@ -52,7 +53,8 @@
     "status_on_the_way": "On the Way",
     "status_in_premise": "In Premise",
     "error_status": "Failed to update order status.",
-    "error_promote": "Failed to confirm draft order."
+    "error_promote": "Failed to confirm draft order.",
+    "source_whatsapp": "WhatsApp"
   },
   "new_order_page": {
     "title": "New Order",
@@ -97,7 +99,8 @@
     "error_load": "Failed to load inventory.",
     "error_create": "Failed to create product.",
     "error_save": "Failed to save product.",
-    "error_reason_required": "A reason is required when changing stock."
+    "error_reason_required": "A reason is required when changing stock.",
+    "low_stock_tag": "low stock"
   },
   "login_page": {
     "title": "Sign in",
@@ -128,7 +131,8 @@
     "error_load_templates": "Failed to load templates.",
     "error_load_events": "Failed to load breakdowns.",
     "error_no_outputs": "Enter at least one cut's actual weight.",
-    "error_submit": "Failed to record breakdown."
+    "error_submit": "Failed to record breakdown.",
+    "offal_tag": "offal"
   },
   "admin_page": {
     "subtitle": "Users, Branding, Settings",

@@ -172,7 +172,7 @@ export default function Navbar() {
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
           aria-expanded={menuOpen}
-          aria-label="Toggle menu"
+          aria-label={t('toggle_menu')}
           className="lg:hidden rounded-lg p-2 text-stone-700 hover:bg-stone-100"
         >
           {menuOpen ? (

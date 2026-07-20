@@ -9,6 +9,7 @@
   "logout": "تسجيل الخروج",
   "help": "المساعدة والدليل",
   "app_name": "نظام الكاشير",
+  "toggle_menu": "فتح/إغلاق القائمة",
   "auth_gate": {
     "loading": "جارٍ التحقق من الجلسة…"
   },
@@ -52,7 +53,8 @@
     "status_on_the_way": "في الطريق",
     "status_in_premise": "في المتجر",
     "error_status": "فشل تحديث حالة الطلب.",
-    "error_promote": "فشل تأكيد الطلب المسوَّد."
+    "error_promote": "فشل تأكيد الطلب المسوَّد.",
+    "source_whatsapp": "واتساب"
   },
   "new_order_page": {
     "title": "طلب جديد",
@@ -97,7 +99,8 @@
     "error_load": "فشل تحميل المخزون.",
     "error_create": "فشل إنشاء المنتج.",
     "error_save": "فشل حفظ المنتج.",
-    "error_reason_required": "سبب التغيير مطلوب عند تعديل المخزون."
+    "error_reason_required": "سبب التغيير مطلوب عند تعديل المخزون.",
+    "low_stock_tag": "مخزون منخفض"
   },
   "login_page": {
     "title": "تسجيل الدخول",
@@ -128,7 +131,8 @@
     "error_load_templates": "فشل تحميل النماذج.",
     "error_load_events": "فشل تحميل عمليات التقطيع.",
     "error_no_outputs": "أدخل الوزن الفعلي لقطعة واحدة على الأقل.",
-    "error_submit": "فشل تسجيل عملية التقطيع."
+    "error_submit": "فشل تسجيل عملية التقطيع.",
+    "offal_tag": "أحشاء"
   },
   "admin_page": {
     "subtitle": "المستخدمون، الهوية البصرية، الإعدادات",

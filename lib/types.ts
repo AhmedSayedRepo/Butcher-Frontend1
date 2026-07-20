@@ -31,6 +31,9 @@ export type Order = {
   totalAmount: string
   status: OrderStatus
   source: string
+  // v3 replan (Phase I.2): raw inbound text for WhatsApp-originated drafts,
+  // null for every other order.
+  customerMessage: string | null
   createdAt: string
   userId: string
   items: OrderItem[]
