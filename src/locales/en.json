@@ -165,6 +165,7 @@
     "cut_label": "Cut",
     "expected_yield_label": "Expected yield",
     "actual_weight_label": "Actual weight (kg)",
+    "actual_weight_hint": "auto-filled from carcass weight, editable",
     "stock_into_label": "Stock into",
     "record_only": "Record only (no product)",
     "submit": "Record breakdown",
@@ -259,7 +260,13 @@
     "message_placeholder": "What the customer said…",
     "delivery_address_label": "Delivery address",
     "save_draft": "Save as draft",
-    "error_load_products": "Failed to load products."
+    "error_load_products": "Failed to load products.",
+    "parse_message": "Parse message",
+    "parsing": "Parsing…",
+    "parse_hint": "Reads the pasted text and adds matching products to the cart automatically — review before saving.",
+    "parse_unmatched": "Added the matching items. Couldn't confidently match: {{items}} — add those by hand.",
+    "parse_no_matches": "Couldn't confidently match any items in that message — add them by hand below.",
+    "error_parse": "Failed to parse the message."
   },
   "cash_page": {
     "title": "Cash Management",

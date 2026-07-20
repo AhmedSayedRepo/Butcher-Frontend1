@@ -13,6 +13,8 @@ import { DismantleEvent, DismantleTemplate, Product } from '../../lib/types'
 import { ANIMAL_TYPE_AR, CUT_NAME_AR, TEMPLATE_NAME_AR, localizedName } from '../../lib/dismantleNames'
 
 type CutInput = { actualWeightKg: string, productId: string }
+const PERCENT_MULTIPLIER = 100
+const WEIGHT_DECIMALS = 3
 
 export default function DismantlePage() {
   const { t, i18n } = useTranslation()
@@ -53,6 +55,31 @@ export default function DismantlePage() {
   }, [canDismantle])
 
   const selectedTemplate = templates.find(tpl => tpl.id === templateId) ?? null
+
+  // v3.1 follow-up: pre-fill each cut's actual weight from the carcass
+  // weight × the template's expected yield %, so staff start from a
+  // realistic estimate instead of a blank field for every cut. Still fully
+  // editable per cut afterward — this is a starting point, not a lock; the
+  // whole point of recording an *actual* weight is capturing when it
+  // differs from the expectation. Deliberately keyed only on
+  // `inputWeightKg`/`templateId` (not `cutInputs`/`cutInput`), so editing
+  // one cut's actual weight by hand doesn't get overwritten by this effect
+  // re-running — only changing the total weight or switching templates does.
+  useEffect(() => {
+    const weight = Number(inputWeightKg)
+    if (selectedTemplate === null || inputWeightKg.trim() === '' || weight <= 0) return
+    setCutInputs(prev => {
+      const next = { ...prev }
+      for (const cut of selectedTemplate.cuts) {
+        const pct = Number(cut.expectedYieldPct)
+        const estimated = (weight * pct / PERCENT_MULTIPLIER).toFixed(WEIGHT_DECIMALS)
+        const current = prev[cut.cutName] ?? { actualWeightKg: '', productId: '' }
+        next[cut.cutName] = { ...current, actualWeightKg: estimated }
+      }
+      return next
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately excludes cutInputs/cutInput; see comment above.
+  }, [inputWeightKg, templateId])
 
   function cutInput(cutName: string): CutInput {
     return cutInputs[cutName] ?? { actualWeightKg: '', productId: '' }
@@ -107,7 +134,6 @@ export default function DismantlePage() {
 
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
   const labelClasses = 'mb-1 block text-sm font-medium text-stone-700'
-  const PERCENT_MULTIPLIER = 100
 
   return (
     <div>
@@ -156,7 +182,10 @@ export default function DismantlePage() {
                   <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
                     <th className="px-3 py-2">{t('dismantle_page.cut_label')}</th>
                     <th className="px-3 py-2">{t('dismantle_page.expected_yield_label')}</th>
-                    <th className="px-3 py-2">{t('dismantle_page.actual_weight_label')}</th>
+                    <th className="px-3 py-2">
+                      {t('dismantle_page.actual_weight_label')}
+                      <span className="ms-1 font-normal normal-case text-stone-400">({t('dismantle_page.actual_weight_hint')})</span>
+                    </th>
                     <th className="px-3 py-2">{t('dismantle_page.stock_into_label')}</th>
                   </tr>
                 </thead>

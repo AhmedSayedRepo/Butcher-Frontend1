@@ -14,6 +14,17 @@ import { Customer, Order, Product } from '../../../lib/types'
 
 type CartLine = { productId: string, name: string, pricePerKg: number, kg: number }
 type InboxSource = 'social' | 'phone'
+// v3.1 follow-up: no live Instagram/Messenger/telephony integration exists
+// (ADR-009 — same reason WhatsApp itself only got a real Cloud API
+// connection as a later, separate step), so staff still have to paste in
+// what the customer actually said. What used to be pure manual entry from
+// there now reuses the same best-effort parser the WhatsApp webhook already
+// runs on every inbound message (lib/parseOrderMessage.ts, via the existing
+// public POST /api/parse-order) — "Parse message" below turns the pasted
+// text into cart lines automatically, matched items get added, anything it
+// couldn't confidently match is called out so staff add it by hand instead
+// of silently dropping it.
+type ParsedItem = { product_name: string, requested_kg: number, productId: string | null, pricePerKg: string | null }
 
 export default function OrdersInboxPage() {
   const { t } = useTranslation()
@@ -30,7 +41,9 @@ export default function OrdersInboxPage() {
   const [kg, setKg] = useState('')
   const [cart, setCart] = useState<CartLine[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [parsing, setParsing] = useState(false)
 
   useEffect(() => {
     api.get<Product[]>('/api/products')
@@ -77,6 +90,41 @@ export default function OrdersInboxPage() {
     setCart(prev => prev.filter(l => l.productId !== productId))
   }
 
+  async function parseMessage() {
+    setError(null)
+    setNotice(null)
+    if (customerMessage.trim() === '') return
+    setParsing(true)
+    try {
+      const r = await api.post<{ items: ParsedItem[], clarification_needed: boolean }>('/api/parse-order', { message: customerMessage })
+      const matched = r.data.items.filter((i): i is ParsedItem & { productId: string } => i.productId !== null)
+      const unmatched = r.data.items.filter(i => i.productId === null)
+
+      if (matched.length > 0) {
+        setCart(prev => {
+          const byProductId = new Map(prev.map(l => [l.productId, l]))
+          for (const item of matched) {
+            const existing = byProductId.get(item.productId)
+            byProductId.set(item.productId, existing === undefined
+              ? { productId: item.productId, name: item.product_name, pricePerKg: Number(item.pricePerKg ?? 0), kg: item.requested_kg }
+              : { ...existing, kg: existing.kg + item.requested_kg })
+          }
+          return Array.from(byProductId.values())
+        })
+      }
+
+      if (unmatched.length > 0) {
+        setNotice(t('inbox_page.parse_unmatched', { items: unmatched.map(i => i.product_name).join(', ') }))
+      } else if (matched.length === 0) {
+        setNotice(t('inbox_page.parse_no_matches'))
+      }
+    } catch (err) {
+      setError(extractApiErrorMessage(err) ?? t('inbox_page.error_parse'))
+    } finally {
+      setParsing(false)
+    }
+  }
+
   const total = cart.reduce((sum, l) => sum + l.pricePerKg * l.kg, 0)
 
   async function saveDraft() {
@@ -107,6 +155,7 @@ export default function OrdersInboxPage() {
     <div>
       <h1 className="mb-6 text-2xl font-semibold tracking-tight text-stone-900">{t('inbox_page.title')}</h1>
       {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {notice && <div className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-700">{notice}</div>}
 
       <div className="mb-4 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
         <div className="mb-4 flex gap-2">
@@ -143,11 +192,16 @@ export default function OrdersInboxPage() {
           </label>
         )}
 
-        <label className="mb-4 block">
+        <label className="mb-2 block">
           <span className={labelClasses}>{t(`inbox_page.message_label_${source}`)}</span>
           <textarea className={inputClasses} rows={3} value={customerMessage} onChange={e => setCustomerMessage(e.target.value)}
             placeholder={t('inbox_page.message_placeholder')} />
         </label>
+        <button type="button" onClick={parseMessage} disabled={parsing || customerMessage.trim() === ''}
+          className="mb-4 inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-50 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50">
+          {parsing ? t('inbox_page.parsing') : t('inbox_page.parse_message')}
+        </button>
+        <p className="mb-4 -mt-3 text-xs text-stone-400">{t('inbox_page.parse_hint')}</p>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-4 md:items-end">
           <label className="md:col-span-2">
