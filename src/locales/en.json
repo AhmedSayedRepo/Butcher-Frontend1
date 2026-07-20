@@ -9,6 +9,9 @@
   "logout": "Logout",
   "help": "Help & Guide",
   "app_name": "Butcher Cashier",
+  "auth_gate": {
+    "loading": "Checking your session…"
+  },
   "help_page": {
     "title": "Help & Guide",
     "intro": "A quick guide to using Butcher Cashier.",

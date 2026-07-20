@@ -126,14 +126,20 @@ export default function Navbar() {
           <span className="text-lg font-semibold tracking-tight text-stone-900">{t('app_name')}</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className={linkClasses(item.href)}>
-              {t(item.key)}
-            </Link>
-          ))}
-        </nav>
+        {/* Desktop nav — hidden while logged out (v2 replan: login gating).
+            Every module now requires a session, so there's nothing useful to
+            link to until `user` resolves truthy; AuthGate (app/layout.tsx)
+            bounces any direct navigation to a module URL back to /login
+            anyway, but hiding the links avoids offering dead-end clicks. */}
+        {user && (
+          <nav className="hidden lg:flex items-center gap-1">
+            {NAV_ITEMS.map((item) => (
+              <Link key={item.href} href={item.href} className={linkClasses(item.href)}>
+                {t(item.key)}
+              </Link>
+            ))}
+          </nav>
+        )}
 
         <div className="hidden lg:flex items-center gap-2">
           <button
@@ -179,10 +185,11 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu panel */}
+      {/* Mobile menu panel — module links hidden while logged out, same
+          reasoning as the desktop nav above. */}
       {menuOpen && (
         <nav className="lg:hidden border-t border-stone-200 bg-white px-4 py-3 space-y-1">
-          {NAV_ITEMS.map((item) => (
+          {user && NAV_ITEMS.map((item) => (
             <Link key={item.href} href={item.href} className={`block ${linkClasses(item.href)}`}>
               {t(item.key)}
             </Link>

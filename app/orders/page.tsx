@@ -46,7 +46,13 @@ export default function OrdersPage() {
       .then(r => setOrders(r.data))
       .catch((e) => {
         setOrders([])
-        setError(e?.response?.status === 401 ? t('orders_page.please_login') : t('orders_page.failed_to_load'))
+        // A 401 here just means "not logged in" — the `!loggedIn` branch
+        // below already renders a dedicated "please log in" placeholder, so
+        // showing the generic red error banner on top of it would be
+        // redundant/confusing. Only surface the banner for real failures.
+        if (e?.response?.status !== 401) {
+          setError(t('orders_page.failed_to_load'))
+        }
       })
   }
 
