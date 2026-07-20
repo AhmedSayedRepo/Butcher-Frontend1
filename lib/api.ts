@@ -8,9 +8,19 @@
 // sites entirely once deployed to Vercel + Railway).
 import axios from 'axios'
 
+// v3.1 follow-up 10: no timeout meant a genuinely hung backend request
+// (e.g. an SMTP connection that never resolves) left the calling UI stuck
+// indefinitely too, with no way to recover except reloading the page —
+// reported live via the admin-invite button never leaving its "Inviting…"
+// state. 30s comfortably covers every real request this app makes (plain
+// CRUD, nothing long-running/streaming) while still failing predictably
+// instead of hanging forever.
+const REQUEST_TIMEOUT_MS = 30_000
+
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || '',
-  withCredentials: true
+  withCredentials: true,
+  timeout: REQUEST_TIMEOUT_MS
 })
 
 export default api
