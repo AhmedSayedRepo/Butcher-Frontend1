@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import api from '../../../lib/api'
 import { extractApiErrorMessage } from '../../../lib/apiError'
-import { CustomerProfile } from '../../../lib/types'
+import { Customer, CustomerProfile } from '../../../lib/types'
 
 export default function CustomerProfilePage() {
   const { t } = useTranslation()
@@ -17,12 +17,50 @@ export default function CustomerProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // v3 follow-up: profile view previously had no way to edit anything after
+  // creation (not even the `notes` field, which the backend already
+  // accepted but no UI ever set) — added alongside the new `address` field.
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [editAddress, setEditAddress] = useState('')
+  const [editNotes, setEditNotes] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     api.get<CustomerProfile>(`/api/customers/${params.id}`)
       .then(r => setProfile(r.data))
       .catch((err) => setError(extractApiErrorMessage(err) ?? t('customers_page.error_load')))
   }, [params.id, t])
+
+  function startEdit() {
+    if (profile === null) return
+    setEditName(profile.name)
+    setEditPhone(profile.phone ?? '')
+    setEditAddress(profile.address ?? '')
+    setEditNotes(profile.notes ?? '')
+    setEditing(true)
+  }
+
+  async function saveEdit() {
+    if (editName.trim() === '') return
+    setSaving(true)
+    setError(null)
+    try {
+      const r = await api.patch<Customer>(`/api/customers/${params.id}`, {
+        name: editName.trim(),
+        phone: editPhone.trim() || undefined,
+        address: editAddress.trim() || undefined,
+        notes: editNotes.trim() || undefined
+      })
+      setProfile(prev => prev === null ? prev : { ...prev, ...r.data })
+      setEditing(false)
+    } catch (err) {
+      setError(extractApiErrorMessage(err) ?? t('customers_page.error_save'))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   async function deleteCustomer() {
     setDeleting(true)
@@ -43,31 +81,58 @@ export default function CustomerProfilePage() {
     return <div className="text-sm text-stone-500">{t('customers_page.loading')}</div>
   }
 
+  const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
+
   return (
     <div>
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-stone-900">{profile.name}</h1>
-          {profile.phone !== null && <p className="text-sm text-stone-500">{profile.phone}</p>}
-        </div>
-        {!confirmingDelete ? (
-          <button onClick={() => setConfirmingDelete(true)}
-            className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50">
-            {t('customers_page.delete_customer')}
-          </button>
+      <div className="mb-6 flex items-start justify-between gap-3">
+        {editing ? (
+          <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+            <input className={inputClasses} placeholder={t('customers_page.name_placeholder')} value={editName} onChange={e => setEditName(e.target.value)} required />
+            <input className={inputClasses} placeholder={t('customers_page.phone_placeholder')} value={editPhone} onChange={e => setEditPhone(e.target.value)} />
+            <input className={inputClasses} placeholder={t('customers_page.address_placeholder')} value={editAddress} onChange={e => setEditAddress(e.target.value)} />
+            <textarea className={inputClasses} rows={2} placeholder={t('customers_page.notes_placeholder')} value={editNotes} onChange={e => setEditNotes(e.target.value)} />
+          </div>
         ) : (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-red-700">{t('customers_page.delete_confirm')}</span>
-            <button onClick={deleteCustomer} disabled={deleting}
-              className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50">
-              {deleting ? t('customers_page.deleting') : t('customers_page.confirm_delete')}
-            </button>
-            <button onClick={() => setConfirmingDelete(false)}
-              className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
-              {t('customers_page.cancel')}
-            </button>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-stone-900">{profile.name}</h1>
+            {profile.phone !== null && <p className="text-sm text-stone-500">{profile.phone}</p>}
           </div>
         )}
+        <div className="flex shrink-0 items-center gap-2">
+          {editing ? (
+            <>
+              <button onClick={() => setEditing(false)} className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+                {t('customers_page.cancel')}
+              </button>
+              <button onClick={saveEdit} disabled={saving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                {saving ? t('customers_page.saving') : t('customers_page.save')}
+              </button>
+            </>
+          ) : (
+            <button onClick={startEdit} className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+              {t('customers_page.edit_customer')}
+            </button>
+          )}
+          {!confirmingDelete ? (
+            <button onClick={() => setConfirmingDelete(true)}
+              className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50">
+              {t('customers_page.delete_customer')}
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-red-700">{t('customers_page.delete_confirm')}</span>
+              <button onClick={deleteCustomer} disabled={deleting}
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50">
+                {deleting ? t('customers_page.deleting') : t('customers_page.confirm_delete')}
+              </button>
+              <button onClick={() => setConfirmingDelete(false)}
+                className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+                {t('customers_page.cancel')}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -83,7 +148,14 @@ export default function CustomerProfilePage() {
         </div>
       </div>
 
-      {profile.notes !== null && profile.notes !== '' && (
+      {!editing && profile.address !== null && profile.address !== '' && (
+        <div className="mb-6 rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{t('customers_page.address')}</p>
+          <p className="mt-1 text-sm text-stone-700">{profile.address}</p>
+        </div>
+      )}
+
+      {!editing && profile.notes !== null && profile.notes !== '' && (
         <div className="mb-6 rounded-xl border border-stone-200 bg-white p-4 shadow-card">
           <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{t('customers_page.notes')}</p>
           <p className="mt-1 text-sm text-stone-700">{profile.notes}</p>

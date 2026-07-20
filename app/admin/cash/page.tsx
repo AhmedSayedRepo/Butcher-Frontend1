@@ -4,14 +4,22 @@
 // never merged, see ADR-011. Gated server-side by `manage_cash`; the
 // client-side cap check below just avoids showing a form that would 403.
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Link from 'next/link'
 import api from '../../../lib/api'
 import { extractApiErrorMessage } from '../../../lib/apiError'
 import { useAuth } from '../../../lib/useAuth'
 import { CashSummary, CashTransaction, CashTransactionType } from '../../../lib/types'
 
 const RANGES = ['day', 'week', 'month', 'year'] as const
+// v3 follow-up: each summary card now links to the records that make up its
+// number — "Cash in"/"Cash out" filter the ledger table below to that
+// transaction type, "Net position" clears the filter back to everything,
+// and "Total revenue" is a different index entirely (Order, not
+// CashTransaction — see ADR-011, they're deliberately never the same
+// table), so it navigates to /orders instead of filtering in place.
+type CardFilter = 'ALL' | 'IN' | 'OUT'
 
 export default function CashManagementPage() {
   const { t } = useTranslation()
@@ -21,6 +29,7 @@ export default function CashManagementPage() {
   const [transactions, setTransactions] = useState<CashTransaction[]>([])
   const [summary, setSummary] = useState<CashSummary | null>(null)
   const [range, setRange] = useState<(typeof RANGES)[number]>('week')
+  const [cardFilter, setCardFilter] = useState<CardFilter>('ALL')
   const [type, setType] = useState<CashTransactionType>('IN')
   const [category, setCategory] = useState('')
   const [amount, setAmount] = useState('')
@@ -60,6 +69,11 @@ export default function CashManagementPage() {
     }
   }
 
+  const visibleTransactions = useMemo(
+    () => cardFilter === 'ALL' ? transactions : transactions.filter(tx => tx.type === cardFilter),
+    [transactions, cardFilter]
+  )
+
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
 
   if (!canManageCash) {
@@ -85,12 +99,19 @@ export default function CashManagementPage() {
       </div>
 
       {/* ADR-011: cash position and revenue shown as two visibly separate
-          figures, never combined into one number. */}
+          figures, never combined into one number. Each card also links to
+          the records behind it — Cash in/out filter the ledger table
+          below, Net position clears the filter, and Total revenue jumps to
+          /orders since revenue lives on a different index (Order, not
+          CashTransaction) entirely. */}
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <SummaryCard label={t('cash_page.cash_in')} value={summary?.cashIn} accent="green" />
-        <SummaryCard label={t('cash_page.cash_out')} value={summary?.cashOut} accent="amber" />
-        <SummaryCard label={t('cash_page.net_position')} value={summary?.netPosition} accent="brand" />
-        <SummaryCard label={t('cash_page.total_revenue')} value={summary?.totalRevenue} accent="stone" />
+        <SummaryCard label={t('cash_page.cash_in')} value={summary?.cashIn} accent="green"
+          active={cardFilter === 'IN'} onClick={() => setCardFilter('IN')} />
+        <SummaryCard label={t('cash_page.cash_out')} value={summary?.cashOut} accent="amber"
+          active={cardFilter === 'OUT'} onClick={() => setCardFilter('OUT')} />
+        <SummaryCard label={t('cash_page.net_position')} value={summary?.netPosition} accent="brand"
+          active={cardFilter === 'ALL'} onClick={() => setCardFilter('ALL')} />
+        <SummaryCard label={t('cash_page.total_revenue')} value={summary?.totalRevenue} accent="stone" href="/orders" />
       </div>
 
       <form onSubmit={addTransaction} className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-white p-5 shadow-card sm:grid-cols-5">
@@ -106,7 +127,16 @@ export default function CashManagementPage() {
         </button>
       </form>
 
-      {transactions.length === 0 ? (
+      {cardFilter !== 'ALL' && (
+        <div className="mb-3 flex items-center gap-2 text-xs text-stone-500">
+          <span>{t(cardFilter === 'IN' ? 'cash_page.filter_showing_in' : 'cash_page.filter_showing_out')}</span>
+          <button onClick={() => setCardFilter('ALL')} className="font-medium text-brand-700 hover:text-brand-800">
+            {t('cash_page.filter_clear')}
+          </button>
+        </div>
+      )}
+
+      {visibleTransactions.length === 0 ? (
         <div className="rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-sm text-stone-400">
           {t('cash_page.no_entries')}
         </div>
@@ -122,7 +152,7 @@ export default function CashManagementPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
-              {transactions.map(tx => (
+              {visibleTransactions.map(tx => (
                 <tr key={tx.id}>
                   <td className="px-4 py-2.5 font-medium text-stone-900">{tx.category}</td>
                   <td className={`px-4 py-2.5 font-medium ${tx.type === 'IN' ? 'text-emerald-700' : 'text-red-600'}`}>
@@ -147,11 +177,30 @@ const ACCENT: Record<string, string> = {
   stone: 'text-stone-700'
 }
 
-function SummaryCard({ label, value, accent }: { label: string, value: string | undefined, accent: string }) {
-  return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+// v3 follow-up: every summary card is now clickable and links to the
+// records behind its number — either filtering the ledger table on this
+// same page (`onClick` + `active`) or navigating to a different index
+// entirely (`href`, used for Total Revenue → /orders). Exactly one of
+// `onClick`/`href` is expected per card.
+function SummaryCard({ label, value, accent, active, onClick, href }: {
+  label: string
+  value: string | undefined
+  accent: string
+  active?: boolean
+  onClick?: () => void
+  href?: string
+}) {
+  const content = (
+    <>
       <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{label}</p>
       <p className={`mt-1 text-xl font-semibold ${ACCENT[accent]}`}>{value !== undefined ? Number(value).toFixed(2) : '—'}</p>
-    </div>
+    </>
   )
+  const className = `block w-full text-left rounded-xl border bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover ${
+    active === true ? 'border-brand-300 ring-1 ring-brand-200' : 'border-stone-200'
+  }`
+  if (href !== undefined) {
+    return <Link href={href} className={className}>{content}</Link>
+  }
+  return <button type="button" onClick={onClick} className={className}>{content}</button>
 }

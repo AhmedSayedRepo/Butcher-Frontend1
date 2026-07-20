@@ -46,6 +46,12 @@ import { useAuth } from '../lib/useAuth'
 // v3 replan (Phase H/I): "customers" and "inbox" (social/phone draft entry)
 // added — both are ordinary order-taking-adjacent actions any logged-in
 // staff member uses, same tier as "new_order", not admin-gated.
+// v3 follow-up: "cash" moved out from under /admin into the primary nav
+// (was previously a card link buried on the /admin landing page) — same
+// pattern as "batches"/"admin" below: shown to every logged-in user, the
+// destination page itself shows a no-access message for anyone lacking the
+// `manage_cash` capability (see app/admin/cash/page.tsx), rather than this
+// list doing per-item capability filtering.
 const NAV_ITEMS = [
   { href: '/', key: 'dashboard' },
   { href: '/orders', key: 'orders' },
@@ -54,6 +60,7 @@ const NAV_ITEMS = [
   { href: '/customers', key: 'customers' },
   { href: '/inventory', key: 'inventory' },
   { href: '/dismantle', key: 'batches' },
+  { href: '/admin/cash', key: 'cash' },
   { href: '/admin', key: 'admin' },
   { href: '/help', key: 'help' },
 ] as const

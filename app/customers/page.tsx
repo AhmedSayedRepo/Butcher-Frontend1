@@ -22,6 +22,8 @@ export default function CustomersPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
+  const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
 
   function load(q: string) {
@@ -43,9 +45,16 @@ export default function CustomersPage() {
     setSaving(true)
     setError(null)
     try {
-      await api.post('/api/customers', { name: name.trim(), phone: phone.trim() || undefined })
+      await api.post('/api/customers', {
+        name: name.trim(),
+        phone: phone.trim() || undefined,
+        address: address.trim() || undefined,
+        notes: notes.trim() || undefined
+      })
       setName('')
       setPhone('')
+      setAddress('')
+      setNotes('')
       setShowAdd(false)
       load(query)
     } catch (err) {
@@ -74,6 +83,8 @@ export default function CustomersPage() {
         <form onSubmit={addCustomer} className="mb-4 grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-white p-5 shadow-card sm:grid-cols-3">
           <input className={inputClasses} placeholder={t('customers_page.name_placeholder')} value={name} onChange={e => setName(e.target.value)} required />
           <input className={inputClasses} placeholder={t('customers_page.phone_placeholder')} value={phone} onChange={e => setPhone(e.target.value)} />
+          <input className={inputClasses} placeholder={t('customers_page.address_placeholder')} value={address} onChange={e => setAddress(e.target.value)} />
+          <textarea className={`${inputClasses} sm:col-span-2`} rows={2} placeholder={t('customers_page.notes_placeholder')} value={notes} onChange={e => setNotes(e.target.value)} />
           <button type="submit" disabled={saving} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 disabled:opacity-50">
             {saving ? t('customers_page.saving') : t('customers_page.save')}
           </button>

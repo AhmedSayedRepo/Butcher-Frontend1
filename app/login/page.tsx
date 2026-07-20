@@ -4,6 +4,7 @@
 // frontend to store, the browser handles it.
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
 import { extractApiErrorMessage } from '../../lib/apiError'
@@ -95,6 +96,13 @@ export default function LoginPage() {
               )}
               {loading ? t('login_page.signing_in') : t('login_page.sign_in')}
             </button>
+            {/* v3 follow-up: self-service password reset. New accounts are
+                created by an admin invite (see /admin/users), not open
+                signup, so there's no "create an account" link here — only
+                a way back in if you forgot your password. */}
+            <Link href="/forgot-password" className="block text-center text-sm text-stone-500 hover:text-stone-700">
+              {t('login_page.forgot_password')}
+            </Link>
           </form>
         </div>
       </div>

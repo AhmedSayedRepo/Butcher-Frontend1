@@ -19,7 +19,10 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../lib/useAuth'
 
-const PUBLIC_PATHS = ['/login']
+// v3 follow-up: forgot-password and set-password (invite + reset landing
+// page) both need to be reachable by someone who isn't logged in yet — that's
+// the whole point of them.
+const PUBLIC_PATHS = ['/login', '/forgot-password', '/set-password']
 
 function Spinner({ label }: { label: string }) {
   return (

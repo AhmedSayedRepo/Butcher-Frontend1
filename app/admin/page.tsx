@@ -15,7 +15,6 @@ export default function AdminPage(){
   const user = useAuth()
   const caps = user != null && Array.isArray(user.caps) ? user.caps : []
   const canManageUsers = caps.includes('manage_users')
-  const canManageCash = caps.includes('manage_cash')
   const isAdmin = user != null && user.role === 'admin'
 
   const [settings, setSettings] = useState<ShopSettings | null>(null)
@@ -56,17 +55,9 @@ export default function AdminPage(){
         </Link>
       )}
 
-      {canManageCash && (
-        <Link
-          href="/admin/cash"
-          className="mb-4 flex items-center justify-between rounded-xl border border-stone-200 bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover"
-        >
-          <span className="font-medium text-stone-900">{t('admin_page.manage_cash')}</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </Link>
-      )}
+      {/* v3 follow-up: Cash Management moved to the primary top nav (see
+          components/Navbar.tsx) instead of living only as a card here —
+          it's now reachable from anywhere, not buried under /admin. */}
 
       {/* v3 replan (Phase J, ADR-010): shop-wide alert threshold — admin-only,
           same policy tier as user management. */}

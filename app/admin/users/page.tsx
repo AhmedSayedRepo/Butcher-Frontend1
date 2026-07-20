@@ -23,6 +23,9 @@ interface ManagedUser {
   email: string
   role: string
   caps: unknown
+  // v3 follow-up: false for an account an admin invited that hasn't
+  // finished the "set your password" step yet.
+  passwordSet: boolean
   createdAt: string
 }
 
@@ -59,6 +62,15 @@ export default function AdminUsersPage() {
 
   const isAdmin = me != null && capsArray(me.caps).includes('manage_users')
 
+  // v3 follow-up: admin-invite flow (Ahmed's "admin invites, user sets
+  // password" choice — no open self-signup anywhere in this app).
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<RoleT>('cashier')
+  const [inviting, setInviting] = useState(false)
+  const [inviteResult, setInviteResult] = useState<{ email: string, setPasswordUrl: string, emailSent: boolean } | null>(null)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
   function load() {
     api.get<ManagedUser[]>('/api/users')
       .then((r) => {
@@ -88,6 +100,33 @@ export default function AdminUsersPage() {
       const caps = has ? current.caps.filter((c) => c !== cap) : [...current.caps, cap]
       return { ...prev, [id]: { ...current, caps } }
     })
+  }
+
+  async function inviteUser(e: React.FormEvent) {
+    e.preventDefault()
+    if (inviteEmail.trim() === '') return
+    setInviting(true)
+    setInviteError(null)
+    setInviteResult(null)
+    setCopied(false)
+    try {
+      const r = await api.post<{ user: ManagedUser, setPasswordUrl: string, emailSent: boolean }>('/api/users', {
+        email: inviteEmail.trim(),
+        role: inviteRole
+      })
+      setInviteResult({ email: inviteEmail.trim(), setPasswordUrl: r.data.setPasswordUrl, emailSent: r.data.emailSent })
+      setInviteEmail('')
+      load()
+    } catch (err) {
+      setInviteError(extractApiErrorMessage(err) ?? t('admin_users_page.error_invite'))
+    } finally {
+      setInviting(false)
+    }
+  }
+
+  function copyInviteLink() {
+    if (inviteResult === null) return
+    void navigator.clipboard.writeText(inviteResult.setPasswordUrl).then(() => setCopied(true))
   }
 
   async function save(id: string, confirm: boolean) {
@@ -132,6 +171,46 @@ export default function AdminUsersPage() {
 
       {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
+      {/* v3 follow-up: the only way a new account gets created — admin
+          invites by email, invitee sets their own password via the emailed
+          link. No open self-signup route exists anywhere in this app. */}
+      <form onSubmit={inviteUser} className="mb-6 rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+        <p className="mb-3 text-sm font-medium text-stone-900">{t('admin_users_page.invite_title')}</p>
+        {inviteError !== null && <div className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{inviteError}</div>}
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            type="email"
+            className={`${inputClasses} max-w-xs`}
+            placeholder={t('login_page.email_placeholder')}
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+            required
+          />
+          <select className={inputClasses} value={inviteRole} onChange={(e) => setInviteRole(e.target.value as RoleT)} style={{ width: 'auto' }}>
+            {ROLES.map((r) => <option key={r} value={r}>{t(`admin_users_page.role_${r}`)}</option>)}
+          </select>
+          <button type="submit" disabled={inviting}
+            className="rounded-lg bg-brand-600 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+            {inviting ? t('admin_users_page.inviting') : t('admin_users_page.invite_user')}
+          </button>
+        </div>
+        {inviteResult !== null && (
+          <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+            <p className="text-sm text-stone-700">
+              {inviteResult.emailSent
+                ? t('admin_users_page.invite_sent', { email: inviteResult.email })
+                : t('admin_users_page.invite_email_failed', { email: inviteResult.email })}
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <code className="flex-1 truncate rounded bg-white px-2 py-1 text-xs text-stone-600">{inviteResult.setPasswordUrl}</code>
+              <button type="button" onClick={copyInviteLink} className="shrink-0 rounded-md border border-stone-300 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-white">
+                {copied ? t('admin_users_page.copied') : t('admin_users_page.copy_link')}
+              </button>
+            </div>
+          </div>
+        )}
+      </form>
+
       <div className="space-y-3">
         {users.map((u) => {
           const draft = drafts[u.id]
@@ -141,7 +220,14 @@ export default function AdminUsersPage() {
             <div key={u.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-stone-900">{u.email}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="truncate font-medium text-stone-900">{u.email}</p>
+                    {!u.passwordSet && (
+                      <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        {t('admin_users_page.pending_invite')}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-stone-500">{t('admin_users_page.col_created')}: {new Date(u.createdAt).toLocaleDateString()}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
