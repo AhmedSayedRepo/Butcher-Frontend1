@@ -191,7 +191,16 @@
     "error_no_outputs": "أدخل الوزن الفعلي لقطعة واحدة على الأقل.",
     "error_submit": "فشل تسجيل عملية التقطيع.",
     "offal_tag": "أحشاء",
-    "byproduct_tag": "مخلفات"
+    "byproduct_tag": "مخلفات",
+    "edit_event": "تعديل",
+    "delete_event": "حذف",
+    "save_event": "حفظ",
+    "cancel_edit": "إلغاء",
+    "saving_event": "جارٍ الحفظ…",
+    "deleting_event": "جارٍ الحذف…",
+    "confirm_delete_event": "حذف عملية التقطيع هذه؟ سيتم عكس أي مخزون أضافته. لا يمكن التراجع عن هذا الإجراء.",
+    "error_edit_event": "فشل حفظ التعديلات.",
+    "error_delete_event": "فشل حذف عملية التقطيع."
   },
   "admin_page": {
     "subtitle": "المستخدمون، الهوية البصرية",

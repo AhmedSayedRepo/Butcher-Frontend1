@@ -32,6 +32,15 @@ export default function DismantlePage() {
   const [cutInputs, setCutInputs] = useState<Record<string, CutInput>>({})
   const [submitting, setSubmitting] = useState(false)
 
+  // v3.1 follow-up 13: inline edit/delete for a recorded breakdown. Only one
+  // event can be in edit mode at a time — editDraft is null when nothing's
+  // being edited, keyed by editingEventId otherwise.
+  const [editingEventId, setEditingEventId] = useState<string | null>(null)
+  const [editSourceLabel, setEditSourceLabel] = useState('')
+  const [editInputWeightKg, setEditInputWeightKg] = useState('')
+  const [editOutputWeights, setEditOutputWeights] = useState<Record<string, string>>({})
+  const [eventBusyId, setEventBusyId] = useState<string | null>(null)
+
   useEffect(() => {
     api.get<DismantleTemplate[]>('/api/dismantle-templates')
       .then(r => {
@@ -130,6 +139,50 @@ export default function DismantlePage() {
       setError(extractApiErrorMessage(err) ?? t('dismantle_page.error_submit'))
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  function startEditEvent(ev: DismantleEvent) {
+    setEditingEventId(ev.id)
+    setEditSourceLabel(ev.sourceLabel)
+    setEditInputWeightKg(ev.inputWeightKg)
+    setEditOutputWeights(Object.fromEntries(ev.outputs.map(o => [o.id, o.actualWeightKg])))
+    setError(null)
+  }
+
+  function cancelEditEvent() {
+    setEditingEventId(null)
+  }
+
+  async function saveEditEvent(ev: DismantleEvent) {
+    setEventBusyId(ev.id)
+    setError(null)
+    try {
+      await api.patch(`/api/dismantle-events/${ev.id}`, {
+        sourceLabel: editSourceLabel,
+        inputWeightKg: Number(editInputWeightKg),
+        outputs: ev.outputs.map(o => ({ id: o.id, actualWeightKg: Number(editOutputWeights[o.id] ?? o.actualWeightKg) }))
+      })
+      setEditingEventId(null)
+      loadEvents()
+    } catch (err) {
+      setError(extractApiErrorMessage(err) ?? t('dismantle_page.error_edit_event'))
+    } finally {
+      setEventBusyId(null)
+    }
+  }
+
+  async function deleteEvent(ev: DismantleEvent) {
+    if (!window.confirm(t('dismantle_page.confirm_delete_event'))) return
+    setEventBusyId(ev.id)
+    setError(null)
+    try {
+      await api.delete(`/api/dismantle-events/${ev.id}`)
+      loadEvents()
+    } catch (err) {
+      setError(extractApiErrorMessage(err) ?? t('dismantle_page.error_delete_event'))
+    } finally {
+      setEventBusyId(null)
     }
   }
 
@@ -234,29 +287,77 @@ export default function DismantlePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {events.map(ev => (
-                <div key={ev.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
-                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="font-medium text-stone-900">{ev.sourceLabel}</p>
-                      <p className="text-xs text-stone-500">
-                        {localizedName(ev.template.animalType, i18n.language, ANIMAL_TYPE_AR)} — {localizedName(ev.template.name, i18n.language, TEMPLATE_NAME_AR)} · {Number(ev.inputWeightKg).toFixed(3)} kg
-                      </p>
+              {events.map(ev => {
+                const isEditing = editingEventId === ev.id
+                const isBusy = eventBusyId === ev.id
+                return (
+                  <div key={ev.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        {isEditing ? (
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:max-w-md">
+                            <input className={inputClasses} value={editSourceLabel}
+                              onChange={e => setEditSourceLabel(e.target.value)} />
+                            <input type="number" step="0.001" min="0.001" className={inputClasses}
+                              value={editInputWeightKg} onChange={e => setEditInputWeightKg(e.target.value)} />
+                          </div>
+                        ) : (
+                          <>
+                            <p className="font-medium text-stone-900">{ev.sourceLabel}</p>
+                            <p className="text-xs text-stone-500">
+                              {localizedName(ev.template.animalType, i18n.language, ANIMAL_TYPE_AR)} — {localizedName(ev.template.name, i18n.language, TEMPLATE_NAME_AR)} · {Number(ev.inputWeightKg).toFixed(3)} kg
+                            </p>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!isEditing && (
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${ev.wastePct > PERCENT_MULTIPLIER / 10 ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
+                            {t('dismantle_page.waste')}: {ev.wastePct.toFixed(1)}%
+                          </span>
+                        )}
+                        {isEditing ? (
+                          <>
+                            <button type="button" onClick={() => saveEditEvent(ev)} disabled={isBusy}
+                              className="rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                              {isBusy ? t('dismantle_page.saving_event') : t('dismantle_page.save_event')}
+                            </button>
+                            <button type="button" onClick={cancelEditEvent} disabled={isBusy}
+                              className="rounded-md px-2 py-1 text-xs font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-50">
+                              {t('dismantle_page.cancel_edit')}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button type="button" onClick={() => startEditEvent(ev)} disabled={isBusy}
+                              className="rounded-md px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50">
+                              {t('dismantle_page.edit_event')}
+                            </button>
+                            <button type="button" onClick={() => deleteEvent(ev)} disabled={isBusy}
+                              className="rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
+                              {isBusy ? t('dismantle_page.deleting_event') : t('dismantle_page.delete_event')}
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${ev.wastePct > PERCENT_MULTIPLIER / 10 ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
-                      {t('dismantle_page.waste')}: {ev.wastePct.toFixed(1)}%
-                    </span>
+                    <ul className="space-y-1 text-sm text-stone-600">
+                      {ev.outputs.map(o => (
+                        <li key={o.id} className="flex items-center justify-between gap-2">
+                          <span>{localizedName(o.cutName, i18n.language, CUT_NAME_AR)}</span>
+                          {isEditing ? (
+                            <input type="number" step="0.001" min="0.001" className={`${inputClasses} w-28`}
+                              value={editOutputWeights[o.id] ?? o.actualWeightKg}
+                              onChange={e => setEditOutputWeights(prev => ({ ...prev, [o.id]: e.target.value }))} />
+                          ) : (
+                            <span>{Number(o.actualWeightKg).toFixed(3)} kg ({(o.contentPerKiloKg * PERCENT_MULTIPLIER).toFixed(1)}% {t('dismantle_page.per_kilo')})</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="space-y-1 text-sm text-stone-600">
-                    {ev.outputs.map(o => (
-                      <li key={o.id} className="flex justify-between">
-                        <span>{localizedName(o.cutName, i18n.language, CUT_NAME_AR)}</span>
-                        <span>{Number(o.actualWeightKg).toFixed(3)} kg ({(o.contentPerKiloKg * PERCENT_MULTIPLIER).toFixed(1)}% {t('dismantle_page.per_kilo')})</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

@@ -191,7 +191,16 @@
     "error_no_outputs": "Enter at least one cut's actual weight.",
     "error_submit": "Failed to record breakdown.",
     "offal_tag": "offal",
-    "byproduct_tag": "byproduct"
+    "byproduct_tag": "byproduct",
+    "edit_event": "Edit",
+    "delete_event": "Delete",
+    "save_event": "Save",
+    "cancel_edit": "Cancel",
+    "saving_event": "Saving…",
+    "deleting_event": "Deleting…",
+    "confirm_delete_event": "Delete this breakdown? Any stock it added will be reversed. This can't be undone.",
+    "error_edit_event": "Failed to save changes.",
+    "error_delete_event": "Failed to delete breakdown."
   },
   "admin_page": {
     "subtitle": "Users, Branding",
