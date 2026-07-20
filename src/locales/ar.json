@@ -8,6 +8,7 @@
   "inventory": "المخزون",
   "batches": "الدفعات",
   "admin": "المسؤول",
+  "settings": "الإعدادات",
   "login": "تسجيل الدخول",
   "logout": "تسجيل الخروج",
   "help": "المساعدة والدليل",
@@ -64,6 +65,7 @@
     "status_in_progress": "قيد التنفيذ",
     "status_on_the_way": "في الطريق",
     "status_in_premise": "في المتجر",
+    "status_completed": "مكتمل",
     "status_draft": "مسودة",
     "status_cancelled": "ملغى",
     "error_status": "فشل تحديث حالة الطلب.",
@@ -72,7 +74,14 @@
     "source_in_premise": "داخل المتجر",
     "source_social": "وسائل التواصل",
     "source_phone": "هاتف",
-    "source_cashier": "الكاشير"
+    "source_cashier": "الكاشير",
+    "payment_method_label": "طريقة الدفع",
+    "scan_receipt_label": "امسح الإيصال للتأكيد",
+    "scan_receipt_hint": "امسح أو أدخل الرمز المطبوع على إيصال هذا الطلب لتأكيد استلام المبلغ وإكمال الطلب.",
+    "scan_receipt_placeholder": "رمز الإيصال",
+    "scan_receipt_button": "تأكيد",
+    "scanning": "جارٍ التأكيد…",
+    "error_scan_receipt": "تعذّر تأكيد الإيصال."
   },
   "new_order_page": {
     "title": "طلب جديد",
@@ -89,6 +98,7 @@
     "saving_draft": "جارٍ حفظ المسودة…",
     "recent_products": "الأخيرة",
     "receipt_title": "إيصال",
+    "receipt_code_label": "رمز الإيصال",
     "print_receipt": "طباعة الإيصال",
     "done": "تم",
     "in_stock": "متوفر في المخزون",
@@ -178,14 +188,34 @@
     "error_load_events": "فشل تحميل عمليات التقطيع.",
     "error_no_outputs": "أدخل الوزن الفعلي لقطعة واحدة على الأقل.",
     "error_submit": "فشل تسجيل عملية التقطيع.",
-    "offal_tag": "أحشاء"
+    "offal_tag": "أحشاء",
+    "byproduct_tag": "مخلفات"
   },
   "admin_page": {
-    "subtitle": "المستخدمون، الهوية البصرية، الإعدادات",
+    "subtitle": "المستخدمون، الهوية البصرية",
     "manage_users": "إدارة المستخدمين",
     "manage_cash": "إدارة النقدية",
     "alert_threshold_label": "حد تنبيه الطلبات المعلَّقة",
     "minutes": "دقيقة"
+  },
+  "settings_page": {
+    "subtitle": "تنبيهات المتجر والمخزون وتفضيلات البريد الإلكتروني",
+    "no_access": "ليس لديك صلاحية الوصول إلى إعدادات المتجر.",
+    "loading": "جارٍ تحميل الإعدادات…",
+    "saved": "تم حفظ الإعدادات.",
+    "error_minutes": "أدخل حد تنبيه للطلبات المعلَّقة أكبر من 0.",
+    "error_threshold": "أدخل حد مخزون منخفض أكبر من 0.",
+    "error_sender_name": "أدخل اسم المُرسل.",
+    "error_save": "تعذّر حفظ الإعدادات.",
+    "section_alerts": "التنبيهات والمخزون",
+    "section_email": "البريد الإلكتروني الصادر",
+    "pending_order_minutes_label": "حد تنبيه الطلبات المعلَّقة",
+    "pending_order_minutes_hint": "المدة التي يمكن أن تبقى فيها المسودة دون تأكيد قبل تمييزها كمتأخرة في لوحة التحكم.",
+    "alert_sound_label": "تشغيل صوت عند وجود تنبيهات جديدة",
+    "low_stock_threshold_label": "حد المخزون المنخفض الافتراضي",
+    "low_stock_threshold_hint": "يُستخدم لأي منتج ليس له حد خاص محدد في المخزون.",
+    "sender_name_label": "اسم المُرسل",
+    "sender_name_hint": "يظهر كاسم \"المُرسل\" في رسائل الدعوة وإعادة تعيين كلمة المرور، مثل \"Butcher Cashier <you@gmail.com>\"."
   },
   "admin_users_page": {
     "title": "إدارة المستخدمين",

@@ -103,6 +103,7 @@ export default function DismantlePage() {
           cutName: cut.cutName,
           actualWeightKg: weight,
           isOffal: cut.isOffal,
+          isByproduct: cut.isByproduct,
           productId: input.productId === '' ? undefined : input.productId
         }
       })
@@ -195,6 +196,7 @@ export default function DismantlePage() {
                       <td className="px-3 py-2 font-medium text-stone-900">
                         {localizedName(cut.cutName, i18n.language, CUT_NAME_AR)}
                         {cut.isOffal && <span className="ms-1.5 rounded-full bg-stone-100 px-1.5 py-0.5 text-xs text-stone-500">{t('dismantle_page.offal_tag')}</span>}
+                        {cut.isByproduct && <span className="ms-1.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700">{t('dismantle_page.byproduct_tag')}</span>}
                       </td>
                       <td className="px-3 py-2 text-stone-500">{Number(cut.expectedYieldPct).toFixed(1)}%</td>
                       <td className="px-3 py-2">

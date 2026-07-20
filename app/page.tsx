@@ -24,7 +24,11 @@ import api from '../lib/api'
 import { useAuth } from '../lib/useAuth'
 import { Order, Product, ShopSettings } from '../lib/types'
 
-const LOW_STOCK_THRESHOLD_KG = 5
+// v3.1 follow-up 5 (Settings page): fallback only — the real value now
+// comes from ShopSettings.defaultLowStockThresholdKg (editable at
+// /settings), fetched below. Only used for the brief window before that
+// fetch resolves.
+const FALLBACK_LOW_STOCK_THRESHOLD_KG = 5
 const DAYS_7 = 7
 const DAYS_30 = 30
 const TOP_PRODUCTS_LIMIT = 5
@@ -102,7 +106,11 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` is stable enough here; re-running on every translation-fn identity change isn't the intent.
   }, [staleDrafts.length])
 
-  const stockAlerts = products.filter(p => Number(p.stockKg) < LOW_STOCK_THRESHOLD_KG).length
+  const lowStockThresholdKg = shopSettings === null ? FALLBACK_LOW_STOCK_THRESHOLD_KG : Number(shopSettings.defaultLowStockThresholdKg)
+  const stockAlerts = products.filter(p => {
+    const threshold = p.lowStockAlertKg === null || p.lowStockAlertKg === '' ? lowStockThresholdKg : Number(p.lowStockAlertKg)
+    return Number(p.stockKg) < threshold
+  }).length
   const hasAlerts = stockAlerts > 0
   const productCount = products.length
 
@@ -166,7 +174,7 @@ export default function Page() {
         />
         <StatCard
           href="/inventory"
-          label={t('dashboard_page.stock_alerts', { threshold: LOW_STOCK_THRESHOLD_KG })}
+          label={t('dashboard_page.stock_alerts', { threshold: lowStockThresholdKg })}
           value={stockAlerts}
           icon={<AlertIcon />}
           accent={hasAlerts ? 'amber' : 'green'}

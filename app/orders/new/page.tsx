@@ -198,6 +198,16 @@ export default function NewOrderPage() {
             <span>{t('new_order_page.total')}</span>
             <span>{Number(receipt.totalAmount).toFixed(2)}</span>
           </div>
+          {/* v3.1 follow-up 6: printed so an on-the-way order's receipt code
+              can be scanned/typed back in later (POST /:id/scan-receipt) to
+              confirm the order and complete it — the only way that path
+              reaches COMPLETED. Not shown for in-premise orders' receipts;
+              harmless either way since it's simply unused for that flow. */}
+          {receipt.receiptCode !== null && (
+            <p className="mt-4 text-center text-xs text-stone-400">
+              {t('new_order_page.receipt_code_label')}: <span className="font-mono tracking-widest text-stone-600">{receipt.receiptCode}</span>
+            </p>
+          )}
         </div>
         <div className="mx-auto mt-4 flex max-w-sm gap-3">
           <button onClick={() => window.print()}

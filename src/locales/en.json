@@ -8,6 +8,7 @@
   "inventory": "Inventory",
   "batches": "Batches",
   "admin": "Admin",
+  "settings": "Settings",
   "login": "Login",
   "logout": "Logout",
   "help": "Help & Guide",
@@ -64,6 +65,7 @@
     "status_in_progress": "In Progress",
     "status_on_the_way": "On the Way",
     "status_in_premise": "In Premise",
+    "status_completed": "Completed",
     "status_draft": "Draft",
     "status_cancelled": "Cancelled",
     "error_status": "Failed to update order status.",
@@ -72,7 +74,14 @@
     "source_in_premise": "In-premise",
     "source_social": "Social",
     "source_phone": "Phone",
-    "source_cashier": "Cashier"
+    "source_cashier": "Cashier",
+    "payment_method_label": "Payment method",
+    "scan_receipt_label": "Scan receipt to confirm",
+    "scan_receipt_hint": "Scan or type the code printed on this order's receipt to confirm payment and mark it completed.",
+    "scan_receipt_placeholder": "Receipt code",
+    "scan_receipt_button": "Confirm",
+    "scanning": "Confirming…",
+    "error_scan_receipt": "Couldn't confirm the receipt."
   },
   "new_order_page": {
     "title": "New Order",
@@ -89,6 +98,7 @@
     "saving_draft": "Saving draft…",
     "recent_products": "Recent",
     "receipt_title": "Receipt",
+    "receipt_code_label": "Receipt code",
     "print_receipt": "Print receipt",
     "done": "Done",
     "in_stock": "in stock",
@@ -178,14 +188,34 @@
     "error_load_events": "Failed to load breakdowns.",
     "error_no_outputs": "Enter at least one cut's actual weight.",
     "error_submit": "Failed to record breakdown.",
-    "offal_tag": "offal"
+    "offal_tag": "offal",
+    "byproduct_tag": "byproduct"
   },
   "admin_page": {
-    "subtitle": "Users, Branding, Settings",
+    "subtitle": "Users, Branding",
     "manage_users": "Manage Users",
     "manage_cash": "Cash Management",
     "alert_threshold_label": "Pending-order alert threshold",
     "minutes": "minutes"
+  },
+  "settings_page": {
+    "subtitle": "Shop-wide alerts, stock, and email preferences",
+    "no_access": "You don't have access to shop settings.",
+    "loading": "Loading settings…",
+    "saved": "Settings saved.",
+    "error_minutes": "Enter a pending-order alert threshold greater than 0.",
+    "error_threshold": "Enter a low-stock threshold greater than 0.",
+    "error_sender_name": "Enter a sender name.",
+    "error_save": "Couldn't save settings.",
+    "section_alerts": "Alerts & Stock",
+    "section_email": "Outgoing Email",
+    "pending_order_minutes_label": "Pending-order alert threshold",
+    "pending_order_minutes_hint": "How long a draft order can sit unconfirmed before it's flagged as stale on the dashboard.",
+    "alert_sound_label": "Play a sound for new alerts",
+    "low_stock_threshold_label": "Default low-stock threshold",
+    "low_stock_threshold_hint": "Used for any product without its own threshold set in Inventory.",
+    "sender_name_label": "Sender name",
+    "sender_name_hint": "Shown as the \"From\" name on invite and password-reset emails, e.g. \"Butcher Cashier <you@gmail.com>\"."
   },
   "admin_users_page": {
     "title": "User Management",

@@ -68,6 +68,13 @@ export default function OrdersInboxPage() {
     setCustomer(c.name)
     setCustomerQuery('')
     setCustomerResults([])
+    // Auto-fill the delivery address from the customer's saved record —
+    // saves staff from retyping an address that's already on file. Still a
+    // plain textarea underneath, so it can be edited/cleared per order if
+    // this delivery is going somewhere different.
+    if (c.address !== null && c.address !== '') {
+      setDeliveryAddress(c.address)
+    }
   }
 
   function addLine() {

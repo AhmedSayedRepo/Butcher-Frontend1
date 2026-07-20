@@ -21,11 +21,21 @@ export type OrderItem = {
   productId: string
   kg: string
   price: string
+  // v3.1 follow-up 6: included by GET /api/orders (and every endpoint that
+  // returns a full Order after this change) so the order-detail popup can
+  // show real product names — see backend/src/routes/orders.ts. Not
+  // present on the receipt returned by POST /api/orders or POST
+  // /:id/promote (those never needed it before; the receipt view only
+  // ever displayed kg/price), so treat this as optional there.
+  product?: { id: string, name: string, unit: string }
 }
 
 // v2 replan (Phase C): DRAFT is created but not yet promoted (no stock
-// decrement); CANCELLED is terminal. The other four are the kanban columns.
-export type OrderStatus = 'DRAFT' | 'CREATED' | 'IN_PROGRESS' | 'ON_THE_WAY' | 'IN_PREMISE' | 'CANCELLED'
+// decrement); CANCELLED is terminal. v3.1 follow-up 6: COMPLETED is the
+// other terminal state — a fulfilled order, reached from IN_PREMISE
+// manually or from ON_THE_WAY only via the receipt-scan confirmation (see
+// app/orders/page.tsx).
+export type OrderStatus = 'DRAFT' | 'CREATED' | 'IN_PROGRESS' | 'ON_THE_WAY' | 'IN_PREMISE' | 'COMPLETED' | 'CANCELLED'
 
 export type Order = {
   id: string
@@ -47,6 +57,10 @@ export type Order = {
   deliveryAddress: string | null
   // v3 replan (Phase K — cash management). Defaults "cash" on every order.
   paymentMethod: string
+  // v3.1 follow-up 6: assigned once an order becomes real (creation/draft
+  // promotion), never on a DRAFT. The code scanned/typed back in via
+  // POST /:id/scan-receipt to confirm an ON_THE_WAY order and complete it.
+  receiptCode: string | null
   createdAt: string
   userId: string
   items: OrderItem[]
@@ -116,6 +130,11 @@ export type ShopSettings = {
   // was last reset by the closing-day action.
   dailyOrderCounter: number
   lastClosedAt: string | null
+  // v3.1 follow-up 5 (Settings page). Prisma Decimal fields serialize as
+  // strings over JSON (same pattern as Product.lowStockAlertKg/Order.
+  // totalAmount elsewhere in this file) — parse with Number() before math.
+  defaultLowStockThresholdKg: string
+  mailSenderName: string
 }
 
 // v2 replan (Phase B): audit trail row for a direct stock edit.
@@ -135,6 +154,9 @@ export type DismantleTemplateCut = {
   cutName: string
   expectedYieldPct: string
   isOffal: boolean
+  // v3.1 follow-up 7: non-edible slaughter byproduct (hide/pelt, blood,
+  // head/feet) on "Whole Animal (On-Site Slaughter)" templates.
+  isByproduct: boolean
 }
 
 export type DismantleTemplate = {
@@ -151,6 +173,7 @@ export type DismantleEventOutput = {
   cutName: string
   actualWeightKg: string
   isOffal: boolean
+  isByproduct: boolean
   productId: string | null
   contentPerKiloKg: number
 }

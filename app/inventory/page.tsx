@@ -19,16 +19,19 @@ import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
 import { extractApiErrorMessage } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
-import { Product } from '../../lib/types'
+import { Product, ShopSettings } from '../../lib/types'
 
 type Draft = { name: string, unit: string, category: string, pricePerKg: string, stockKg: string, lowStockAlertKg: string, barcode: string }
 
 const EMPTY_DRAFT: Draft = { name: '', unit: 'kg', category: '', pricePerKg: '', stockKg: '', lowStockAlertKg: '', barcode: '' }
-const DEFAULT_LOW_STOCK_THRESHOLD_KG = 5
+// v3.1 follow-up 5 (Settings page): fallback only, for the brief window
+// before GET /api/shop-settings resolves — the real default now lives at
+// ShopSettings.defaultLowStockThresholdKg, editable at /settings.
+const FALLBACK_LOW_STOCK_THRESHOLD_KG = 5
 const ALL_CATEGORIES = '__all__'
 
-function effectiveThreshold(p: Product): number {
-  return p.lowStockAlertKg === null || p.lowStockAlertKg === '' ? DEFAULT_LOW_STOCK_THRESHOLD_KG : Number(p.lowStockAlertKg)
+function effectiveThreshold(p: Product, shopDefaultKg: number): number {
+  return p.lowStockAlertKg === null || p.lowStockAlertKg === '' ? shopDefaultKg : Number(p.lowStockAlertKg)
 }
 
 export default function InventoryPage() {
@@ -48,6 +51,12 @@ export default function InventoryPage() {
   const [editReason, setEditReason] = useState('')
   const [saving, setSaving] = useState(false)
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES)
+  const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null)
+  const shopDefaultThresholdKg = shopSettings === null ? FALLBACK_LOW_STOCK_THRESHOLD_KG : Number(shopSettings.defaultLowStockThresholdKg)
+
+  useEffect(() => {
+    api.get<ShopSettings>('/api/shop-settings').then(r => setShopSettings(r.data)).catch(() => setShopSettings(null))
+  }, [])
 
   function load() {
     api.get<Product[]>('/api/products')
@@ -202,7 +211,7 @@ export default function InventoryPage() {
             <label>
               <span className={labelClasses}>{t('inventory_page.threshold_label')}</span>
               <input type="number" step="0.001" min="0" className={inputClasses} value={newDraft.lowStockAlertKg}
-                placeholder={String(DEFAULT_LOW_STOCK_THRESHOLD_KG)}
+                placeholder={String(shopDefaultThresholdKg)}
                 onChange={e => setNewDraft({ ...newDraft, lowStockAlertKg: e.target.value })} />
             </label>
             <label>
@@ -224,7 +233,7 @@ export default function InventoryPage() {
           </div>
         ) : (
           visibleProducts.map((p) => {
-            const lowStock = Number(p.stockKg) < effectiveThreshold(p)
+            const lowStock = Number(p.stockKg) < effectiveThreshold(p, shopDefaultThresholdKg)
             return (
               <div key={p.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover">
                 {editingId === p.id ? (

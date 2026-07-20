@@ -10,7 +10,8 @@
 export const ANIMAL_TYPE_AR: Record<string, string> = {
   calf: 'عجل',
   sheep: 'غنم',
-  goat: 'ماعز'
+  goat: 'ماعز',
+  cow: 'بقر'
 }
 
 export const TEMPLATE_NAME_AR: Record<string, string> = {
@@ -24,7 +25,11 @@ export const TEMPLATE_NAME_AR: Record<string, string> = {
   'Standard Primal (Goat)': 'التقطيع الأساسي (ماعز)',
   'Nose-to-Tail (Lamb)': 'من الأنف إلى الذيل (غنم)',
   'Retail Sub-Primal (Lamb)': 'التقطيع الفرعي للبيع بالتجزئة (غنم)',
-  'Standard Primal (Lamb)': 'التقطيع الأساسي (غنم)'
+  'Standard Primal (Lamb)': 'التقطيع الأساسي (غنم)',
+  'Standard Primal (Beef)': 'التقطيع الأساسي (بقر)',
+  'Retail Sub-Primal (Beef)': 'التقطيع الفرعي للبيع بالتجزئة (بقر)',
+  'Nose-to-Tail (Beef)': 'من الأنف إلى الذيل (بقر)',
+  'Whole Animal (On-Site Slaughter)': 'الذبيحة كاملة (ذبح في المكان)'
 }
 
 export const CUT_NAME_AR: Record<string, string> = {
@@ -65,7 +70,24 @@ export const CUT_NAME_AR: Record<string, string> = {
   Shank: 'الساق',
   'Shoulder (chops / roast)': 'الكتف (تشوب / روست)',
   'Trim (for ground lamb/merguez)': 'قصاصات (للحم الغنم المفروم / المرقاز)',
-  'Breast & Foreshank': 'الصدر والساق الأمامية'
+  'Breast & Foreshank': 'الصدر والساق الأمامية',
+  Chuck: 'الكتف (شاك)',
+  Rib: 'الأضلاع',
+  'Short Loin & Sirloin': 'المتن القصير والسرلوين',
+  Round: 'الفخذ الخلفي (راوند)',
+  'Plate, Brisket & Flank (grouped)': 'الصدر السفلي والبريسكت والخاصرة (مجمعة)',
+  'Chuck (roast / steaks / ground)': 'الكتف (روست / ستيك / مفروم)',
+  'Rib (ribeye / prime rib)': 'الأضلاع (ريب آي / برايم ريب)',
+  'Short Loin & Sirloin (strip / T-bone / sirloin steak)': 'المتن القصير والسرلوين (ستريب / تي-بون / سرلوين ستيك)',
+  'Round (roast / steaks / ground)': 'الفخذ الخلفي (روست / ستيك / مفروم)',
+  Oxtail: 'ذيل البقر',
+  'Trim (for ground beef)': 'قصاصات (للحم البقر المفروم)',
+  'Forequarter (chuck, rib, plate, brisket)': 'الربع الأمامي (كتف، أضلاع، صدر سفلي، بريسكت)',
+  'Hindquarter (loin, sirloin, flank, round)': 'الربع الخلفي (متن، سرلوين، خاصرة، فخذ خلفي)',
+  'Hide/Pelt': 'الجلد',
+  Blood: 'الدم',
+  'Head, Feet & Other Byproducts': 'الرأس والأطراف ومخلفات أخرى',
+  'Dressed Carcass (for further breakdown)': 'الذبيحة بعد السلخ (لمزيد من التقطيع)'
 }
 
 export function localizedName(en: string, lang: string, dict: Record<string, string>): string {

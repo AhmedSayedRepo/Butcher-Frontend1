@@ -62,6 +62,10 @@ const NAV_ITEMS = [
   { href: '/dismantle', key: 'batches' },
   { href: '/admin/cash', key: 'cash' },
   { href: '/admin', key: 'admin' },
+  // v3.1 follow-up 5 (Settings page): same pattern as every other link
+  // here — shown to every logged-in user, /settings itself shows a
+  // no-access message for non-admins rather than this list filtering.
+  { href: '/settings', key: 'settings' },
   { href: '/help', key: 'help' },
 ] as const
 
