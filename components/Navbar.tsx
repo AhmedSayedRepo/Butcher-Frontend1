@@ -32,7 +32,7 @@ import '../src/i18n'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import api from '../lib/api'
 import { useAuth } from '../lib/useAuth'
 
@@ -71,7 +71,6 @@ function BrandMark() {
 
 export default function Navbar() {
   const { t, i18n } = useTranslation()
-  const router = useRouter()
   const pathname = usePathname()
   const user = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -103,8 +102,11 @@ export default function Navbar() {
     try {
       await api.post('/auth/logout')
     } finally {
-      router.push('/login')
-      router.refresh()
+      // Full page load, not router.push() — see the matching comment in
+      // app/login/page.tsx. Same stale-mounted-AuthGate problem in reverse:
+      // without a hard navigation, AuthGate/useAuth still hold the
+      // pre-logout "logged in" state for this mounted instance.
+      window.location.href = '/login'
     }
   }
 

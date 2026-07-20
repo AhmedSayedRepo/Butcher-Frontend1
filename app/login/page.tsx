@@ -4,14 +4,12 @@
 // frontend to store, the browser handles it.
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
 import { extractApiErrorMessage } from '../../lib/apiError'
 
 export default function LoginPage() {
   const { t } = useTranslation()
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -23,8 +21,14 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await api.post('/auth/login', { email, password })
-      router.push('/orders')
-      router.refresh()
+      // Full page load, not router.push(): AuthGate/useAuth (mounted once in
+      // the persistent root layout — see components/AuthGate.tsx) only check
+      // `GET /auth/me` on mount, and a client-side route push reuses that
+      // same still-mounted instance instead of re-running the check. Without
+      // a hard navigation here, AuthGate still holds the pre-login "logged
+      // out" state and immediately bounces the freshly-authenticated user
+      // straight back to /login.
+      window.location.href = '/orders'
     } catch (err) {
       setError(extractApiErrorMessage(err) ?? t('login_page.error_default'))
     } finally {
