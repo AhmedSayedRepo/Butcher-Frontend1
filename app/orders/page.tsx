@@ -30,6 +30,7 @@ import { translateApiError } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import { Order, OrderStatus, Product, ShopSettings } from '../../lib/types'
 import Receipt from '../../components/Receipt'
+import Spinner from '../../components/Spinner'
 import { formatElapsed, minutesSince, statusEnteredAt } from '../../lib/elapsed'
 
 const COLUMNS: { status: OrderStatus, key: string }[] = [
@@ -78,6 +79,10 @@ export default function OrdersPage() {
   const loggedIn = !!user
   const canManageOrders = user != null && Array.isArray(user.caps) && user.caps.includes('manage_orders')
 
+  // v3.1 follow-up 10k: "no rows yet" and "haven't asked yet" are different
+  // answers. Starts true — the fetch fires on mount, so loading is the truth
+  // on the very first render.
+  const [loadingOrders, setLoadingOrders] = useState(true)
   const [orders, setOrders] = useState<Order[]>([])
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -109,6 +114,7 @@ export default function OrdersPage() {
           setError(translateApiError(e, t, t('orders_page.failed_to_load')))
         }
       })
+      .finally(() => setLoadingOrders(false))
   }
 
   useEffect(() => {
@@ -377,6 +383,8 @@ export default function OrdersPage() {
         <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
           <p className="text-sm text-stone-500">{t('orders_page.please_login')}</p>
         </div>
+      ) : loadingOrders ? (
+        <Spinner />
       ) : orders.length === 0 ? (
         <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
           <p className="text-sm text-stone-500">{t('orders_page.no_orders')}</p>

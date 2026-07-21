@@ -29,6 +29,9 @@ export default function CashManagementPage() {
   const authLoading = useAuthLoading()
   const canManageCash = user != null && Array.isArray(user.caps) && user.caps.includes('manage_cash')
 
+  // v3.1 follow-up 10k: "no entries" and "haven't asked yet" are different
+  // answers, and the ledger showed the first while the second was true.
+  const [loadingLedger, setLoadingLedger] = useState(true)
   const [transactions, setTransactions] = useState<CashTransaction[]>([])
   const [summary, setSummary] = useState<CashSummary | null>(null)
   // Design revamp (2026-07-21): opens on the daily view rather than weekly.
@@ -36,6 +39,18 @@ export default function CashManagementPage() {
   // day's own figures are what staff open this page to check.
   const [range, setRange] = useState<(typeof RANGES)[number]>('day')
   const [cardFilter, setCardFilter] = useState<CardFilter>('ALL')
+  // v3.1 follow-up 10j — ledger search and filters. The ledger is append-only
+  // and never pruned, so it only grows; "scroll until you find it" stops being
+  // a workable answer within a few weeks of real use.
+  //
+  // Dates go to the server (GET /api/cash-transactions already accepts
+  // from/to), because that's what keeps a year-old ledger from being
+  // downloaded in full. Text and type are filtered client-side on what came
+  // back — the search has to match *translated* labels, which only exist on
+  // this side (see the note on matchesSearch below).
+  const [search, setSearch] = useState('')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
   const [type, setType] = useState<CashTransactionType>('IN')
   const [category, setCategory] = useState('')
   const [amount, setAmount] = useState('')
@@ -54,7 +69,17 @@ export default function CashManagementPage() {
   const [closeError, setCloseError] = useState<string | null>(null)
 
   function load() {
-    api.get<CashTransaction[]>('/api/cash-transactions').then(r => setTransactions(r.data)).catch(() => setTransactions([]))
+    // `to` is a date, but createdAt is a timestamp — sending the bare date
+    // would mean "up to 00:00 that morning" and silently exclude the whole
+    // day the user just asked for.
+    const params = {
+      ...(from === '' ? {} : { from }),
+      ...(to === '' ? {} : { to: `${to}T23:59:59.999` })
+    }
+    api.get<CashTransaction[]>('/api/cash-transactions', { params })
+      .then(r => setTransactions(r.data))
+      .catch(() => setTransactions([]))
+      .finally(() => setLoadingLedger(false))
     api.get<CashSummary>('/api/cash-transactions/summary', { params: { range } }).then(r => setSummary(r.data)).catch(() => setSummary(null))
     api.get<DailyClosing[]>('/api/shop-settings/closings').then(r => setClosings(r.data)).catch(() => setClosings([]))
   }
@@ -76,8 +101,8 @@ export default function CashManagementPage() {
   useEffect(() => {
     if (!canManageCash) return
     load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `load` is defined fresh each render, only `range`/`canManageCash` should retrigger this.
-  }, [range, canManageCash])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `load` is defined fresh each render; only these inputs should retrigger it.
+  }, [range, canManageCash, from, to])
 
   async function addTransaction(e: React.FormEvent) {
     e.preventDefault()
@@ -100,10 +125,53 @@ export default function CashManagementPage() {
     }
   }
 
-  const visibleTransactions = useMemo(
-    () => cardFilter === 'ALL' ? transactions : transactions.filter(tx => tx.type === cardFilter),
-    [transactions, cardFilter]
-  )
+  // Searches the *rendered* text, not just the stored text. A row's category
+  // is written to the DB in English as data ("sale (phone)") and translated on
+  // read (lib/cashLabels.ts) — so an Arabic-speaking user searching for what
+  // they can see on screen would match nothing if this only looked at
+  // `tx.category`. Both are checked, so either language finds the row.
+  function matchesSearch(tx: CashTransaction, needle: string): boolean {
+    const haystack = [
+      tx.category,
+      cashCategoryLabel(tx.category, t),
+      tx.note ?? '',
+      cashNoteLabel(tx.note, t),
+      Number(tx.amount).toFixed(2)
+    ].join(' ').toLowerCase()
+    return haystack.includes(needle)
+  }
+
+  const visibleTransactions = useMemo(() => {
+    const needle = search.trim().toLowerCase()
+    return transactions.filter(tx => {
+      if (cardFilter !== 'ALL' && tx.type !== cardFilter) return false
+      if (needle !== '' && !matchesSearch(tx, needle)) return false
+      return true
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- matchesSearch closes over `t`, which is stable per language.
+  }, [transactions, cardFilter, search, t])
+
+  // Totals for what's actually on screen. Without these, filtering the ledger
+  // leaves the summary cards above showing the unfiltered period — two sets of
+  // numbers on one screen that don't add up to each other.
+  const visibleTotals = useMemo(() => {
+    let cashIn = 0
+    let cashOut = 0
+    for (const tx of visibleTransactions) {
+      if (tx.type === 'IN') cashIn += Number(tx.amount)
+      else cashOut += Number(tx.amount)
+    }
+    return { cashIn, cashOut, net: cashIn - cashOut }
+  }, [visibleTransactions])
+
+  const filtersActive = search.trim() !== '' || from !== '' || to !== '' || cardFilter !== 'ALL'
+
+  function clearFilters() {
+    setSearch('')
+    setFrom('')
+    setTo('')
+    setCardFilter('ALL')
+  }
 
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
 
@@ -198,9 +266,91 @@ export default function CashManagementPage() {
         </div>
       )}
 
-      {visibleTransactions.length === 0 ? (
+      {/* v3.1 follow-up 10j — ledger filters. Sits directly above the table it
+          filters rather than in a header bar, so it's obvious what it acts on
+          (the summary cards above are a different scope: they follow the
+          day/week/month range, not these). */}
+      <div className="mb-3 rounded-xl border border-stone-200 bg-surface p-3 shadow-card">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="min-w-[12rem] flex-1">
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+              {t('cash_page.filter_search')}
+            </span>
+            <input
+              type="search"
+              className={inputClasses}
+              placeholder={t('cash_page.filter_search_placeholder')}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </label>
+
+          <label>
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+              {t('cash_page.filter_from')}
+            </span>
+            <input type="date" className={inputClasses} value={from} onChange={e => setFrom(e.target.value)} />
+          </label>
+
+          <label>
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+              {t('cash_page.filter_to')}
+            </span>
+            <input type="date" className={inputClasses} value={to} onChange={e => setTo(e.target.value)} />
+          </label>
+
+          {/* Same `cardFilter` the summary cards drive, so clicking "Cash in"
+              above and picking "In" here can't disagree with each other. */}
+          <div>
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+              {t('cash_page.filter_type')}
+            </span>
+            <div className="flex gap-1.5">
+              {(['ALL', 'IN', 'OUT'] as const).map(value => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setCardFilter(value)}
+                  className={`chip ${cardFilter === value ? 'chip-active' : ''}`}
+                >
+                  {t(`cash_page.filter_type_${value.toLowerCase()}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filtersActive && (
+            <button type="button" onClick={clearFilters} className="btn btn-ghost btn-sm">
+              {t('cash_page.filter_clear')}
+            </button>
+          )}
+        </div>
+
+        {/* Only shown while filtered: unfiltered, these would just restate the
+            summary cards a few hundred pixels below them. */}
+        {filtersActive && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-stone-200 pt-3 text-xs">
+            <span className="font-semibold text-stone-500">
+              {t('cash_page.filter_matches', { count: visibleTransactions.length })}
+            </span>
+            <span className="text-stone-500">
+              {t('cash_page.cash_in')}: <span className="tabular font-bold text-emerald-700">{visibleTotals.cashIn.toFixed(2)}</span>
+            </span>
+            <span className="text-stone-500">
+              {t('cash_page.cash_out')}: <span className="tabular font-bold text-red-600">{visibleTotals.cashOut.toFixed(2)}</span>
+            </span>
+            <span className="text-stone-500">
+              {t('cash_page.net_position')}: <span className="tabular font-bold text-stone-900">{visibleTotals.net.toFixed(2)}</span>
+            </span>
+          </div>
+        )}
+      </div>
+
+      {loadingLedger ? (
+        <Spinner />
+      ) : visibleTransactions.length === 0 ? (
         <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-8 text-center text-sm text-stone-400">
-          {t('cash_page.no_entries')}
+          {filtersActive ? t('cash_page.no_matches') : t('cash_page.no_entries')}
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">

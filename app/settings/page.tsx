@@ -222,9 +222,9 @@ export default function SettingsPage() {
       <p className="mb-6 text-stone-500">{t('settings_page.subtitle')}</p>
 
       {settings === null ? (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
-          <p className="text-sm text-stone-500">{t('settings_page.loading')}</p>
-        </div>
+        /* v3.1 follow-up 10k: the same spinner every other page waits with,
+           instead of a dashed box containing the word "loading". */
+        <Spinner label={t('settings_page.loading')} />
       ) : (
         <div className="max-w-4xl space-y-6">
           <form onSubmit={onSubmit} className="space-y-4 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">

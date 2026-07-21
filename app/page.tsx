@@ -22,6 +22,7 @@ import {
 } from 'recharts'
 import api from '../lib/api'
 import PageHeader from '../components/PageHeader'
+import Spinner from '../components/Spinner'
 import { useAuth } from '../lib/useAuth'
 import { Order, OrderStatus, Product, ShopSettings } from '../lib/types'
 import { formatElapsed, minutesSince, statusEnteredAt } from '../lib/elapsed'
@@ -354,7 +355,12 @@ export default function Page() {
               {t('dashboard_page.go_to_orders')}
             </Link>
           </div>
-          {inProgressColumns.every(col => col.orders.length === 0) ? (
+          {/* v3.1 follow-up 10k: `orders` is null until the fetch lands, and
+              `orders ?? []` made that look identical to "nothing in progress".
+              The null check has to come first. */}
+          {orders === null ? (
+            <Spinner />
+          ) : inProgressColumns.every(col => col.orders.length === 0) ? (
             <p className="py-4 text-center text-sm text-stone-400">{t('dashboard_page.no_orders_in_progress')}</p>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

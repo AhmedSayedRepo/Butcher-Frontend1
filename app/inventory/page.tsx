@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
 import { translateApiError } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
+import Spinner from '../../components/Spinner'
 import { Product, ShopSettings } from '../../lib/types'
 
 type Draft = { name: string, unit: string, category: string, pricePerKg: string, stockKg: string, lowStockAlertKg: string, barcode: string }
@@ -36,6 +37,10 @@ function effectiveThreshold(p: Product, shopDefaultKg: number): number {
 
 export default function InventoryPage() {
   const { t } = useTranslation()
+  // v3.1 follow-up 10k: "no rows yet" and "haven't asked yet" are different
+  // answers. Starts true — the fetch fires on mount, so loading is the truth
+  // on the very first render.
+  const [loadingProducts, setLoadingProducts] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
   const [error, setError] = useState<string | null>(null)
   const user = useAuth()
@@ -65,6 +70,7 @@ export default function InventoryPage() {
         setProducts([])
         setError(translateApiError(err, t, t('inventory_page.error_load')))
       })
+      .finally(() => setLoadingProducts(false))
   }
 
   useEffect(() => {
@@ -234,7 +240,9 @@ export default function InventoryPage() {
           it to the same height, which looked like the other card had expanded
           too. Each card now sizes to its own content. */}
       <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
-        {visibleProducts.length === 0 ? (
+        {loadingProducts ? (
+          <div className="col-span-full"><Spinner /></div>
+        ) : visibleProducts.length === 0 ? (
           <div className="col-span-full rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center text-sm text-stone-500">
             {t('inventory_page.no_products')}
           </div>

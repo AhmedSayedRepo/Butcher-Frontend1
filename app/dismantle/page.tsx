@@ -25,6 +25,10 @@ export default function DismantlePage() {
 
   const [templates, setTemplates] = useState<DismantleTemplate[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  // v3.1 follow-up 10k: "no rows yet" and "haven't asked yet" are different
+  // answers. Starts true — the fetch fires on mount, so loading is the truth
+  // on the very first render.
+  const [loadingEvents, setLoadingEvents] = useState(true)
   const [events, setEvents] = useState<DismantleEvent[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -58,6 +62,7 @@ export default function DismantlePage() {
     api.get<DismantleEvent[]>('/api/dismantle-events')
       .then(r => setEvents(r.data))
       .catch((err: unknown) => setError(translateApiError(err, t, t('dismantle_page.error_load_events'))))
+      .finally(() => setLoadingEvents(false))
   }
 
   useEffect(() => {
@@ -287,7 +292,9 @@ export default function DismantlePage() {
       {canDismantle && (
         <div>
           <h2 className="mb-3 text-lg font-semibold text-stone-900">{t('dismantle_page.recent_events')}</h2>
-          {events.length === 0 ? (
+          {loadingEvents ? (
+            <Spinner />
+          ) : events.length === 0 ? (
             <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-8 text-center text-sm text-stone-500">
               {t('dismantle_page.no_events')}
             </div>

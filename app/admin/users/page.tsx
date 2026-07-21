@@ -61,6 +61,9 @@ export default function AdminUsersPage() {
   const { t } = useTranslation()
   const me = useAuth()
   const authLoading = useAuthLoading()
+  // v3.1 follow-up 10k: the list rendered as nothing at all while loading —
+  // no rows, no spinner, just blank space under the invite form.
+  const [loadingUsers, setLoadingUsers] = useState(true)
   const [users, setUsers] = useState<ManagedUser[]>([])
   const [error, setError] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, { role: RoleT, caps: string[] }>>({})
@@ -87,6 +90,7 @@ export default function AdminUsersPage() {
   const [copied, setCopied] = useState(false)
 
   function load() {
+    setLoadingUsers(true)
     api.get<ManagedUser[]>('/api/users')
       .then((r) => {
         setUsers(r.data)
@@ -97,6 +101,7 @@ export default function AdminUsersPage() {
         setDrafts(next)
       })
       .catch((err: unknown) => setError(translateApiError(err, t, t('admin_users_page.error_load'))))
+      .finally(() => setLoadingUsers(false))
   }
 
   useEffect(() => {
@@ -266,6 +271,7 @@ export default function AdminUsersPage() {
       </form>
 
       <div className="space-y-3">
+        {loadingUsers && <Spinner />}
         {users.map((u) => {
           const draft = drafts[u.id]
           if (draft === undefined) return null

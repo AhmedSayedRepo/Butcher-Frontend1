@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
 import { translateApiError } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
+import Spinner from '../../components/Spinner'
 import { Customer } from '../../lib/types'
 
 export default function CustomersPage() {
@@ -16,6 +17,12 @@ export default function CustomersPage() {
   const user = useAuth()
   const loggedIn = !!user
 
+  // v3.1 follow-up 10k: "no rows yet" and "haven't asked yet" are different
+  // answers, and rendering the first while the second is true is how a page
+  // ends up announcing "no customers" a beat before showing twelve of them.
+  // Starts true — the fetch is fired on mount, so loading is the truth on the
+  // very first render.
+  const [loadingList, setLoadingList] = useState(true)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [query, setQuery] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -30,6 +37,7 @@ export default function CustomersPage() {
     api.get<Customer[]>('/api/customers', { params: q ? { q } : {} })
       .then(r => setCustomers(r.data))
       .catch(() => setCustomers([]))
+      .finally(() => setLoadingList(false))
   }
 
   useEffect(() => {
@@ -96,6 +104,8 @@ export default function CustomersPage() {
         <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
           <p className="text-sm text-stone-500">{t('orders_page.please_login')}</p>
         </div>
+      ) : loadingList ? (
+        <Spinner />
       ) : customers.length === 0 ? (
         <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
           <p className="text-sm text-stone-500">{t('customers_page.no_customers')}</p>

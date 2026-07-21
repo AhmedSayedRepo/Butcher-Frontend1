@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import api from '../../../lib/api'
 import { translateApiError } from '../../../lib/apiError'
 import { Customer, CustomerProfile } from '../../../lib/types'
+import Spinner from '../../../components/Spinner'
 
 export default function CustomerProfilePage() {
   const { t } = useTranslation()
@@ -78,7 +79,9 @@ export default function CustomerProfilePage() {
     return <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
   }
   if (profile === null) {
-    return <div className="text-sm text-stone-500">{t('customers_page.loading')}</div>
+    // v3.1 follow-up 10k: was a bare line of grey text; now the same spinner
+    // every other page uses while it waits.
+    return <Spinner label={t('customers_page.loading')} />
   }
 
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
