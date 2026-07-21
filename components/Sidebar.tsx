@@ -56,6 +56,12 @@ const PRIMARY_ITEMS = [
 // Quieter group, no index chips — qa-studio does the same for Help/Settings.
 const SECONDARY_ITEMS = [
   { href: '/admin', key: 'admin' },
+  // Multi-tenancy phase 5. Unlike every other row here, this one is hidden
+  // rather than shown-and-refused: the rest of the nav is deliberately visible
+  // to everyone (the destination explains the refusal), but a shop's staff
+  // seeing a link to a screen that manages *other shops* would be confusing
+  // rather than informative. The API enforces it independently regardless.
+  { href: '/admin/organizations', key: 'organizations', superAdminOnly: true },
   { href: '/settings', key: 'settings' },
   { href: '/help', key: 'help' },
 ] as const
@@ -254,7 +260,7 @@ export default function Sidebar() {
           {!collapsed && <div className="rail-group-label mb-2 px-3">{t('nav_group_pipeline')}</div>}
           <nav className="flex flex-col gap-1">{PRIMARY_ITEMS.map(row)}</nav>
           <nav className="rail-divider mt-4 flex flex-col gap-1 border-t pt-4">
-            {SECONDARY_ITEMS.map(row)}
+            {SECONDARY_ITEMS.filter(item => !('superAdminOnly' in item) || user?.isSuperAdmin === true).map(row)}
           </nav>
         </>
       )}

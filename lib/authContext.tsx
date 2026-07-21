@@ -39,6 +39,10 @@ export interface CurrentUser {
   email: string
   role: string
   caps: string[]
+  // Multi-tenancy phase 4. Shown only so the rail can offer the Organizations
+  // link; the API enforces it independently, as always.
+  isSuperAdmin?: boolean
+  organizationId?: string | null
 }
 
 export type AuthState = CurrentUser | null | undefined
