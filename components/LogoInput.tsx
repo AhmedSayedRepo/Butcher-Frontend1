@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { safeImageUrl } from '../lib/safeImageUrl'
 
 // v3.1 follow-up 10e — logo picker.
 //
@@ -140,7 +141,7 @@ export default function LogoInput({
             /* eslint-disable-next-line @next/next/no-img-element -- next/image
                can't serve a `data:` URL without a custom loader, and this is a
                fixed 64px preview, so its optimisation buys nothing here. */
-            : <img src={value} alt="" className="max-h-full max-w-full object-contain" />}
+            : <img src={safeImageUrl(value) ?? ''} alt="" className="max-h-full max-w-full object-contain" />}
         </div>
 
         <div className="min-w-0 flex-1 space-y-2">

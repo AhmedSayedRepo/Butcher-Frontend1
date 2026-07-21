@@ -32,6 +32,7 @@ import { usePathname } from 'next/navigation'
 import api from '../lib/api'
 import { useAuth } from '../lib/useAuth'
 import { readStoredRailCollapsed, storeRailCollapsed } from '../lib/theme'
+import { safeImageUrl } from '../lib/safeImageUrl'
 import ThemeToggle from './ThemeToggle'
 
 // `ix` mirrors qa-studio's NAV entries: a one/two-letter index in a small chip
@@ -128,7 +129,9 @@ export default function Sidebar() {
     return () => { live = false }
   }, [user])
 
-  const logoUrl = brand?.appLogoUrl ?? null
+  // Validated on read: see lib/safeImageUrl.ts. Anything that isn't an
+  // https:// or data:image URL falls back to the built-in mark.
+  const logoUrl = safeImageUrl(brand?.appLogoUrl)
   const brandName = brand?.shopName ?? ''
   const railTitle = brandName === '' ? t('app_name') : brandName
 
@@ -231,7 +234,7 @@ export default function Sidebar() {
     <>
       <div className={`rail-brand mb-6 flex items-center ${collapsed ? 'flex-col gap-2' : 'gap-2.5'} px-2 py-1`}>
         <Link href="/" className="flex min-w-0 items-center gap-2.5" title={collapsed ? railTitle : undefined}>
-          {logoUrl === null || logoUrl === '' ? <BrandMark /> : <ShopMark src={logoUrl} />}
+          {logoUrl === null ? <BrandMark /> : <ShopMark src={logoUrl} />}
           {!collapsed && <span className="truncate text-lg font-extrabold tracking-tight">{railTitle}</span>}
         </Link>
         {/* Collapse control. Hidden on the mobile drawer (`lg:inline-flex`),

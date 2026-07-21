@@ -17,6 +17,7 @@
 //     of typing 8 characters by hand.
 import { Order, ShopSettings } from '../lib/types'
 import Barcode from './Barcode'
+import { safeImageUrl } from '../lib/safeImageUrl'
 
 const MM = 'mm'
 const DEFAULT_WIDTH_MM = 80
@@ -80,12 +81,15 @@ export default function Receipt({
       }}
     >
       <div className="receipt-body">
-        {settings?.receiptLogoUrl !== null && settings?.receiptLogoUrl !== undefined && settings.receiptLogoUrl !== '' && (
+        {/* Security audit 2026-07-21: validated on read as well as on write.
+            See lib/safeImageUrl.ts — `receiptLogoUrl` predates the server-side
+            check, so rows from that window were never validated. */}
+        {safeImageUrl(settings?.receiptLogoUrl) !== null && (
           // Plain <img>, not next/image: this is a user-supplied URL of unknown
           // origin and next/image would need it whitelisted in next.config.js,
           // which would mean a redeploy every time the logo moves.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={settings.receiptLogoUrl} alt="" className="receipt-logo" />
+          <img src={safeImageUrl(settings?.receiptLogoUrl) ?? ''} alt="" className="receipt-logo" />
         )}
 
         {show.shopName && <p className="receipt-shop">{settings?.shopName ?? labels.receiptTitle}</p>}
