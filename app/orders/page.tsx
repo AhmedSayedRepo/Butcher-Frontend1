@@ -191,7 +191,18 @@ export default function OrdersPage() {
   const byColumn = (status: OrderStatus) => {
     const rows = orders.filter(o => o.status === status)
     if (!TIMED_STATUSES.includes(status)) return rows
-    return [...rows].sort((a, b) => (statusMinutes(b) ?? 0) - (statusMinutes(a) ?? 0))
+    return [...rows].sort((a, b) => {
+      const waited = (statusMinutes(b) ?? 0) - (statusMinutes(a) ?? 0)
+      if (waited !== 0) return waited
+      // Tiebreak by age, oldest first.
+      //
+      // Dwell time is whole minutes, so two orders moved into a status in the
+      // same minute — which is what happens when someone advances several at
+      // once — compare equal. A stable sort then leaves them in the order the
+      // API sent them, which is newest-first, and the column looks like it
+      // isn't sorted at all. That's exactly what it looked like.
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    })
   }
 
   async function advance(order: Order, next: OrderStatus) {
@@ -265,7 +276,7 @@ export default function OrdersPage() {
         tabIndex={0}
         onClick={() => setDetailOrder(order)}
         onKeyDown={e => { if (e.key === 'Enter') setDetailOrder(order) }}
-        className="cursor-pointer rounded-lg border border-stone-200 bg-surface p-3 shadow-card transition-shadow hover:shadow-card-hover"
+        className="cursor-pointer rounded-lg border border-stone-200 bg-surface p-3 shadow-card card-hover"
       >
         {/* Alignment: the order number is pulled out as its own fixed-width
             leading chip so customer names start on a common left edge instead
@@ -406,7 +417,7 @@ export default function OrdersPage() {
                   is the same width as every other order card. It was on a 4-column
                   grid, which made a single draft render noticeably wider than the
                   cards underneath it and read as a different kind of thing. */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 {drafts.map(o => (
                   // Bug fix: this card was a plain <div> with no click handler,
                   // so a draft could never open the detail modal — which is
@@ -423,7 +434,7 @@ export default function OrdersPage() {
                     // the same board as five columns of solid cards it just read
                     // as broken. The Draft column header and the Confirm button
                     // already say it's a draft.
-                    className="cursor-pointer rounded-lg border border-stone-200 bg-surface p-3 shadow-card transition-shadow hover:shadow-card-hover"
+                    className="cursor-pointer rounded-lg border border-stone-200 bg-surface p-3 shadow-card card-hover"
                   >
                     <div className="mb-1.5 flex items-baseline gap-2">
                       {o.dailyNumber !== null && (
@@ -461,14 +472,22 @@ export default function OrdersPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {/* A horizontally scrolling board rather than a 5-up grid.
+              Five equal columns inside the content area left each card about
+              170px wide, which truncated the customer's name to "…him" — the
+              end of a name, which is the least identifying part of it. Columns
+              now have a real minimum width and the board scrolls sideways when
+              they don't all fit, which is how every kanban handles this.
+              Below `lg` it stays stacked, since a phone can't scroll two axes
+              comfortably. */}
+          <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-2 max-lg:flex-col lg:snap-none">
             {COLUMNS.map(col => (
               // Each column is its own panel. The headers used to be bare <h2>s
               // sitting directly on the page background, which made them read as
               // one detached strip across the top of the board rather than as
               // five headers each belonging to the column under it — the header
               // and its cards had nothing visually tying them together.
-              <div key={col.status} className="rounded-xl border border-stone-200 bg-stone-100/60 p-2.5">
+              <div key={col.status} className="w-full shrink-0 snap-start rounded-xl border border-stone-200 bg-stone-100/60 p-2.5 lg:w-[19rem]">
                 {/* Count chip + bold title, the way qa-studio's `ui.sec_head`
                     builds section headings. */}
                 <h2 className="mb-2.5 flex items-center gap-2.5 px-1 pb-2">

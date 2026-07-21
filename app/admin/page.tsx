@@ -26,7 +26,7 @@ export default function AdminPage(){
       {canManageUsers && (
         <Link
           href="/admin/users"
-          className="mb-4 flex items-center justify-between rounded-xl border border-stone-200 bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover"
+          className="mb-4 flex items-center justify-between rounded-xl border border-stone-200 bg-surface p-4 shadow-card card-hover"
         >
           <span className="font-medium text-stone-900">{t('admin_page.manage_users')}</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -44,7 +44,7 @@ export default function AdminPage(){
       {isAdmin && (
         <Link
           href="/settings"
-          className="mb-4 flex items-center justify-between rounded-xl border border-stone-200 bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover"
+          className="mb-4 flex items-center justify-between rounded-xl border border-stone-200 bg-surface p-4 shadow-card card-hover"
         >
           <span className="font-medium text-stone-900">{t('settings')}</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -445,7 +445,7 @@ function SummaryCard({ label, value, accent, active, onClick, href }: {
       <p className={`mt-1 text-xl font-semibold ${ACCENT[accent]}`}>{value !== undefined ? Number(value).toFixed(2) : '—'}</p>
     </>
   )
-  const className = `block w-full text-start rounded-xl border bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover ${
+  const className = `block w-full text-start rounded-xl border bg-surface p-4 shadow-card card-hover ${
     active === true ? 'border-brand-300 ring-1 ring-brand-200' : 'border-stone-200'
   }`
   if (href !== undefined) {

@@ -693,6 +693,46 @@ body {
   .pub-btn:hover { transform: none; }
 }
 
+/* Interactive card hover — v3.1 follow-up 10m.
+   
+   Cards previously animated the shadow only, which at these shadow values is
+   a change of a few percent opacity: technically a hover state, practically
+   invisible. This adds a small lift and a border tint alongside it, so the
+   card reads as "you can click this" rather than as a static panel that
+   happens to be under the cursor.
+   
+   4px, not more. The board shows five columns of these at once; anything
+   larger turns a mouse crossing the board into a wave. `translateY` and
+   `box-shadow` are both compositor-friendly, so this doesn't cost layout.
+   
+   `will-change` is deliberately NOT set: it would promote every card on the
+   page to its own layer permanently, which on a board with thirty cards costs
+   more memory than the animation saves. */
+.card-hover {
+  transition: transform 0.16s cubic-bezier(0.16, 0.8, 0.24, 1),
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgb(var(--brand-300));
+}
+/* Pressing it should feel like pressing it, not like the lift getting stuck. */
+.card-hover:active {
+  transform: translateY(-1px);
+  transition-duration: 0.06s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-hover,
+  .card-hover:hover,
+  .card-hover:active {
+    transform: none;
+    transition: box-shadow 0.16s ease, border-color 0.16s ease;
+  }
+}
+
 ::selection {
   background-color: rgb(var(--brand-100));
   color: rgb(var(--brand-900));

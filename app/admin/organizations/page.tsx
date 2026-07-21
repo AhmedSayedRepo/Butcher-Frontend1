@@ -252,7 +252,7 @@ export default function OrganizationsPage() {
         <div className="space-y-3">
           {visible.map(org => (
             <div key={org.id}
-              className={`rounded-xl border bg-surface p-4 shadow-card ${org.archivedAt === null ? 'border-stone-200' : 'border-stone-300 opacity-70'}`}>
+              className={`card-hover rounded-xl border bg-surface p-4 shadow-card ${org.archivedAt === null ? 'border-stone-200' : 'border-stone-300 opacity-70'}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="flex flex-wrap items-center gap-2 font-semibold text-stone-900">

@@ -250,7 +250,7 @@ export default function InventoryPage() {
           visibleProducts.map((p) => {
             const lowStock = Number(p.stockKg) < effectiveThreshold(p, shopDefaultThresholdKg)
             return (
-              <div key={p.id} className="rounded-xl border border-stone-200 bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover">
+              <div key={p.id} className="rounded-xl border border-stone-200 bg-surface p-4 shadow-card card-hover">
                 {editingId === p.id ? (
                   /* v3.1 follow-up 10f: every field carries a visible label and
                      a `title` tooltip. It used to be six bare boxes with a

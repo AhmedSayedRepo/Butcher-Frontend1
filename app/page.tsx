@@ -599,7 +599,7 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="block rounded-xl border border-stone-200 bg-surface p-5 shadow-card transition-shadow hover:shadow-card-hover"
+      className="block rounded-xl border border-stone-200 bg-surface p-5 shadow-card card-hover"
     >
       <div className="flex items-start justify-between">
         <div>
