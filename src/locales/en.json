@@ -539,7 +539,7 @@
     "INSUFFICIENT_STOCK": "Not enough {{name}} in stock. Available: {{available}} kg.",
     "RECEIPT_SCAN_WRONG_STATUS": "Only on-the-way orders are confirmed by scanning a receipt.",
     "RECEIPT_CODE_MISMATCH": "That code belongs to a different order. Check the receipt.",
-    "EMAIL_ALREADY_EXISTS": "An account with that email already exists.",
+    "EMAIL_ALREADY_EXISTS": "That email already has an account. Email addresses are unique across every shop, so use a different one.",
     "LAST_ACTIVE_ADMIN": "This is the only active admin — make someone else an admin first.",
     "CANNOT_TARGET_SELF": "You can't ban or delete your own account.",
     "USER_HAS_HISTORY": "This user has order, stock or cash history that must stay attributable. Ban the account instead.",
