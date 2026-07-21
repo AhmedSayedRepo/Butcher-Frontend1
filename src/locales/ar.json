@@ -87,9 +87,13 @@
     "days": "{{count}} أيام",
     "no_sales_yet": "لا توجد مبيعات بعد",
     "pending_by_source_title": "الطلبات المعلَّقة حسب المصدر",
-    "stale_orders_badge": "{{count}} طلب متأخر أكثر من {{minutes}} دقيقة",
+    "stale_orders_badge": "{{count}} طلب بانتظار منذ {{wait}}",
     "stale_orders_notification": "{{count}} طلب بانتظار أطول من حد التنبيه",
-    "subtitle": "نشاط اليوم وتنبيهات المخزون والإيرادات في لمحة."
+    "subtitle": "نشاط اليوم وتنبيهات المخزون والإيرادات في لمحة.",
+    "wait_minutes": "{{count}} دقيقة",
+    "wait_hours": "{{count}} ساعة",
+    "wait_hours_minutes": "{{hours}} ساعة و{{minutes}} دقيقة",
+    "wait_days": "{{count}} يوم"
   },
   "orders_page": {
     "please_login": "يرجى تسجيل الدخول لعرض الطلبات.",
@@ -307,7 +311,10 @@
       "field_receiptShowDateTime": "التاريخ والوقت",
       "field_receiptShowCashier": "الكاشير",
       "field_receiptShowCode": "رمز الإيصال والباركود",
-      "error_save": "تعذّر حفظ إعدادات الإيصال."
+      "error_save": "تعذّر حفظ إعدادات الإيصال.",
+      "field_receiptShowItems": "جدول الأصناف",
+      "field_receiptShowCustomer": "اسم العميل",
+      "field_receiptShowAddressOfCustomer": "عنوان التوصيل"
     }
   },
   "admin_users_page": {
@@ -424,7 +431,8 @@
     "recent_closings": "الإغلاقات الأخيرة",
     "closed_at": "وقت الإغلاق",
     "closed_by": "أُغلق بواسطة",
-    "closing_order_count": "الطلبات"
+    "closing_order_count": "الطلبات",
+    "date_header": "التاريخ"
   },
   "nav_group_pipeline": "سير العمل",
   "language": "اللغة",

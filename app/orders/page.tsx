@@ -305,26 +305,60 @@ export default function OrdersPage() {
       ) : (
         <>
           {drafts.length > 0 && (
-            <div className="mb-6">
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('orders_page.drafts')}</h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mb-8">
+              {/* Same header treatment as the status columns below, so the
+                  board reads as one thing rather than a styled list sitting
+                  on top of a differently-styled board. */}
+              <h2 className="mb-3 flex items-center gap-2.5 border-b border-stone-200 pb-2">
+                <span className="tabular flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-brand-100 text-xs font-bold text-brand-800">
+                  {drafts.length}
+                </span>
+                <span className="text-sm font-bold text-stone-900">{t('orders_page.drafts')}</span>
+              </h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {drafts.map(o => (
-                  <div key={o.id} className="rounded-lg border border-dashed border-stone-300 bg-stone-50 p-3">
-                    <div className="mb-1 flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-medium text-stone-900">
-                        {o.dailyNumber !== null && <span className="text-stone-400">#{o.dailyNumber} · </span>}
+                  // Bug fix: this card was a plain <div> with no click handler,
+                  // so a draft could never open the detail modal — which is
+                  // exactly where the edit/delete UI lives. It's now the same
+                  // clickable, keyboard-reachable card as every other column.
+                  <div
+                    key={o.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setDetailOrder(o)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOrder(o) } }}
+                    className="cursor-pointer rounded-lg border border-dashed border-stone-300 bg-stone-50 p-3 transition-colors hover:border-brand-400 hover:bg-surface"
+                  >
+                    <div className="mb-1.5 flex items-baseline gap-2">
+                      {o.dailyNumber !== null && (
+                        <span className="tabular shrink-0 text-xs font-bold text-stone-400">#{o.dailyNumber}</span>
+                      )}
+                      <p className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-900" title={o.customer || t('orders_page.walk_in')}>
                         {o.customer || t('orders_page.walk_in')}
                       </p>
-                      <span className="shrink-0 text-sm font-semibold text-stone-900">{Number(o.totalAmount).toFixed(2)}</span>
+                      <span className="tabular shrink-0 text-sm font-bold text-stone-900">{Number(o.totalAmount).toFixed(2)}</span>
                     </div>
-                    <OrderMeta order={o} />
+                    <p className="tabular mb-2 text-xs text-stone-500" title={new Date(o.createdAt).toLocaleString()}>
+                      {new Date(o.createdAt).toLocaleString()}
+                    </p>
+                    <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                      <OrderMeta order={o} />
+                    </div>
                     {o.customerMessage && (
-                      <p className="mb-1 mt-1 line-clamp-2 text-xs italic text-stone-500">&ldquo;{o.customerMessage}&rdquo;</p>
+                      <p className="mb-2 line-clamp-2 text-xs italic text-stone-500" title={o.customerMessage}>&ldquo;{o.customerMessage}&rdquo;</p>
                     )}
-                    <button onClick={() => promote(o)} disabled={busyId === o.id}
-                      className="mt-2 rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
-                      {busyId === o.id ? t('orders_page.promoting') : t('orders_page.promote')}
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => promote(o)} disabled={busyId === o.id}
+                        title={t('orders_page.promote')}
+                        className="rounded-md bg-brand-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                        {busyId === o.id ? t('orders_page.promoting') : t('orders_page.promote')}
+                      </button>
+                      <button onClick={() => setDetailOrder(o)}
+                        title={t('orders_page.edit_draft')}
+                        className="rounded-md px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50">
+                        {t('orders_page.edit_draft')}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -362,7 +396,7 @@ export default function OrdersPage() {
           rather than `display:none`, because a display:none subtree isn't laid
           out and the print stylesheet would find nothing to show. */}
       {printOrder !== null && (
-        <div className="pointer-events-none fixed -start-[9999px] top-0 opacity-0" aria-hidden="true">
+        <div className="receipt-print-host pointer-events-none fixed -start-[9999px] top-0 opacity-0" aria-hidden="true">
           <Receipt
             order={printOrder}
             settings={shopSettings}

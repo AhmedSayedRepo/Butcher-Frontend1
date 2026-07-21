@@ -172,9 +172,9 @@ export default function CustomerProfilePage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
-                <th className="px-4 py-2.5">{t('orders_page.status_created')}</th>
-                <th className="px-4 py-2.5">{t('new_order_page.total')}</th>
-                <th className="px-4 py-2.5"></th>
+                <th className="px-4 py-2.5 text-start">{t('orders_page.status_created')}</th>
+                <th className="w-32 px-4 py-2.5 text-end">{t('new_order_page.total')}</th>
+                <th className="px-4 py-2.5 text-end"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">

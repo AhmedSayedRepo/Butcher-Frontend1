@@ -161,6 +161,9 @@ export type ShopSettings = {
   receiptShowCode: boolean
   receiptShowCashier: boolean
   receiptShowDateTime: boolean
+  receiptShowItems: boolean
+  receiptShowCustomer: boolean
+  receiptShowAddressOfCustomer: boolean
   shopName: string
   shopPhone: string | null
   shopAddress: string | null

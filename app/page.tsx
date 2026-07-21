@@ -39,6 +39,10 @@ const CHART = {
   axis: 'var(--chart-axis)',
   tick: 'var(--chart-tick)',
   ink: 'var(--chart-ink)',
+  // Axis labels sit on a card, not on the chart's own fill, so they can take
+  // the stronger ink colour rather than the muted tick grey — at 11px muted
+  // they were close to unreadable, especially the Arabic product names on the
+  // bar chart's category axis.
   tooltip: {
     background: 'var(--chart-tooltip-bg)',
     border: '1px solid var(--chart-axis)',
@@ -62,6 +66,11 @@ const RANGE_OPTIONS: Array<typeof DAYS_7 | typeof DAYS_30> = [DAYS_7, DAYS_30]
 // "in-app/browser only, no push provider" default the ADR settled on.
 const ORDERS_POLL_MS = 45 * 1000
 const MS_PER_MINUTE = 60 * 1000
+const MINUTES_PER_HOUR = 60
+const HOURS_PER_DAY = 24
+// The badge shows a live-ageing wait time, so it needs its own tick independent
+// of the 45s order poll — a minute is the smallest unit it displays.
+const STALE_TICK_MS = 30 * 1000
 const SOURCE_LABELS = ['in_premise', 'social', 'phone', 'whatsapp', 'cashier'] as const
 
 export default function Page() {
@@ -110,6 +119,38 @@ export default function Page() {
     const cutoff = Date.now() - alertThresholdMinutes * MS_PER_MINUTE
     return drafts.filter(o => new Date(o.createdAt).getTime() < cutoff)
   }, [drafts, alertThresholdMinutes])
+
+  // How long the *worst* of them has actually been waiting. The badge used to
+  // echo the configured threshold back — "over 1 minute" no matter whether the
+  // order had been sitting for two minutes or two days — which is the one
+  // number the reader already knows and the one they can't act on. `nowMs`
+  // ticks so the figure ages on screen rather than freezing at whatever it was
+  // when the orders last loaded (a 45s poll would otherwise make it jump).
+  const [nowMs, setNowMs] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => { setNowMs(Date.now()) }, STALE_TICK_MS)
+    return () => { clearInterval(id) }
+  }, [])
+
+  const oldestStaleMinutes = useMemo(() => {
+    if (staleDrafts.length === 0) return null
+    const oldest = Math.min(...staleDrafts.map(o => new Date(o.createdAt).getTime()))
+    return Math.floor((nowMs - oldest) / MS_PER_MINUTE)
+  }, [staleDrafts, nowMs])
+
+  // Minutes alone stops being readable somewhere past an hour — "waiting 4291m"
+  // is a number you have to do arithmetic on before it means anything.
+  function formatWait(totalMinutes: number): string {
+    if (totalMinutes < MINUTES_PER_HOUR) return t('dashboard_page.wait_minutes', { count: totalMinutes })
+    const hours = Math.floor(totalMinutes / MINUTES_PER_HOUR)
+    if (hours < HOURS_PER_DAY) {
+      const minutes = totalMinutes % MINUTES_PER_HOUR
+      return minutes === 0
+        ? t('dashboard_page.wait_hours', { count: hours })
+        : t('dashboard_page.wait_hours_minutes', { hours, minutes })
+    }
+    return t('dashboard_page.wait_days', { count: Math.floor(hours / HOURS_PER_DAY) })
+  }
 
   // v3 replan (Phase J, ADR-010): optional browser Notification, permission
   // requested once a stale draft actually exists (not eagerly on page load —
@@ -218,7 +259,10 @@ export default function Page() {
             {staleDrafts.length > 0 && (
               <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
                 <AlertIcon />
-                {t('dashboard_page.stale_orders_badge', { count: staleDrafts.length, minutes: alertThresholdMinutes })}
+                {t('dashboard_page.stale_orders_badge', {
+                  count: staleDrafts.length,
+                  wait: oldestStaleMinutes === null ? '' : formatWait(oldestStaleMinutes)
+                })}
               </span>
             )}
           </div>
@@ -251,8 +295,8 @@ export default function Page() {
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={revenueByDay}>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />
-                <XAxis dataKey="label" tick={{ fontSize: 12, fill: CHART.tick }} tickLine={false} axisLine={{ stroke: CHART.axis }} />
-                <YAxis tick={{ fontSize: 12, fill: CHART.tick }} tickLine={false} axisLine={false} width={40} />
+                <XAxis dataKey="label" tick={{ fontSize: 13, fill: CHART.ink, fontWeight: 600 }} tickLine={false} axisLine={{ stroke: CHART.axis }} />
+                <YAxis tick={{ fontSize: 13, fill: CHART.ink, fontWeight: 600 }} tickLine={false} axisLine={false} width={40} />
                 <Tooltip formatter={(value: number) => value.toFixed(2)} contentStyle={CHART.tooltip} labelStyle={{ color: CHART.ink }} />
                 <Line type="monotone" dataKey="revenue" stroke={CHART.series} strokeWidth={2} dot={false} />
               </LineChart>
@@ -267,8 +311,8 @@ export default function Page() {
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={topProducts} layout="vertical" margin={{ left: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 12, fill: CHART.tick }} tickLine={false} axisLine={{ stroke: CHART.axis }} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: CHART.tick }} tickLine={false} axisLine={false} width={110} />
+                  <XAxis type="number" tick={{ fontSize: 13, fill: CHART.ink, fontWeight: 600 }} tickLine={false} axisLine={{ stroke: CHART.axis }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 13, fill: CHART.ink, fontWeight: 600 }} tickLine={false} axisLine={false} width={110} />
                   <Tooltip formatter={(value: number) => `${value} kg`} contentStyle={CHART.tooltip} labelStyle={{ color: CHART.ink }} />
                   <Bar dataKey="kg" fill={CHART.series} radius={[0, 4, 4, 0]} />
                 </BarChart>

@@ -105,9 +105,11 @@ export default function CustomersPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
-                <th className="px-4 py-2.5">{t('customers_page.name_placeholder')}</th>
-                <th className="px-4 py-2.5">{t('customers_page.phone_placeholder')}</th>
-                <th className="px-4 py-2.5"></th>
+                <th className="px-4 py-2.5 text-start">{t('customers_page.name_placeholder')}</th>
+                <th className="px-4 py-2.5 text-start">{t('customers_page.phone_placeholder')}</th>
+                {/* Action column: no label, but it must still carry the same
+                    end alignment as the cell beneath it. */}
+                <th className="w-28 px-4 py-2.5 text-end"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">

@@ -53,6 +53,9 @@ export default function Receipt({
     code: settings?.receiptShowCode ?? true,
     cashier: settings?.receiptShowCashier ?? false,
     dateTime: settings?.receiptShowDateTime ?? true,
+    items: settings?.receiptShowItems ?? true,
+    customer: settings?.receiptShowCustomer ?? true,
+    customerAddress: settings?.receiptShowAddressOfCustomer ?? false,
   }
 
   return (
@@ -92,7 +95,12 @@ export default function Receipt({
         {show.orderNo && order.dailyNumber !== null && (
           <p className="receipt-meta tabular">#{order.dailyNumber}</p>
         )}
-        <p className="receipt-meta">{order.customer !== null && order.customer !== '' ? order.customer : labels.walkIn}</p>
+        {show.customer && (
+          <p className="receipt-meta">{order.customer !== null && order.customer !== '' ? order.customer : labels.walkIn}</p>
+        )}
+        {show.customerAddress && order.deliveryAddress !== null && order.deliveryAddress !== '' && (
+          <p className="receipt-meta">{order.deliveryAddress}</p>
+        )}
         {show.dateTime && (
           <p className="receipt-meta tabular">{new Date(order.createdAt).toLocaleString()}</p>
         )}
@@ -102,6 +110,7 @@ export default function Receipt({
 
         <hr className="receipt-rule" />
 
+        {show.items && (
         <table className="receipt-items">
           <tbody>
             {order.items.map((item) => (
@@ -113,6 +122,7 @@ export default function Receipt({
             ))}
           </tbody>
         </table>
+        )}
 
         <hr className="receipt-rule" />
 

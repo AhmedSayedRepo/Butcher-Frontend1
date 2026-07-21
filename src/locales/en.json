@@ -87,9 +87,13 @@
     "days": "{{count}}d",
     "no_sales_yet": "No sales yet",
     "pending_by_source_title": "Pending orders by source",
-    "stale_orders_badge": "{{count}} order(s) over {{minutes}}m",
+    "stale_orders_badge": "{{count}} order(s) waiting {{wait}}",
     "stale_orders_notification": "{{count}} order(s) waiting longer than the alert threshold",
-    "subtitle": "Today's activity, stock alerts and revenue at a glance."
+    "subtitle": "Today's activity, stock alerts and revenue at a glance.",
+    "wait_minutes": "{{count}}m",
+    "wait_hours": "{{count}}h",
+    "wait_hours_minutes": "{{hours}}h {{minutes}}m",
+    "wait_days": "{{count}}d"
   },
   "orders_page": {
     "please_login": "Please log in to view orders.",
@@ -307,7 +311,10 @@
       "field_receiptShowDateTime": "Date & time",
       "field_receiptShowCashier": "Cashier",
       "field_receiptShowCode": "Receipt code + barcode",
-      "error_save": "Couldn't save the receipt settings."
+      "error_save": "Couldn't save the receipt settings.",
+      "field_receiptShowItems": "Items table",
+      "field_receiptShowCustomer": "Customer name",
+      "field_receiptShowAddressOfCustomer": "Delivery address"
     }
   },
   "admin_users_page": {
@@ -424,7 +431,8 @@
     "recent_closings": "Recent closings",
     "closed_at": "Closed at",
     "closed_by": "Closed by",
-    "closing_order_count": "Orders"
+    "closing_order_count": "Orders",
+    "date_header": "Date"
   },
   "nav_group_pipeline": "Pipeline",
   "language": "Language",

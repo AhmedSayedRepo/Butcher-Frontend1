@@ -364,10 +364,10 @@ export default function NewOrderPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
-                <th className="px-4 py-2.5">{t('new_order_page.product_label')}</th>
-                <th className="px-4 py-2.5">{t('new_order_page.kg_label')}</th>
-                <th className="px-4 py-2.5">{t('inventory_page.price_label')}</th>
-                <th className="px-4 py-2.5"></th>
+                <th className="px-4 py-2.5 text-start">{t('new_order_page.product_label')}</th>
+                <th className="w-24 px-4 py-2.5 text-end">{t('new_order_page.kg_label')}</th>
+                <th className="w-28 px-4 py-2.5 text-end">{t('inventory_page.price_label')}</th>
+                <th className="w-16 px-4 py-2.5 text-end"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">

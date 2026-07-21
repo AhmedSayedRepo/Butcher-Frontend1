@@ -288,12 +288,20 @@ export default function Sidebar() {
       {/* Desktop rail — always present from `lg` up. `h-screen` + `sticky` keeps
           the navy running the full height of the viewport rather than stopping
           where its content ends. */}
+      {/* Bug fix: this was `sticky top-0 h-screen`, which still scrolled away
+          because the rail's own content is taller than the viewport — sticky
+          only pins an element until its box ends, and the box was moving.
+          Fixed positioning plus its own internal scroll keeps the nav on screen
+          at any page scroll and any window height. The spacer <div> below
+          reserves the width in the flex row that the fixed element no longer
+          occupies. */}
       <aside
         data-collapsed={collapsed}
-        className={`app-rail sticky top-0 hidden h-screen shrink-0 flex-col gap-1 border-e p-3 shadow-rail transition-[width] duration-200 lg:flex ${collapsed ? 'w-[76px]' : 'w-[268px] p-4'}`}
+        className={`app-rail fixed inset-y-0 start-0 z-30 hidden flex-col gap-1 overflow-y-auto border-e shadow-rail transition-[width] duration-200 lg:flex ${collapsed ? 'w-[76px] p-3' : 'w-[268px] p-4'}`}
       >
         {railBody}
       </aside>
+      <div aria-hidden="true" className={`hidden shrink-0 transition-[width] duration-200 lg:block ${collapsed ? 'w-[76px]' : 'w-[268px]'}`} />
 
       {/* Compact top bar, below `lg` only. The rail would eat most of a phone
           screen, so it becomes an off-canvas drawer behind this hamburger. */}

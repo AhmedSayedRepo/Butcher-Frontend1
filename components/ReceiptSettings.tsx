@@ -24,6 +24,9 @@ const TOGGLES = [
   'receiptShowDateTime',
   'receiptShowCashier',
   'receiptShowCode',
+  'receiptShowItems',
+  'receiptShowCustomer',
+  'receiptShowAddressOfCustomer',
 ] as const
 
 type ToggleKey = (typeof TOGGLES)[number]

@@ -198,22 +198,29 @@ export default function CashManagementPage() {
         <div className="overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
-                <th className="px-4 py-2.5">{t('cash_page.category_placeholder')}</th>
-                <th className="px-4 py-2.5">{t('new_order_page.total')}</th>
-                <th className="px-4 py-2.5">{t('cash_page.note_placeholder')}</th>
-                <th className="px-4 py-2.5"></th>
+              {/* Each header carries the same alignment as the column under it:
+                  text columns start-aligned, the amount and the timestamp
+                  end-aligned. They were all start-aligned before while the
+                  timestamp cell was end-aligned, so that header sat over the
+                  wrong edge of its own data. The amount column is also given a
+                  fixed-ish width and tabular figures so the decimal points line
+                  up down the column instead of drifting with digit count. */}
+              <tr className="border-b border-stone-200 bg-stone-100 text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
+                <th className="px-4 py-2.5 text-start">{t('cash_page.category_placeholder')}</th>
+                <th className="w-32 px-4 py-2.5 text-end">{t('new_order_page.total')}</th>
+                <th className="px-4 py-2.5 text-start">{t('cash_page.note_placeholder')}</th>
+                <th className="w-44 px-4 py-2.5 text-end">{t('cash_page.date_header')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {visibleTransactions.map(tx => (
                 <tr key={tx.id}>
                   <td className="px-4 py-2.5 font-medium text-stone-900">{tx.category}</td>
-                  <td className={`px-4 py-2.5 font-medium ${tx.type === 'IN' ? 'text-emerald-700' : 'text-red-600'}`}>
+                  <td className={`tabular whitespace-nowrap px-4 py-2.5 text-end font-bold ${tx.type === 'IN' ? 'text-emerald-700' : 'text-red-600'}`}>
                     {tx.type === 'IN' ? '+' : '−'}{Number(tx.amount).toFixed(2)}
                   </td>
                   <td className="px-4 py-2.5 text-stone-500">{tx.note ?? '—'}</td>
-                  <td className="px-4 py-2.5 text-end text-xs text-stone-400">{new Date(tx.createdAt).toLocaleString()}</td>
+                  <td className="tabular whitespace-nowrap px-4 py-2.5 text-end text-xs text-stone-400">{new Date(tx.createdAt).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -228,21 +235,21 @@ export default function CashManagementPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
-                  <th className="px-4 py-2.5">{t('cash_page.closed_at')}</th>
-                  <th className="px-4 py-2.5">{t('cash_page.closed_by')}</th>
-                  <th className="px-4 py-2.5">{t('cash_page.closing_order_count')}</th>
-                  <th className="px-4 py-2.5">{t('cash_page.total_revenue')}</th>
-                  <th className="px-4 py-2.5">{t('cash_page.net_position')}</th>
+                  <th className="px-4 py-2.5 text-start">{t('cash_page.closed_at')}</th>
+                  <th className="px-4 py-2.5 text-start">{t('cash_page.closed_by')}</th>
+                  <th className="w-24 px-4 py-2.5 text-end">{t('cash_page.closing_order_count')}</th>
+                  <th className="w-32 px-4 py-2.5 text-end">{t('cash_page.total_revenue')}</th>
+                  <th className="w-32 px-4 py-2.5 text-end">{t('cash_page.net_position')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
                 {closings.map(c => (
                   <tr key={c.id}>
-                    <td className="px-4 py-2.5 text-stone-500">{new Date(c.closedAt).toLocaleString()}</td>
+                    <td className="tabular whitespace-nowrap px-4 py-2.5 text-stone-500">{new Date(c.closedAt).toLocaleString()}</td>
                     <td className="px-4 py-2.5 text-stone-500">{c.closedByUser.email}</td>
-                    <td className="px-4 py-2.5 font-medium text-stone-900">{c.orderCount}</td>
-                    <td className="px-4 py-2.5 font-medium text-stone-900">{Number(c.totalRevenue).toFixed(2)}</td>
-                    <td className="px-4 py-2.5 font-medium text-stone-900">{Number(c.netPosition).toFixed(2)}</td>
+                    <td className="tabular px-4 py-2.5 text-end font-bold text-stone-900">{c.orderCount}</td>
+                    <td className="tabular px-4 py-2.5 text-end font-bold text-stone-900">{Number(c.totalRevenue).toFixed(2)}</td>
+                    <td className="tabular px-4 py-2.5 text-end font-bold text-stone-900">{Number(c.netPosition).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

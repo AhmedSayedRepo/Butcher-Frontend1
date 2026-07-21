@@ -234,8 +234,8 @@ export default function DismantlePage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
-                    <th className="px-3 py-2">{t('dismantle_page.cut_label')}</th>
-                    <th className="px-3 py-2">{t('dismantle_page.expected_yield_label')}</th>
+                    <th className="px-3 py-2 text-start">{t('dismantle_page.cut_label')}</th>
+                    <th className="w-28 px-3 py-2 text-end">{t('dismantle_page.expected_yield_label')}</th>
                     <th className="px-3 py-2">
                       {t('dismantle_page.actual_weight_label')}
                       <span className="ms-1 font-normal normal-case text-stone-400">({t('dismantle_page.actual_weight_hint')})</span>

@@ -270,10 +270,14 @@ body {
     color: rgb(var(--stone-400));
   }
 
-  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):hover,
-  select:hover,
-  textarea:hover {
-    border-color: rgb(var(--stone-300));
+  /* Hover is a clear brand-tinted border, not a barely-visible grey shift —
+     on a touchscreen till the operator needs to see which field is under the
+     pointer before committing to a tap. */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):hover:not(:disabled),
+  select:hover:not(:disabled),
+  textarea:hover:not(:disabled) {
+    border-color: rgb(var(--brand-500));
+    box-shadow: 0 0 0 2px rgb(var(--brand-600) / 0.10);
   }
 
   /* One focus treatment everywhere: brand border plus a soft ring. Replaces the
@@ -567,6 +571,18 @@ body {
   body * {
     visibility: hidden;
   }
+  /* Bug fix: reprinting from the orders board produced a blank sheet. The
+     receipt is rendered inside an off-screen host so it isn't visible in the
+     app, and `.receipt-print-area { position: absolute; inset: 0 }` positioned
+     it relative to that host — i.e. still 9999px off the page. The host is
+     pulled back to the origin here, for print only. */
+  .receipt-print-host {
+    position: static !important;
+    opacity: 1 !important;
+    inset: auto !important;
+    pointer-events: auto !important;
+  }
+
   /* The slip owns the sheet: no app margins, no shadow, no rounded corners,
      and `dir: ltr` on the barcode so its bars never mirror under RTL. */
   .receipt-print-area {
