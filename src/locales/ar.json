@@ -228,14 +228,14 @@
     "low_stock_threshold_label": "حد المخزون المنخفض الافتراضي",
     "low_stock_threshold_hint": "يُستخدم لأي منتج ليس له حد خاص محدد في المخزون.",
     "sender_name_label": "اسم المُرسل",
-    "sender_name_hint": "يظهر كاسم \"المُرسل\" في رسائل الدعوة وإعادة تعيين كلمة المرور، مثل \"Butcher Cashier <you@gmail.com>\".",
-    "smtp_user_label": "عنوان بريد Gmail",
-    "smtp_user_hint": "حساب Google الذي يرسل هذه الرسائل. يجب تفعيل التحقق بخطوتين وإنشاء كلمة مرور التطبيق له.",
-    "smtp_password_label": "كلمة مرور تطبيق Gmail",
-    "smtp_password_placeholder_set": "•••••••••••••• (تم الإعداد)",
-    "smtp_password_placeholder_unset": "غير مُعدّة",
-    "smtp_password_hint_configured": "توجد كلمة مرور محفوظة بالفعل. اكتب كلمة جديدة واضغط تحديث لاستبدالها، أو اتركها فارغة — لن يؤدي التحديث إلى مسحها.",
-    "smtp_password_hint_unconfigured": "كلمة مرور التطبيق المكوّنة من 16 حرفًا من myaccount.google.com/apppasswords (بدون مسافات)."
+    "sender_name_hint": "يظهر كاسم \"المُرسل\" في رسائل الدعوة وإعادة تعيين كلمة المرور، مثل \"Butcher Cashier <you@yourshop.com>\".",
+    "brevo_sender_label": "بريد المُرسل",
+    "brevo_sender_hint": "عنوان المُرسل الموثّق في حساب Brevo الخاص بك. أضفه ووثّقه من app.brevo.com ضمن Senders, Domains & Dedicated IPs.",
+    "brevo_api_key_label": "مفتاح Brevo API",
+    "brevo_api_key_placeholder_set": "•••••••••••••• (تم الإعداد)",
+    "brevo_api_key_placeholder_unset": "غير مُعدّ",
+    "brevo_api_key_hint_configured": "يوجد مفتاح محفوظ بالفعل. اكتب مفتاحًا جديدًا واضغط تحديث لاستبداله، أو اتركه فارغًا — لن يؤدي التحديث إلى مسحه.",
+    "brevo_api_key_hint_unconfigured": "من app.brevo.com ضمن SMTP & API ← API Keys. الخطة المجانية تغطي 300 رسالة يوميًا."
   },
   "admin_users_page": {
     "title": "إدارة المستخدمين",

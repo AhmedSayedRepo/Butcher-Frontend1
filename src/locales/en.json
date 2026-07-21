@@ -228,14 +228,14 @@
     "low_stock_threshold_label": "Default low-stock threshold",
     "low_stock_threshold_hint": "Used for any product without its own threshold set in Inventory.",
     "sender_name_label": "Sender name",
-    "sender_name_hint": "Shown as the \"From\" name on invite and password-reset emails, e.g. \"Butcher Cashier <you@gmail.com>\".",
-    "smtp_user_label": "Gmail address",
-    "smtp_user_hint": "The Google Account that sends these emails. Needs 2-Step Verification enabled and an app password generated for it.",
-    "smtp_password_label": "Gmail app password",
-    "smtp_password_placeholder_set": "•••••••••••••• (configured)",
-    "smtp_password_placeholder_unset": "Not set",
-    "smtp_password_hint_configured": "A password is already saved. Type a new one and click Update to replace it, or leave this blank — Update won't clear it.",
-    "smtp_password_hint_unconfigured": "16-character app password from myaccount.google.com/apppasswords (no spaces)."
+    "sender_name_hint": "Shown as the \"From\" name on invite and password-reset emails, e.g. \"Butcher Cashier <you@yourshop.com>\".",
+    "brevo_sender_label": "Sender email",
+    "brevo_sender_hint": "The verified sender address in your Brevo account. Add and verify it at app.brevo.com under Senders, Domains & Dedicated IPs.",
+    "brevo_api_key_label": "Brevo API key",
+    "brevo_api_key_placeholder_set": "•••••••••••••• (configured)",
+    "brevo_api_key_placeholder_unset": "Not set",
+    "brevo_api_key_hint_configured": "A key is already saved. Type a new one and click Update to replace it, or leave this blank — Update won't clear it.",
+    "brevo_api_key_hint_unconfigured": "From app.brevo.com under SMTP & API → API Keys. Free tier covers 300 emails/day."
   },
   "admin_users_page": {
     "title": "User Management",

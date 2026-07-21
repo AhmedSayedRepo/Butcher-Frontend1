@@ -2,10 +2,11 @@
 // previously either buried inline on /admin (pendingOrderAlertMinutes) or
 // not configurable at all — hardcoded constants duplicated across backend
 // and frontend (the low-stock default) or only settable via a Render env
-// var (the outgoing-email sender name, before the Gmail SMTP switch — see
-// backend/src/lib/email.ts). Admin-only, same tier as PATCH /api/shop-settings
-// itself; same "shown to every logged-in user, no-access message for
-// everyone else" pattern as /admin/cash rather than filtering the nav.
+// var (the outgoing-email sender — see backend/src/lib/email.ts; ADR-017
+// covers why that's Brevo's HTTP API rather than Gmail SMTP). Admin-only,
+// same tier as PATCH /api/shop-settings itself; same "shown to every
+// logged-in user, no-access message for everyone else" pattern as
+// /admin/cash rather than filtering the nav.
 'use client'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -56,11 +57,11 @@ function SettingsFieldCard({ label, badge, hint, value, type = 'text', placehold
   async function handleUpdate() {
     setFieldError(null)
     setFieldSaved(false)
-    // The Gmail app password field never sends an empty value to the
-    // server — "leave blank" means "don't touch the saved password", not
-    // "clear it". Without this guard, an admin who clicks Update without
-    // typing anything would silently wipe the stored password (the
-    // backend treats an explicit '' as "clear").
+    // The Brevo API key field never sends an empty value to the server —
+    // "leave blank" means "don't touch the saved key", not "clear it".
+    // Without this guard, an admin who clicks Update without typing
+    // anything would silently wipe the stored key (the backend treats an
+    // explicit '' as "clear").
     if (skipEmptyUpdate && draft.trim() === '') return
     setSaving(true)
     try {
@@ -172,22 +173,23 @@ export default function SettingsPage() {
     }
   }
 
-  // v3.1 follow-up 9 (ADR-016): each email field below saves independently
-  // via SettingsFieldCard's own "Update" button — these three functions are
-  // just thin PATCH wrappers, one per field, so a change to one doesn't
-  // touch the other two. `updateAppPassword`'s card sets `skipEmptyUpdate`,
-  // so this only ever runs with a real non-empty value — there's currently
-  // no UI path that sends `''` to explicitly clear a saved app password.
-  async function updateSmtpUser(nextValue: string): Promise<void> {
-    const r = await api.patch<ShopSettings>('/api/shop-settings', { smtpUser: nextValue.trim() })
+  // v3.1 follow-up 9 (ADR-016), renamed by ADR-017 (Gmail SMTP -> Brevo):
+  // each email field below saves independently via SettingsFieldCard's own
+  // "Update" button — these three functions are just thin PATCH wrappers,
+  // one per field, so a change to one doesn't touch the other two.
+  // `updateBrevoApiKey`'s card sets `skipEmptyUpdate`, so this only ever
+  // runs with a real non-empty value — there's currently no UI path that
+  // sends `''` to explicitly clear a saved API key.
+  async function updateBrevoSenderEmail(nextValue: string): Promise<void> {
+    const r = await api.patch<ShopSettings>('/api/shop-settings', { brevoSenderEmail: nextValue.trim() })
     setSettings(r.data)
   }
   async function updateSenderName(nextValue: string): Promise<void> {
     const r = await api.patch<ShopSettings>('/api/shop-settings', { mailSenderName: nextValue.trim() })
     setSettings(r.data)
   }
-  async function updateAppPassword(nextValue: string): Promise<void> {
-    const r = await api.patch<ShopSettings>('/api/shop-settings', { smtpAppPassword: nextValue.trim() })
+  async function updateBrevoApiKey(nextValue: string): Promise<void> {
+    const r = await api.patch<ShopSettings>('/api/shop-settings', { brevoApiKey: nextValue.trim() })
     setSettings(r.data)
   }
 
@@ -258,20 +260,22 @@ export default function SettingsPage() {
             </button>
           </form>
 
-          {/* v3.1 follow-up 9 (ADR-016): each field below saves independently
-              (its own "Update" button) rather than sharing the form above —
-              matches a reference design shared for this section specifically. */}
+          {/* v3.1 follow-up 9 (ADR-016), relabeled by ADR-017 (Gmail SMTP ->
+              Brevo — Render's free tier blocks outbound SMTP ports entirely):
+              each field below saves independently (its own "Update" button)
+              rather than sharing the form above — matches a reference design
+              shared for this section specifically. */}
           <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-card">
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_email')}</h2>
             <div className="space-y-3">
               <SettingsFieldCard
-                label={t('settings_page.smtp_user_label')}
+                label={t('settings_page.brevo_sender_label')}
                 badge={t('settings_page.optional_badge')}
-                hint={t('settings_page.smtp_user_hint')}
-                value={settings.smtpUser ?? ''}
+                hint={t('settings_page.brevo_sender_hint')}
+                value={settings.brevoSenderEmail ?? ''}
                 type="email"
-                placeholder="you@gmail.com"
-                onUpdate={updateSmtpUser}
+                placeholder="you@yourshop.com"
+                onUpdate={updateBrevoSenderEmail}
               />
               <SettingsFieldCard
                 label={t('settings_page.sender_name_label')}
@@ -281,13 +285,13 @@ export default function SettingsPage() {
                 onUpdate={updateSenderName}
               />
               <SettingsFieldCard
-                label={t('settings_page.smtp_password_label')}
+                label={t('settings_page.brevo_api_key_label')}
                 badge={t('settings_page.optional_badge')}
-                hint={settings.smtpAppPasswordSet ? t('settings_page.smtp_password_hint_configured') : t('settings_page.smtp_password_hint_unconfigured')}
+                hint={settings.brevoApiKeySet ? t('settings_page.brevo_api_key_hint_configured') : t('settings_page.brevo_api_key_hint_unconfigured')}
                 value=""
                 type="password"
-                placeholder={settings.smtpAppPasswordSet ? t('settings_page.smtp_password_placeholder_set') : t('settings_page.smtp_password_placeholder_unset')}
-                onUpdate={updateAppPassword}
+                placeholder={settings.brevoApiKeySet ? t('settings_page.brevo_api_key_placeholder_set') : t('settings_page.brevo_api_key_placeholder_unset')}
+                onUpdate={updateBrevoApiKey}
                 clearOnSave
                 skipEmptyUpdate
               />
