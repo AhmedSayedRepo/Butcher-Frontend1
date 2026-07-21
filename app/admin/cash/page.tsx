@@ -198,7 +198,7 @@ export default function CashManagementPage() {
         <div className="overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+              <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
                 <th className="px-4 py-2.5">{t('cash_page.category_placeholder')}</th>
                 <th className="px-4 py-2.5">{t('new_order_page.total')}</th>
                 <th className="px-4 py-2.5">{t('cash_page.note_placeholder')}</th>
@@ -213,7 +213,7 @@ export default function CashManagementPage() {
                     {tx.type === 'IN' ? '+' : '−'}{Number(tx.amount).toFixed(2)}
                   </td>
                   <td className="px-4 py-2.5 text-stone-500">{tx.note ?? '—'}</td>
-                  <td className="px-4 py-2.5 text-right text-xs text-stone-400">{new Date(tx.createdAt).toLocaleString()}</td>
+                  <td className="px-4 py-2.5 text-end text-xs text-stone-400">{new Date(tx.createdAt).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -227,7 +227,7 @@ export default function CashManagementPage() {
           <div className="overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+                <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
                   <th className="px-4 py-2.5">{t('cash_page.closed_at')}</th>
                   <th className="px-4 py-2.5">{t('cash_page.closed_by')}</th>
                   <th className="px-4 py-2.5">{t('cash_page.closing_order_count')}</th>
@@ -280,7 +280,7 @@ function SummaryCard({ label, value, accent, active, onClick, href }: {
       <p className={`mt-1 text-xl font-semibold ${ACCENT[accent]}`}>{value !== undefined ? Number(value).toFixed(2) : '—'}</p>
     </>
   )
-  const className = `block w-full text-left rounded-xl border bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover ${
+  const className = `block w-full text-start rounded-xl border bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover ${
     active === true ? 'border-brand-300 ring-1 ring-brand-200' : 'border-stone-200'
   }`
   if (href !== undefined) {

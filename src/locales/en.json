@@ -24,18 +24,54 @@
     "title": "Help & Guide",
     "intro": "A quick guide to using Butcher Cashier.",
     "sections": [
-      { "heading": "Dashboard", "body": "See today's order count, current low-stock alerts, how many products you're tracking, and a notification when orders have been pending longer than the alert threshold set in Admin." },
-      { "heading": "New Order", "body": "Pick a product, enter the weight in kg, and add it to the cart — or scan a barcode to add it instantly. Link the order to a customer, and the total updates live; the server checks stock automatically before saving." },
-      { "heading": "Barcode scanning", "body": "Plug in any USB or Bluetooth barcode scanner — it works like a keyboard, no setup needed. Give each product a barcode in Inventory, then click the barcode field on New Order and scan; the matching product is added automatically." },
-      { "heading": "Order Inbox", "body": "Log an order that came in by phone or social media DM: pick the products, note the delivery address, and save it as a draft. Confirm it from Orders once it's ready to fulfill." },
-      { "heading": "Orders", "body": "View every past order and its total, including drafts saved from the Inbox and their source (walk-in, phone, social, WhatsApp)." },
-      { "heading": "Customers", "body": "Keep a record of each customer's name, phone, address, and notes, along with their order history and total spend. Search by name or phone, and open a profile to edit their details." },
-      { "heading": "Inventory", "body": "View all products. Once logged in, you can also add new products, assign a barcode, and edit the price or stock of existing ones." },
-      { "heading": "Cash Management", "body": "Log cash in and out, and see net position and total revenue by day, week, month, or year. Click the \"Cash in\" or \"Cash out\" card to filter the entries below it; click \"Total revenue\" to jump to Orders." },
-      { "heading": "Carcass Dismantling", "body": "Record a carcass breakdown against a template: enter the carcass weight, the actual weight of each cut, and where it should be stocked. See the yield and waste compared to the expected numbers." },
-      { "heading": "Login", "body": "Sign in with your email and password to create orders or manage inventory. Logged-out visitors can still view orders, inventory, and the dashboard. Forgot your password? Use the \"Forgot password?\" link on the sign-in page to get a reset link by email." },
-      { "heading": "User Management", "body": "Admins can invite new team members from Admin → Manage Users by email and role — there's no public sign-up. The invited person gets an emailed link to set their own password; if email isn't configured yet, copy the link shown after sending the invite and share it directly." },
-      { "heading": "Language", "body": "Use the EN/AR button in the top bar to switch the interface language at any time." }
+      {
+        "heading": "Dashboard",
+        "body": "See today's order count, current low-stock alerts, how many products you're tracking, and a notification when orders have been pending longer than the alert threshold set in Admin."
+      },
+      {
+        "heading": "New Order",
+        "body": "Pick a product, enter the weight in kg, and add it to the cart — or scan a barcode to add it instantly. Link the order to a customer, and the total updates live; the server checks stock automatically before saving."
+      },
+      {
+        "heading": "Barcode scanning",
+        "body": "Plug in any USB or Bluetooth barcode scanner — it works like a keyboard, no setup needed. Give each product a barcode in Inventory, then click the barcode field on New Order and scan; the matching product is added automatically."
+      },
+      {
+        "heading": "Order Inbox",
+        "body": "Log an order that came in by phone or social media DM: pick the products, note the delivery address, and save it as a draft. Confirm it from Orders once it's ready to fulfill."
+      },
+      {
+        "heading": "Orders",
+        "body": "View every past order and its total, including drafts saved from the Inbox and their source (walk-in, phone, social, WhatsApp)."
+      },
+      {
+        "heading": "Customers",
+        "body": "Keep a record of each customer's name, phone, address, and notes, along with their order history and total spend. Search by name or phone, and open a profile to edit their details."
+      },
+      {
+        "heading": "Inventory",
+        "body": "View all products. Once logged in, you can also add new products, assign a barcode, and edit the price or stock of existing ones."
+      },
+      {
+        "heading": "Cash Management",
+        "body": "Log cash in and out, and see net position and total revenue by day, week, month, or year. Click the \"Cash in\" or \"Cash out\" card to filter the entries below it; click \"Total revenue\" to jump to Orders."
+      },
+      {
+        "heading": "Carcass Dismantling",
+        "body": "Record a carcass breakdown against a template: enter the carcass weight, the actual weight of each cut, and where it should be stocked. See the yield and waste compared to the expected numbers."
+      },
+      {
+        "heading": "Login",
+        "body": "Sign in with your email and password to create orders or manage inventory. Logged-out visitors can still view orders, inventory, and the dashboard. Forgot your password? Use the \"Forgot password?\" link on the sign-in page to get a reset link by email."
+      },
+      {
+        "heading": "User Management",
+        "body": "Admins can invite new team members from Admin → Manage Users by email and role — there's no public sign-up. The invited person gets an emailed link to set their own password; if email isn't configured yet, copy the link shown after sending the invite and share it directly."
+      },
+      {
+        "heading": "Language",
+        "body": "Use the EN/AR button in the top bar to switch the interface language at any time."
+      }
     ]
   },
   "dashboard_page": {
@@ -52,7 +88,8 @@
     "no_sales_yet": "No sales yet",
     "pending_by_source_title": "Pending orders by source",
     "stale_orders_badge": "{{count}} order(s) over {{minutes}}m",
-    "stale_orders_notification": "{{count}} order(s) waiting longer than the alert threshold"
+    "stale_orders_notification": "{{count}} order(s) waiting longer than the alert threshold",
+    "subtitle": "Today's activity, stock alerts and revenue at a glance."
   },
   "orders_page": {
     "please_login": "Please log in to view orders.",
@@ -84,7 +121,15 @@
     "scan_receipt_placeholder": "Receipt code",
     "scan_receipt_button": "Confirm",
     "scanning": "Confirming…",
-    "error_scan_receipt": "Couldn't confirm the receipt."
+    "error_scan_receipt": "Couldn't confirm the receipt.",
+    "subtitle": "Track every order through the shop, from created to completed.",
+    "edit_draft": "Edit",
+    "delete_draft": "Delete draft",
+    "close": "Close",
+    "confirm_delete_draft": "Delete this draft permanently? It was never confirmed, so no stock or cash is affected.",
+    "error_edit_draft": "Couldn't save the draft.",
+    "error_delete_draft": "Couldn't delete the draft.",
+    "error_draft_needs_item": "A draft needs at least one item."
   },
   "new_order_page": {
     "title": "New Order",
@@ -238,7 +283,32 @@
     "brevo_api_key_placeholder_set": "•••••••••••••• (configured)",
     "brevo_api_key_placeholder_unset": "Not set",
     "brevo_api_key_hint_configured": "A key is already saved. Type a new one and click Update to replace it, or leave this blank — Update won't clear it.",
-    "brevo_api_key_hint_unconfigured": "From app.brevo.com under SMTP & API → API Keys. Free tier covers 300 emails/day."
+    "brevo_api_key_hint_unconfigured": "From app.brevo.com under SMTP & API → API Keys. Free tier covers 300 emails/day.",
+    "receipt": {
+      "title": "Receipt",
+      "hint": "Controls how the printed receipt looks. Changes apply to the next receipt printed.",
+      "width": "Width (mm)",
+      "height": "Height (mm)",
+      "height_auto": "Auto",
+      "font_scale": "Font scale",
+      "shop_name": "Shop name",
+      "shop_phone": "Phone",
+      "shop_address": "Address",
+      "logo_url": "Logo URL",
+      "header_text": "Header text",
+      "footer_text": "Footer text",
+      "show_fields": "Show on receipt",
+      "preview": "Preview",
+      "preview_cashier": "Cashier name",
+      "field_receiptShowShopName": "Shop name",
+      "field_receiptShowPhone": "Phone",
+      "field_receiptShowAddress": "Address",
+      "field_receiptShowOrderNo": "Order number",
+      "field_receiptShowDateTime": "Date & time",
+      "field_receiptShowCashier": "Cashier",
+      "field_receiptShowCode": "Receipt code + barcode",
+      "error_save": "Couldn't save the receipt settings."
+    }
   },
   "admin_users_page": {
     "title": "User Management",
@@ -355,5 +425,11 @@
     "closed_at": "Closed at",
     "closed_by": "Closed by",
     "closing_order_count": "Orders"
-  }
+  },
+  "nav_group_pipeline": "Pipeline",
+  "language": "Language",
+  "theme_light_mode": "Light mode",
+  "theme_dark_mode": "Dark mode",
+  "rail_collapse": "Collapse menu",
+  "rail_expand": "Expand menu"
 }

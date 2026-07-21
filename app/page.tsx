@@ -21,6 +21,7 @@ import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
 } from 'recharts'
 import api from '../lib/api'
+import PageHeader from '../components/PageHeader'
 import { useAuth } from '../lib/useAuth'
 import { Order, Product, ShopSettings } from '../lib/types'
 
@@ -170,10 +171,7 @@ export default function Page() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold tracking-tight text-stone-900 sm:text-3xl">{t('dashboard')}</h1>
-        <p className="mt-1 text-sm text-stone-500">{t('app_name')}</p>
-      </div>
+      <PageHeader title={t('dashboard')} code="DB" subtitle={t('dashboard_page.subtitle')} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

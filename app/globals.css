@@ -239,6 +239,100 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Form controls ──────────────────────────────────────────────────────────
+   Base styling for every input/select/textarea in the app, applied here rather
+   than as utility classes on each field. There are well over a hundred of them
+   across 16 pages and they had drifted — different border colours, some with a
+   focus ring and some without, search fields styled unlike the form fields
+   beside them. One rule keeps them consistent and themed, and any page written
+   later inherits it.
+
+   `@layer base` so page-level Tailwind utilities still win when a field
+   genuinely needs to differ. Scoped away from checkboxes/radios/switches, which
+   want the browser's native rendering (`accent-color`) rather than a box. */
+@layer base {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  select,
+  textarea {
+    width: 100%;
+    border: 1px solid rgb(var(--stone-200));
+    border-radius: var(--radius-mid);
+    background-color: rgb(var(--surface));
+    color: rgb(var(--stone-900));
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: rgb(var(--stone-400));
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):hover,
+  select:hover,
+  textarea:hover {
+    border-color: rgb(var(--stone-300));
+  }
+
+  /* One focus treatment everywhere: brand border plus a soft ring. Replaces the
+     global :focus-visible outline for these elements only — an outline drawn
+     outside a bordered box read as a double border. */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: rgb(var(--brand-600));
+    box-shadow: 0 0 0 3px rgb(var(--brand-600) / 0.18);
+  }
+
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    background-color: rgb(var(--stone-100));
+    color: rgb(var(--stone-400));
+    cursor: not-allowed;
+  }
+
+  /* Native controls follow the accent instead of the browser default blue. */
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='range'] {
+    accent-color: rgb(var(--brand-600));
+  }
+
+  /* Table headers align with the column beneath them. These were `text-left`
+     in markup written before the app defaulted to Arabic, so under RTL every
+     header sat on the opposite side from its own data. `start` is logical, so
+     it follows the document direction. Numeric cells opt back out with an
+     explicit `text-end`. */
+  th {
+    text-align: start;
+  }
+
+  /* Buttons: one interaction feel app-wide. The pages between them used four
+     different combinations of transition/cursor/disabled handling, so a button
+     felt subtly different depending on which screen you were on. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+  button {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+      box-shadow 0.15s ease, opacity 0.15s ease, transform 0.06s ease;
+  }
+  /* A 1px press. Small enough to read as feedback rather than movement, and
+     skipped for anything that isn't really a button (the kanban cards use
+     role="button" on a div and shouldn't bounce). */
+  button:not(:disabled):active {
+    transform: translateY(1px);
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
 ::selection {
   background-color: rgb(var(--brand-100));
   color: rgb(var(--brand-900));
@@ -329,6 +423,15 @@ body {
 .app-rail .rail-divider {
   border-color: var(--rail-line);
 }
+/* qa-studio's "PIPELINE" group label above the nav block. */
+.app-rail .rail-group-label {
+  color: var(--rail-dim);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
 /* The count/index chip qa-studio puts at the head of each nav row and section
    header (its `ix` field and `sec_head`). */
 .app-rail .rail-ix {
@@ -345,14 +448,11 @@ body {
   animation-name: drawerInRtl;
 }
 
+/* Note: no translate on hover. The earlier version nudged the row sideways,
+   which pushed it past the rail's edge and made the hover background look like
+   a button floating outside the sidebar. qa-studio only changes the fill. */
 .app-rail .rail-item {
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
-}
-.app-rail .rail-item:hover {
-  transform: translateX(3px);
-}
-[dir='rtl'] .app-rail .rail-item:hover {
-  transform: translateX(-3px);
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -360,9 +460,6 @@ body {
   .app-rail .rail-item {
     animation: none;
     transition: none;
-  }
-  .app-rail .rail-item:hover {
-    transform: none;
   }
 }
 
@@ -374,9 +471,112 @@ body {
    Revamp note: receipts print on paper, so they're forced to black-on-white
    regardless of the active theme — printing the dark theme would waste toner
    and read badly. */
+/* ── Printed receipt ────────────────────────────────────────────────────────
+   Sizes are all multiples of --receipt-scale (set inline by components/
+   Receipt.tsx from ShopSettings.receiptFontScale), so the whole slip scales as
+   one unit instead of each element being computed separately in JS. Base sizes
+   are chosen for a 203dpi thermal head: below ~9px the character shapes start
+   filling in. */
+.receipt {
+  --receipt-scale: 1;
+  font-family: var(--font-ui);
+}
+.receipt-body {
+  padding: calc(4mm * var(--receipt-scale));
+}
+.receipt-logo {
+  display: block;
+  max-width: 60%;
+  max-height: calc(18mm * var(--receipt-scale));
+  margin: 0 auto calc(2mm * var(--receipt-scale));
+  object-fit: contain;
+}
+.receipt-shop {
+  text-align: center;
+  font-weight: 800;
+  font-size: calc(15px * var(--receipt-scale));
+  line-height: 1.25;
+}
+.receipt-meta {
+  text-align: center;
+  font-size: calc(11px * var(--receipt-scale));
+  line-height: 1.45;
+}
+/* Free text (header/footer) is the one place a shop writes prose — a
+   thank-you, a return policy — so it keeps line breaks as typed. */
+.receipt-free {
+  margin: calc(2mm * var(--receipt-scale)) 0;
+  text-align: center;
+  font-size: calc(11px * var(--receipt-scale));
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+.receipt-rule {
+  border: 0;
+  border-top: 1px dashed currentColor;
+  opacity: 0.45;
+  margin: calc(2mm * var(--receipt-scale)) 0;
+}
+.receipt-items {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(12px * var(--receipt-scale));
+}
+.receipt-items td {
+  padding: calc(0.8mm * var(--receipt-scale)) 0;
+  vertical-align: top;
+}
+.receipt-item-name {
+  text-align: start;
+  word-break: break-word;
+}
+.receipt-item-kg {
+  text-align: end;
+  white-space: nowrap;
+  padding-inline: calc(2mm * var(--receipt-scale)) !important;
+  opacity: 0.75;
+}
+.receipt-item-price {
+  text-align: end;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.receipt-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-weight: 800;
+  font-size: calc(14px * var(--receipt-scale));
+}
+.receipt-code {
+  margin-top: calc(3mm * var(--receipt-scale));
+  text-align: center;
+}
+.receipt-code svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+.receipt-code-text {
+  margin-top: calc(1mm * var(--receipt-scale));
+  font-size: calc(10px * var(--receipt-scale));
+  letter-spacing: 0.12em;
+}
+
 @media print {
   body * {
     visibility: hidden;
+  }
+  /* The slip owns the sheet: no app margins, no shadow, no rounded corners,
+     and `dir: ltr` on the barcode so its bars never mirror under RTL. */
+  .receipt-print-area {
+    box-shadow: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+  .receipt-code {
+    direction: ltr;
   }
   .receipt-print-area,
   .receipt-print-area * {

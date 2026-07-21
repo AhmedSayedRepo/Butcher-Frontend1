@@ -52,3 +52,28 @@ export function storeTheme(theme: Theme): void {
 // every single navigation for dark-theme users. Kept as a compact string
 // because it ships in every HTML response.
 export const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');document.documentElement.dataset.theme=(t==='dark'||t==='light')?t:'${DEFAULT_THEME}'}catch(e){document.documentElement.dataset.theme='${DEFAULT_THEME}'}})()`
+
+// ── Rail collapse ───────────────────────────────────────────────────────────
+// v3.1 follow-up 10: the rail can be collapsed to an icon-width strip so the
+// content area gets ~200px back — worth having on a 1366px shop terminal where
+// the orders board is five columns wide. Same storage reasoning as the theme:
+// a per-device display preference, not shop data.
+export const RAIL_STORAGE_KEY = 'butcher-rail-collapsed'
+
+export function readStoredRailCollapsed(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    return window.localStorage.getItem(RAIL_STORAGE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function storeRailCollapsed(collapsed: boolean): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(RAIL_STORAGE_KEY, collapsed ? '1' : '0')
+  } catch {
+    // Non-fatal — the choice just won't persist.
+  }
+}

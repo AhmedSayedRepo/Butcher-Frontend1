@@ -104,7 +104,7 @@ export default function CustomersPage() {
         <div className="overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+              <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
                 <th className="px-4 py-2.5">{t('customers_page.name_placeholder')}</th>
                 <th className="px-4 py-2.5">{t('customers_page.phone_placeholder')}</th>
                 <th className="px-4 py-2.5"></th>
@@ -115,7 +115,7 @@ export default function CustomersPage() {
                 <tr key={c.id} className="transition-colors hover:bg-stone-50">
                   <td className="px-4 py-2.5 font-medium text-stone-900">{c.name}</td>
                   <td className="px-4 py-2.5 text-stone-600">{c.phone ?? '—'}</td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-4 py-2.5 text-end">
                     <Link href={`/customers/${c.id}`} className="text-xs font-medium text-brand-700 hover:text-brand-800">
                       {t('customers_page.view_profile')}
                     </Link>

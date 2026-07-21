@@ -143,6 +143,27 @@ export type ShopSettings = {
   // can show "configured" without ever seeing the real value.
   brevoSenderEmail: string | null
   brevoApiKeySet: boolean
+  // v3.1 follow-up 10 — printed-receipt customization. All of this only
+  // affects the receipt printed from /orders/new; nothing here is stored on
+  // an order. `receiptHeightMm: null` means "as tall as the content needs",
+  // which is the normal case for a continuous thermal roll. `receiptFontScale`
+  // is a Decimal, so it arrives as a string like every other Decimal here.
+  receiptWidthMm: number
+  receiptHeightMm: number | null
+  receiptFontScale: string
+  receiptHeaderText: string | null
+  receiptFooterText: string | null
+  receiptLogoUrl: string | null
+  receiptShowShopName: boolean
+  receiptShowPhone: boolean
+  receiptShowAddress: boolean
+  receiptShowOrderNo: boolean
+  receiptShowCode: boolean
+  receiptShowCashier: boolean
+  receiptShowDateTime: boolean
+  shopName: string
+  shopPhone: string | null
+  shopAddress: string | null
 }
 
 // v2 replan (Phase B): audit trail row for a direct stock edit.

@@ -184,7 +184,7 @@ export default function OrdersInboxPage() {
           <div className="mb-4 overflow-hidden rounded-lg border border-stone-200">
             {customerResults.map(c => (
               <button key={c.id} type="button" onClick={() => pickCustomer(c)}
-                className="block w-full border-b border-stone-100 px-3 py-2 text-left text-sm last:border-b-0 hover:bg-stone-50">
+                className="block w-full border-b border-stone-100 px-3 py-2 text-start text-sm last:border-b-0 hover:bg-stone-50">
                 <span className="font-medium text-stone-900">{c.name}</span>
                 {c.phone !== null && <span className="ml-2 text-stone-500">{c.phone}</span>}
               </button>
@@ -243,7 +243,7 @@ export default function OrdersInboxPage() {
                   <td className="px-4 py-2.5 font-medium text-stone-900">{l.name}</td>
                   <td className="px-4 py-2.5 text-stone-600">{l.kg.toFixed(3)} kg</td>
                   <td className="px-4 py-2.5 text-stone-600">{(l.pricePerKg * l.kg).toFixed(2)}</td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-4 py-2.5 text-end">
                     <button onClick={() => removeLine(l.productId)} className="text-xs font-medium text-red-600 hover:text-red-700">{t('new_order_page.remove')}</button>
                   </td>
                 </tr>

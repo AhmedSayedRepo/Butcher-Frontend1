@@ -23,7 +23,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import api from '../../../lib/api'
 import { extractApiErrorMessage } from '../../../lib/apiError'
-import { Customer, Order, Product } from '../../../lib/types'
+import { Customer, Order, Product, ShopSettings } from '../../../lib/types'
+import Receipt from '../../../components/Receipt'
 
 type CartLine = { productId: string, name: string, pricePerKg: number, kg: number }
 
@@ -45,6 +46,9 @@ export default function NewOrderPage() {
   const [submitting, setSubmitting] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
   const [receipt, setReceipt] = useState<Order | null>(null)
+  // v3.1 follow-up 10: the printed receipt's shape (paper size, font scale,
+  // header/footer, which fields show) is admin-configurable at /settings.
+  const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null)
   // v3 replan (Phase I.1 — barcode scanning, ADR-008): a scanner is a
   // keyboard-emulation device — it types the code into this input then sends
   // Enter, same as a person typing + pressing Enter. No device SDK involved.
@@ -77,6 +81,15 @@ export default function NewOrderPage() {
       })
       .catch(() => setError(t('new_order_page.error_load_products')))
   }, [t])
+
+  // Fetched up front rather than when the receipt appears: a failed or slow
+  // settings request must never stand between finishing a sale and handing
+  // over the slip. Receipt falls back to defaults if this is still null.
+  useEffect(() => {
+    api.get<ShopSettings>('/api/shop-settings')
+      .then(r => setShopSettings(r.data))
+      .catch(() => setShopSettings(null))
+  }, [])
 
   useEffect(() => {
     if (customerQuery.trim().length < CUSTOMER_SEARCH_MIN_LENGTH) {
@@ -199,37 +212,17 @@ export default function NewOrderPage() {
   if (receipt !== null) {
     return (
       <div>
-        <div className="receipt-print-area mx-auto max-w-sm rounded-xl border border-stone-200 bg-surface p-6 shadow-card">
-          <h1 className="mb-1 text-lg font-semibold text-stone-900">
-            {t('new_order_page.receipt_title')}
-            {receipt.dailyNumber !== null && <span className="ms-2 text-stone-400">#{receipt.dailyNumber}</span>}
-          </h1>
-          <p className="mb-4 text-xs text-stone-500">
-            {receipt.customer || t('orders_page.walk_in')} · {new Date(receipt.createdAt).toLocaleString()}
-          </p>
-          <ul className="mb-4 divide-y divide-stone-100 border-y border-stone-100">
-            {receipt.items.map(item => (
-              <li key={item.id} className="flex justify-between py-2 text-sm">
-                <span className="text-stone-700">{Number(item.kg).toFixed(3)} kg</span>
-                <span className="font-medium text-stone-900">{Number(item.price).toFixed(2)}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="flex justify-between text-base font-semibold text-stone-900">
-            <span>{t('new_order_page.total')}</span>
-            <span>{Number(receipt.totalAmount).toFixed(2)}</span>
-          </div>
-          {/* v3.1 follow-up 6: printed so an on-the-way order's receipt code
-              can be scanned/typed back in later (POST /:id/scan-receipt) to
-              confirm the order and complete it — the only way that path
-              reaches COMPLETED. Not shown for in-premise orders' receipts;
-              harmless either way since it's simply unused for that flow. */}
-          {receipt.receiptCode !== null && (
-            <p className="mt-4 text-center text-xs text-stone-400">
-              {t('new_order_page.receipt_code_label')}: <span className="font-mono tracking-widest text-stone-600">{receipt.receiptCode}</span>
-            </p>
-          )}
-        </div>
+        <Receipt
+          order={receipt}
+          settings={shopSettings}
+          labels={{
+            receiptTitle: t('new_order_page.receipt_title'),
+            walkIn: t('orders_page.walk_in'),
+            total: t('new_order_page.total'),
+            receiptCode: t('new_order_page.receipt_code_label'),
+            kg: t('new_order_page.kg_label')
+          }}
+        />
         <div className="mx-auto mt-4 flex max-w-sm gap-3">
           <button onClick={() => window.print()}
             className="flex-1 rounded-lg border border-stone-300 bg-surface px-4 py-2.5 text-sm font-medium text-stone-700 shadow-sm transition-colors hover:bg-stone-50">
@@ -266,7 +259,7 @@ export default function NewOrderPage() {
           <div className="mb-2 overflow-hidden rounded-lg border border-stone-200">
             {customerResults.map(c => (
               <button key={c.id} type="button" onClick={() => pickCustomer(c)}
-                className="block w-full border-b border-stone-100 px-3 py-2 text-left text-sm last:border-b-0 hover:bg-stone-50">
+                className="block w-full border-b border-stone-100 px-3 py-2 text-start text-sm last:border-b-0 hover:bg-stone-50">
                 <span className="font-medium text-stone-900">{c.name}</span>
                 {c.phone !== null && <span className="ml-2 text-stone-500">{c.phone}</span>}
               </button>
@@ -370,7 +363,7 @@ export default function NewOrderPage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+              <tr className="border-b border-stone-200 bg-stone-100 text-start text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
                 <th className="px-4 py-2.5">{t('new_order_page.product_label')}</th>
                 <th className="px-4 py-2.5">{t('new_order_page.kg_label')}</th>
                 <th className="px-4 py-2.5">{t('inventory_page.price_label')}</th>
@@ -383,7 +376,7 @@ export default function NewOrderPage() {
                   <td className="px-4 py-2.5 font-medium text-stone-900">{l.name}</td>
                   <td className="px-4 py-2.5 text-stone-600">{l.kg.toFixed(3)}</td>
                   <td className="px-4 py-2.5 text-stone-600">{(l.pricePerKg * l.kg).toFixed(2)}</td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-4 py-2.5 text-end">
                     <button onClick={() => removeLine(l.productId)} className="text-xs font-medium text-red-600 hover:text-red-700">{t('new_order_page.remove')}</button>
                   </td>
                 </tr>

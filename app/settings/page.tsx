@@ -14,6 +14,7 @@ import api from '../../lib/api'
 import { extractApiErrorMessage } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import { ShopSettings } from '../../lib/types'
+import ReceiptSettings from '../../components/ReceiptSettings'
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -214,7 +215,7 @@ export default function SettingsPage() {
           <p className="text-sm text-stone-500">{t('settings_page.loading')}</p>
         </div>
       ) : (
-        <div className="max-w-xl space-y-6">
+        <div className="max-w-4xl space-y-6">
           <form onSubmit={onSubmit} className="space-y-4 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
             {error && (
               <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
@@ -297,6 +298,8 @@ export default function SettingsPage() {
               />
             </div>
           </div>
+
+          <ReceiptSettings settings={settings} onSaved={setSettings} />
         </div>
       )}
     </div>
