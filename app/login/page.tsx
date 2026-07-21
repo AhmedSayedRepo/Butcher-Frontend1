@@ -88,7 +88,8 @@ export default function LoginPage() {
           </div>
 
           <Link href="/welcome" className="text-sm font-semibold text-[color:var(--pub-ink3)] transition-colors hover:text-[color:var(--pub-ink)]">
-            {t('public.learn_more')} →
+            {t('public.learn_more')}{' '}
+            <span aria-hidden="true" className="inline-block transition-transform rtl:rotate-180">→</span>
           </Link>
         </div>
       </PublicField>
@@ -163,6 +164,17 @@ export default function LoginPage() {
             </form>
 
             <p className="mt-8 text-center text-xs text-stone-400">{t('login_page.invite_only')}</p>
+
+            {/* The dark panel carries this link too, but it's `lg`-only and
+                sits low — below `lg` the panel isn't rendered at all, so
+                without this one there'd be no way to reach the landing page
+                from a phone. Here it's on the form side, always visible. */}
+            <div className="mt-5 border-t border-stone-200 pt-5 text-center">
+              <Link href="/welcome" className="btn btn-secondary btn-sm">
+                {t('public.learn_more')}
+                <span aria-hidden="true" className="inline-block rtl:rotate-180">→</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

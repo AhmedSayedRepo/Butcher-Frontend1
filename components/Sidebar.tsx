@@ -301,7 +301,7 @@ export default function Sidebar() {
           >
             {collapsed ? (
               <>
-                <span aria-hidden="true" className={IX_CHIP_COLLAPSED}>→</span>
+                <span aria-hidden="true" className={`${IX_CHIP_COLLAPSED} rtl:rotate-180`}>→</span>
                 <span className="sr-only">{t('login')}</span>
               </>
             ) : (
