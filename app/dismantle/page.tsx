@@ -199,13 +199,13 @@ export default function DismantlePage() {
       )}
 
       {!canDismantle && (
-        <div className="mb-6 rounded-xl border border-dashed border-stone-300 bg-white p-6 text-center text-sm text-stone-500">
+        <div className="mb-6 rounded-xl border border-dashed border-stone-300 bg-surface p-6 text-center text-sm text-stone-500">
           {t('dismantle_page.no_access')}
         </div>
       )}
 
       {canDismantle && (
-        <form onSubmit={onSubmit} className="mb-8 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+        <form onSubmit={onSubmit} className="mb-8 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
           <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <label>
               <span className={labelClasses}>{t('dismantle_page.template_label')}</span>
@@ -282,7 +282,7 @@ export default function DismantlePage() {
         <div>
           <h2 className="mb-3 text-lg font-semibold text-stone-900">{t('dismantle_page.recent_events')}</h2>
           {events.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-sm text-stone-500">
+            <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-8 text-center text-sm text-stone-500">
               {t('dismantle_page.no_events')}
             </div>
           ) : (
@@ -291,7 +291,7 @@ export default function DismantlePage() {
                 const isEditing = editingEventId === ev.id
                 const isBusy = eventBusyId === ev.id
                 return (
-                  <div key={ev.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+                  <div key={ev.id} className="rounded-xl border border-stone-200 bg-surface p-4 shadow-card">
                     <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         {isEditing ? (

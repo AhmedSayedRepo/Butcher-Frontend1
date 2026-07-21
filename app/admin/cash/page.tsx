@@ -28,7 +28,10 @@ export default function CashManagementPage() {
 
   const [transactions, setTransactions] = useState<CashTransaction[]>([])
   const [summary, setSummary] = useState<CashSummary | null>(null)
-  const [range, setRange] = useState<(typeof RANGES)[number]>('week')
+  // Design revamp (2026-07-21): opens on the daily view rather than weekly.
+  // Cash is reconciled and closed per day (see the "close day" flow), so the
+  // day's own figures are what staff open this page to check.
+  const [range, setRange] = useState<(typeof RANGES)[number]>('day')
   const [cardFilter, setCardFilter] = useState<CardFilter>('ALL')
   const [type, setType] = useState<CashTransactionType>('IN')
   const [category, setCategory] = useState('')
@@ -103,7 +106,7 @@ export default function CashManagementPage() {
 
   if (!canManageCash) {
     return (
-      <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center">
+      <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
         <p className="text-sm text-stone-500">{t('cash_page.no_access')}</p>
       </div>
     )
@@ -116,7 +119,7 @@ export default function CashManagementPage() {
         {/* v3.1 replan (Phase L, ADR-015): a deliberate staff action, not an
             automatic midnight reset — shifts/closing times vary by shop. */}
         <button onClick={() => setConfirmingClose(true)}
-          className="rounded-lg border border-stone-300 bg-white px-3.5 py-1.5 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50">
+          className="rounded-lg border border-stone-300 bg-surface px-3.5 py-1.5 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50">
           {t('cash_page.close_day')}
         </button>
       </div>
@@ -129,7 +132,7 @@ export default function CashManagementPage() {
           <p className="mt-1 text-sm text-amber-800">{t('cash_page.confirm_close_message')}</p>
           <div className="mt-3 flex justify-end gap-2">
             <button onClick={() => setConfirmingClose(false)} disabled={closingDay}
-              className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50">
+              className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50">
               {t('cash_page.confirm_close_cancel')}
             </button>
             <button onClick={closeDay} disabled={closingDay}
@@ -143,7 +146,7 @@ export default function CashManagementPage() {
       <div className="mb-6 flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs font-medium w-fit">
         {RANGES.map(r => (
           <button key={r} onClick={() => setRange(r)}
-            className={`rounded-md px-3 py-1.5 transition-colors ${range === r ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+            className={`rounded-md px-3 py-1.5 transition-colors ${range === r ? 'bg-surface text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
             {t(`cash_page.range_${r}`)}
           </button>
         ))}
@@ -165,7 +168,7 @@ export default function CashManagementPage() {
         <SummaryCard label={t('cash_page.total_revenue')} value={summary?.totalRevenue} accent="stone" href="/orders" />
       </div>
 
-      <form onSubmit={addTransaction} className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-white p-5 shadow-card sm:grid-cols-5">
+      <form onSubmit={addTransaction} className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-surface p-5 shadow-card sm:grid-cols-5">
         <select className={inputClasses} value={type} onChange={e => setType(e.target.value as CashTransactionType)}>
           <option value="IN">{t('cash_page.type_in')}</option>
           <option value="OUT">{t('cash_page.type_out')}</option>
@@ -188,11 +191,11 @@ export default function CashManagementPage() {
       )}
 
       {visibleTransactions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-sm text-stone-400">
+        <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-8 text-center text-sm text-stone-400">
           {t('cash_page.no_entries')}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-card">
+        <div className="overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
@@ -221,7 +224,7 @@ export default function CashManagementPage() {
       {closings.length > 0 && (
         <div className="mt-6">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('cash_page.recent_closings')}</h2>
-          <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-card">
+          <div className="overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
@@ -277,7 +280,7 @@ function SummaryCard({ label, value, accent, active, onClick, href }: {
       <p className={`mt-1 text-xl font-semibold ${ACCENT[accent]}`}>{value !== undefined ? Number(value).toFixed(2) : '—'}</p>
     </>
   )
-  const className = `block w-full text-left rounded-xl border bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover ${
+  const className = `block w-full text-left rounded-xl border bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover ${
     active === true ? 'border-brand-300 ring-1 ring-brand-200' : 'border-stone-200'
   }`
   if (href !== undefined) {

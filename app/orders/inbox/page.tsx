@@ -164,11 +164,11 @@ export default function OrdersInboxPage() {
       {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
       {notice && <div className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-700">{notice}</div>}
 
-      <div className="mb-4 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+      <div className="mb-4 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
         <div className="mb-4 flex gap-2">
           {(['social', 'phone'] as const).map(s => (
             <button key={s} type="button" onClick={() => setSource(s)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${source === s ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-50'}`}>
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${source === s ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-stone-300 bg-surface text-stone-700 hover:bg-stone-50'}`}>
               {t(`inbox_page.source_${s}`)}
             </button>
           ))}
@@ -232,7 +232,7 @@ export default function OrdersInboxPage() {
         </div>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-card">
+      <div className="mb-4 overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
         {cart.length === 0 ? (
           <div className="p-8 text-center text-sm text-stone-400">{t('new_order_page.no_items_yet')}</div>
         ) : (

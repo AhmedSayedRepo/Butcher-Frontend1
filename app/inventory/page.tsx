@@ -175,7 +175,7 @@ export default function InventoryPage() {
       )}
 
       {canManageInventory && (
-        <form onSubmit={onCreate} className="mb-6 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+        <form onSubmit={onCreate} className="mb-6 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-6 md:items-end">
             <label>
               <span className={labelClasses}>{t('inventory_page.name_label')}</span>
@@ -228,14 +228,14 @@ export default function InventoryPage() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {visibleProducts.length === 0 ? (
-          <div className="col-span-full rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-500">
+          <div className="col-span-full rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center text-sm text-stone-500">
             {t('inventory_page.no_products')}
           </div>
         ) : (
           visibleProducts.map((p) => {
             const lowStock = Number(p.stockKg) < effectiveThreshold(p, shopDefaultThresholdKg)
             return (
-              <div key={p.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover">
+              <div key={p.id} className="rounded-xl border border-stone-200 bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover">
                 {editingId === p.id ? (
                   <div className="grid grid-cols-2 gap-2">
                     <input className={`${inputClasses} col-span-2`} value={editDraft.name}

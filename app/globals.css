@@ -2,7 +2,168 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body { height: 100%; }
+/* ---------------------------------------------------------------------------
+   Design revamp (2026-07-21) — two themes from the Claude-design mockups:
+   "Clean Operator" (light, default) and "Trade Floor" (dark).
+
+   Why variables instead of rewriting every class: the app had ~700 hardcoded
+   Tailwind colour utilities across 16 pages (`text-stone-900`, `bg-white`,
+   `border-stone-200`, …). Rather than touch all of them — a huge diff with a
+   high chance of missing something — the *palette itself* is redefined here as
+   CSS custom properties and mapped into Tailwind in tailwind.config.js. Every
+   existing utility keeps working and simply resolves to a different colour per
+   theme. New pages inherit theming for free.
+
+   The neutral ramp is INVERTED in dark mode: the codebase uses stone-900 for
+   text and stone-50 for canvas, so flipping the ramp yields a coherent dark
+   theme automatically. Two consequences worth knowing:
+     - `white` is not literal white. It's the "on-accent" colour (white in
+       light mode, near-black in dark), because `text-white` in this codebase
+       is almost always sitting on a filled brand/badge background and has to
+       stay readable in both themes. Card surfaces use `bg-surface`, not
+       `bg-white` — see the scripted rename in the same commit.
+     - a genuine always-dark scrim (modal overlays) uses `--overlay`, so it
+       doesn't invert into a white flash.
+
+   Values are kept in oklch component form (`L C H`) so Tailwind's
+   `<alpha-value>` opacity modifiers (`bg-surface/90`) still work, and so the
+   numbers stay identical to the mockups rather than being round-tripped
+   through sRGB hex.
+--------------------------------------------------------------------------- */
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --font-ui: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-num: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Card/panel surface. Was literal white in the old UI. */
+  --surface: 100% 0 0;
+  --overlay: 20% 0.006 60;
+
+  /* "on-accent" — see note above. */
+  --white: 100% 0 0;
+
+  /* Warm neutral ramp (mockup: stone/ink/sub at hue ~60-70). */
+  --stone-50: 96.5% 0.004 70;
+  --stone-100: 94% 0.005 70;
+  --stone-200: 90% 0.006 70;
+  --stone-300: 85% 0.007 68;
+  --stone-400: 66% 0.008 65;
+  --stone-500: 50% 0.008 60;
+  --stone-600: 42% 0.008 60;
+  --stone-700: 34% 0.007 60;
+  --stone-800: 27% 0.006 60;
+  --stone-900: 20% 0.006 60;
+
+  /* Accent — the mockup's violet. Was a warm brand red before the revamp;
+     to go back, restore the old hex ramp for these values only. */
+  --brand-50: 97% 0.014 290;
+  --brand-100: 93% 0.04 290;
+  --brand-200: 88% 0.06 290;
+  --brand-300: 78% 0.09 290;
+  --brand-400: 66% 0.13 290;
+  --brand-500: 58% 0.15 290;
+  --brand-600: 48% 0.17 290;
+  --brand-700: 42% 0.16 290;
+  --brand-800: 36% 0.14 290;
+  --brand-900: 30% 0.11 290;
+  --brand-950: 22% 0.08 290;
+
+  /* Status colours. */
+  --ok-50: 94% 0.04 150;
+  --ok-600: 50% 0.11 150;
+  --ok-700: 45% 0.1 150;
+  --warn-50: 95% 0.03 70;
+  --warn-200: 88% 0.06 75;
+  --warn-600: 58% 0.13 70;
+  --warn-700: 52% 0.13 70;
+  --warn-800: 45% 0.12 70;
+  --warn-900: 38% 0.1 70;
+  --bad-50: 95% 0.025 25;
+  --bad-200: 88% 0.05 25;
+  --bad-600: 55% 0.17 25;
+  --bad-700: 48% 0.16 25;
+  --info-50: 95% 0.03 230;
+  --info-600: 55% 0.12 230;
+  --info-700: 48% 0.11 230;
+
+  --radius-card: 0.875rem;
+  --shadow-card: 0 1px 2px rgba(20, 10, 5, 0.04);
+  --shadow-card-hover: 0 2px 4px rgba(20, 10, 5, 0.06), 0 8px 16px -4px rgba(20, 10, 5, 0.08);
+  --shadow-rail: 2px 0 20px rgba(20, 10, 5, 0.05);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Trade Floor uses IBM Plex — Mono specifically for figures, which is most
+     of what this app displays (weights, money, order numbers). */
+  --font-ui: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-num: var(--font-plex-mono), ui-monospace, monospace;
+
+  --surface: 19% 0.035 260;
+  --overlay: 8% 0.02 260;
+
+  /* Dark ink sitting on a filled accent/badge. */
+  --white: 15% 0.03 260;
+
+  /* Cool neutral ramp, inverted: 50 = canvas (darkest), 900 = text. */
+  --stone-50: 15% 0.03 260;
+  --stone-100: 24% 0.038 262;
+  --stone-200: 30% 0.04 265;
+  --stone-300: 35% 0.042 265;
+  --stone-400: 55% 0.025 258;
+  --stone-500: 65% 0.02 255;
+  --stone-600: 73% 0.018 253;
+  --stone-700: 81% 0.015 252;
+  --stone-800: 88% 0.012 251;
+  --stone-900: 94% 0.01 250;
+
+  /* Accent — the mockup's cyan. Ramp direction flips with the neutrals:
+     the low numbers stay dark (tinted panels), the high numbers go bright. */
+  --brand-50: 28% 0.06 205;
+  --brand-100: 32% 0.07 205;
+  --brand-200: 38% 0.08 205;
+  --brand-300: 45% 0.09 205;
+  --brand-400: 55% 0.11 205;
+  --brand-500: 60% 0.115 205;
+  --brand-600: 65% 0.12 205;
+  --brand-700: 73% 0.12 205;
+  --brand-800: 81% 0.1 205;
+  --brand-900: 88% 0.08 205;
+  --brand-950: 94% 0.05 205;
+
+  --ok-50: 30% 0.05 150;
+  --ok-600: 66% 0.14 150;
+  --ok-700: 72% 0.15 150;
+  --warn-50: 30% 0.05 70;
+  --warn-200: 38% 0.07 75;
+  --warn-600: 72% 0.13 80;
+  --warn-700: 78% 0.14 80;
+  --warn-800: 84% 0.12 80;
+  --warn-900: 90% 0.09 80;
+  --bad-50: 30% 0.06 25;
+  --bad-200: 38% 0.08 25;
+  --bad-600: 66% 0.16 25;
+  --bad-700: 72% 0.15 25;
+  --info-50: 30% 0.05 230;
+  --info-600: 68% 0.12 230;
+  --info-700: 75% 0.11 230;
+
+  /* Trade Floor is a flatter, sharper surface treatment than Clean Operator:
+     tighter corner radius and no soft drop shadows. */
+  --radius-card: 0.375rem;
+  --shadow-card: none;
+  --shadow-card-hover: 0 0 0 1px oklch(var(--brand-600) / 0.35);
+  --shadow-rail: 2px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+html,
+body {
+  height: 100%;
+}
 
 html {
   scroll-behavior: smooth;
@@ -12,24 +173,34 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Theme swaps shouldn't strobe. Deliberately not on `*` — animating every
+     element's colours makes hover states feel laggy. */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Figures read better in Plex Mono under the dark theme; in light mode
+   --font-num is just the UI font, so this is a no-op there. */
+.tabular {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background-color: theme('colors.brand.100');
-  color: theme('colors.brand.900');
+  background-color: oklch(var(--brand-100));
+  color: oklch(var(--brand-900));
 }
 
 /* Consistent, visible keyboard-focus ring app-wide (accessibility) instead of
    relying on each component to remember to add one. */
 :focus-visible {
-  outline: 2px solid theme('colors.brand.500');
+  outline: 2px solid oklch(var(--brand-500));
   outline-offset: 2px;
   border-radius: 0.25rem;
 }
 
 /* Custom scrollbar so long tables/lists don't look jarring against the
-   warmer background palette (Chrome/Edge/Safari; Firefox falls back to its
-   own default, which is fine). */
+   background palette (Chrome/Edge/Safari; Firefox falls back to its own
+   default, which is fine). */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -38,24 +209,80 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: theme('colors.stone.300');
+  background-color: oklch(var(--stone-300));
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: theme('colors.stone.400');
+  background-color: oklch(var(--stone-400));
+}
+
+@keyframes drawerIn {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes drawerInRtl {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.app-rail {
+  animation: drawerIn 0.4s ease-out;
+}
+/* RTL: the rail slides in from the right instead. */
+[dir='rtl'] .app-rail {
+  animation-name: drawerInRtl;
+}
+
+.app-rail .rail-item {
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.app-rail .rail-item:hover {
+  transform: translateX(3px);
+}
+[dir='rtl'] .app-rail .rail-item:hover {
+  transform: translateX(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-rail,
+  .app-rail .rail-item {
+    animation: none;
+    transition: none;
+  }
+  .app-rail .rail-item:hover {
+    transform: none;
+  }
 }
 
 /* v2 replan (Phase E — cashier module): printable receipt. Everything is
    hidden on print except an element carrying `.receipt-print-area` (the
-   navbar, page chrome, buttons, etc. all disappear) — simpler than
+   navigation, page chrome, buttons, etc. all disappear) — simpler than
    restructuring the app shell to know about a print mode, since this is the
-   only page that ever needs to print. */
+   only page that ever needs to print.
+   Revamp note: receipts print on paper, so they're forced to black-on-white
+   regardless of the active theme — printing the dark theme would waste toner
+   and read badly. */
 @media print {
   body * {
     visibility: hidden;
   }
-  .receipt-print-area, .receipt-print-area * {
+  .receipt-print-area,
+  .receipt-print-area * {
     visibility: visible;
+    background: #fff !important;
+    color: #000 !important;
   }
   .receipt-print-area {
     position: absolute;

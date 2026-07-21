@@ -149,7 +149,7 @@ export default function Page() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-stone-900 sm:text-3xl">{t('dashboard')}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-stone-900 sm:text-3xl">{t('dashboard')}</h1>
         <p className="mt-1 text-sm text-stone-500">{t('app_name')}</p>
       </div>
 
@@ -192,7 +192,7 @@ export default function Page() {
           Derived client-side from the same GET /api/orders response as
           everything else on this page — no new aggregate endpoint. */}
       {loggedIn && drafts.length > 0 && (
-        <div className="mt-6 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+        <div className="mt-6 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-stone-900">{t('dashboard_page.pending_by_source_title')}</h2>
             {staleDrafts.length > 0 && (
@@ -216,13 +216,13 @@ export default function Page() {
 
       {loggedIn && orders !== null && orders.length > 0 && (
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+          <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-stone-900">{t('dashboard_page.revenue_chart_title')}</h2>
               <div className="flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs font-medium">
                 {RANGE_OPTIONS.map(d => (
                   <button key={d} onClick={() => setRangeDays(d)}
-                    className={`rounded-md px-2 py-1 transition-colors ${rangeDays === d ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+                    className={`rounded-md px-2 py-1 transition-colors ${rangeDays === d ? 'bg-surface text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
                     {t('dashboard_page.days', { count: d })}
                   </button>
                 ))}
@@ -239,7 +239,7 @@ export default function Page() {
             </ResponsiveContainer>
           </div>
 
-          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+          <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
             <h2 className="mb-3 text-sm font-semibold text-stone-900">{t('dashboard_page.top_products_chart_title')}</h2>
             {topProducts.length === 0 ? (
               <div className="flex h-[220px] items-center justify-center text-sm text-stone-400">{t('dashboard_page.no_sales_yet')}</div>
@@ -267,13 +267,13 @@ export default function Page() {
         </Link>
         <Link
           href="/orders"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-surface px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
         >
           {t('dashboard_page.go_to_orders')}
         </Link>
         <Link
           href="/inventory"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-surface px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
         >
           {t('dashboard_page.go_to_inventory')}
         </Link>
@@ -309,15 +309,20 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="block rounded-xl border border-stone-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+      className="block rounded-xl border border-stone-200 bg-surface p-5 shadow-card transition-shadow hover:shadow-card-hover"
     >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-stone-500">{label}</p>
+          {/* Revamp: KPI figures are the thing this screen exists to show, so
+              they follow the mockups — heavier weight, tighter tracking, and
+              `tabular`, which selects Plex Mono under the dark theme (the UI
+              font under the light one) and locks digit width so the numbers
+              don't jitter as they refresh. */}
           {pending ? (
             <p className="mt-2 text-sm text-stone-400">{pendingLabel}</p>
           ) : (
-            <p className="mt-1 text-3xl font-semibold tracking-tight text-stone-900">{value ?? '—'}</p>
+            <p className="tabular mt-1 text-3xl font-extrabold tracking-tight text-stone-900">{value ?? '—'}</p>
           )}
         </div>
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${ACCENT_STYLES[accent]}`}>

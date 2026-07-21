@@ -28,7 +28,7 @@ export default function HelpPage() {
       <p className="mb-6 text-stone-500">{t('help_page.intro')}</p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {sections.map((s, i) => (
-          <div key={s.heading} className="rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+          <div key={s.heading} className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
             <div className="mb-2 flex items-center gap-2.5">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700">
                 {i + 1}

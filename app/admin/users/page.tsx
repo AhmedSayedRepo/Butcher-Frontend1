@@ -155,7 +155,7 @@ export default function AdminUsersPage() {
     return (
       <div>
         <h1 className="mb-6 text-2xl font-semibold tracking-tight text-stone-900">{t('admin_users_page.title')}</h1>
-        <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-500">
+        <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center text-sm text-stone-500">
           {t('admin_users_page.no_access')}
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function AdminUsersPage() {
       {/* v3 follow-up: the only way a new account gets created — admin
           invites by email, invitee sets their own password via the emailed
           link. No open self-signup route exists anywhere in this app. */}
-      <form onSubmit={inviteUser} className="mb-6 rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+      <form onSubmit={inviteUser} className="mb-6 rounded-xl border border-stone-200 bg-surface p-4 shadow-card">
         <p className="mb-3 text-sm font-medium text-stone-900">{t('admin_users_page.invite_title')}</p>
         {inviteError !== null && <div className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{inviteError}</div>}
         <div className="flex flex-wrap items-center gap-3">
@@ -202,8 +202,8 @@ export default function AdminUsersPage() {
                 : t('admin_users_page.invite_email_failed', { email: inviteResult.email })}
             </p>
             <div className="mt-2 flex items-center gap-2">
-              <code className="flex-1 truncate rounded bg-white px-2 py-1 text-xs text-stone-600">{inviteResult.setPasswordUrl}</code>
-              <button type="button" onClick={copyInviteLink} className="shrink-0 rounded-md border border-stone-300 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-white">
+              <code className="flex-1 truncate rounded bg-surface px-2 py-1 text-xs text-stone-600">{inviteResult.setPasswordUrl}</code>
+              <button type="button" onClick={copyInviteLink} className="shrink-0 rounded-md border border-stone-300 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-surface">
                 {copied ? t('admin_users_page.copied') : t('admin_users_page.copy_link')}
               </button>
             </div>
@@ -217,7 +217,7 @@ export default function AdminUsersPage() {
           if (draft === undefined) return null
           const saving = savingId === u.id
           return (
-            <div key={u.id} className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+            <div key={u.id} className="rounded-xl border border-stone-200 bg-surface p-4 shadow-card">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function AdminUsersPage() {
                   <div className="mt-3 flex justify-end gap-2">
                     <button
                       onClick={() => setConfirmTarget(null)}
-                      className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                      className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
                     >
                       {t('admin_users_page.confirm_demote_cancel')}
                     </button>

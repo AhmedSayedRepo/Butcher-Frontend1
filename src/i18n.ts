@@ -11,7 +11,13 @@ if (!i18n.isInitialized) {
       en: { translation: en },
       ar: { translation: ar },
     },
-    lng: 'en',
+    // Design revamp (2026-07-21): Arabic is the shop's working language, so
+    // it's the default rather than English. app/layout.tsx seeds
+    // <html lang="ar" dir="rtl"> to match, so the first paint is already RTL
+    // instead of rendering LTR and flipping once Sidebar's effect runs.
+    // English stays the fallback: if an Arabic key is ever missing, showing the
+    // English string beats showing the raw key.
+    lng: 'ar',
     fallbackLng: 'en',
     interpolation: { escapeValue: false },
     debug: false,

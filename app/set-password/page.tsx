@@ -79,7 +79,7 @@ function SetPasswordForm() {
           {email !== null && <p className="mt-1 text-sm text-stone-500">{email}</p>}
         </div>
 
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-card">
+        <div className="rounded-2xl border border-stone-200 bg-surface p-6 shadow-card">
           {tokenState === 'checking' && (
             <p className="text-center text-sm text-stone-500">{t('set_password_page.checking_link')}</p>
           )}

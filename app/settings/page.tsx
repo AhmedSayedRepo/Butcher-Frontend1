@@ -198,7 +198,7 @@ export default function SettingsPage() {
 
   if (!isAdmin) {
     return (
-      <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center">
+      <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
         <p className="text-sm text-stone-500">{t('settings_page.no_access')}</p>
       </div>
     )
@@ -210,12 +210,12 @@ export default function SettingsPage() {
       <p className="mb-6 text-stone-500">{t('settings_page.subtitle')}</p>
 
       {settings === null ? (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center">
+        <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
           <p className="text-sm text-stone-500">{t('settings_page.loading')}</p>
         </div>
       ) : (
         <div className="max-w-xl space-y-6">
-          <form onSubmit={onSubmit} className="space-y-4 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+          <form onSubmit={onSubmit} className="space-y-4 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
             {error && (
               <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
             )}
@@ -265,7 +265,7 @@ export default function SettingsPage() {
               each field below saves independently (its own "Update" button)
               rather than sharing the form above — matches a reference design
               shared for this section specifically. */}
-          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+          <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_email')}</h2>
             <div className="space-y-3">
               <SettingsFieldCard

@@ -168,7 +168,7 @@ export default function OrdersPage() {
         tabIndex={0}
         onClick={() => setDetailOrder(order)}
         onKeyDown={e => { if (e.key === 'Enter') setDetailOrder(order) }}
-        className="cursor-pointer rounded-lg border border-stone-200 bg-white p-3 shadow-card transition-shadow hover:shadow-card-hover"
+        className="cursor-pointer rounded-lg border border-stone-200 bg-surface p-3 shadow-card transition-shadow hover:shadow-card-hover"
       >
         <div className="mb-1 flex items-center justify-between gap-2">
           <p className="truncate text-sm font-medium text-stone-900">
@@ -228,11 +228,11 @@ export default function OrdersPage() {
       )}
 
       {!loggedIn ? (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center">
+        <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
           <p className="text-sm text-stone-500">{t('orders_page.please_login')}</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center">
+        <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
           <p className="text-sm text-stone-500">{t('orders_page.no_orders')}</p>
         </div>
       ) : (
@@ -337,9 +337,9 @@ function OrderDetailModal({
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay/50 p-4" onClick={onClose}>
       <div
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-5 shadow-card-hover"
+        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-xl bg-surface p-5 shadow-card-hover"
         onClick={e => e.stopPropagation()}
       >
         <div className="mb-3 flex items-start justify-between gap-2">

@@ -136,11 +136,11 @@ export default function CustomerProfilePage() {
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+        <div className="rounded-xl border border-stone-200 bg-surface p-4 shadow-card">
           <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{t('customers_page.total_spend')}</p>
           <p className="mt-1 text-2xl font-semibold text-stone-900">{Number(profile.totalSpend).toFixed(2)}</p>
         </div>
-        <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+        <div className="rounded-xl border border-stone-200 bg-surface p-4 shadow-card">
           <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{t('customers_page.last_order')}</p>
           <p className="mt-1 text-2xl font-semibold text-stone-900">
             {profile.lastOrderAt !== null ? new Date(profile.lastOrderAt).toLocaleDateString() : '—'}
@@ -149,14 +149,14 @@ export default function CustomerProfilePage() {
       </div>
 
       {!editing && profile.address !== null && profile.address !== '' && (
-        <div className="mb-6 rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+        <div className="mb-6 rounded-xl border border-stone-200 bg-surface p-4 shadow-card">
           <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{t('customers_page.address')}</p>
           <p className="mt-1 text-sm text-stone-700">{profile.address}</p>
         </div>
       )}
 
       {!editing && profile.notes !== null && profile.notes !== '' && (
-        <div className="mb-6 rounded-xl border border-stone-200 bg-white p-4 shadow-card">
+        <div className="mb-6 rounded-xl border border-stone-200 bg-surface p-4 shadow-card">
           <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{t('customers_page.notes')}</p>
           <p className="mt-1 text-sm text-stone-700">{profile.notes}</p>
         </div>
@@ -164,11 +164,11 @@ export default function CustomerProfilePage() {
 
       <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('customers_page.order_history')}</h2>
       {profile.orders.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center text-sm text-stone-400">
+        <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-8 text-center text-sm text-stone-400">
           {t('customers_page.no_orders_yet')}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-card">
+        <div className="overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">

@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
           <h1 className="text-xl font-semibold tracking-tight text-stone-900">{t('forgot_password_page.title')}</h1>
         </div>
 
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-card">
+        <div className="rounded-2xl border border-stone-200 bg-surface p-6 shadow-card">
           {submitted ? (
             <div className="text-center">
               <p className="text-sm text-stone-700">{t('forgot_password_page.submitted_message')}</p>

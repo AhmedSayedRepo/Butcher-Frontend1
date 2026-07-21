@@ -50,7 +50,7 @@ export default function LoginPage() {
           <h1 className="text-xl font-semibold tracking-tight text-stone-900">{t('login_page.title')}</h1>
         </div>
 
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-card">
+        <div className="rounded-2xl border border-stone-200 bg-surface p-6 shadow-card">
           {error && (
             <div className="mb-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 shrink-0">

@@ -199,7 +199,7 @@ export default function NewOrderPage() {
   if (receipt !== null) {
     return (
       <div>
-        <div className="receipt-print-area mx-auto max-w-sm rounded-xl border border-stone-200 bg-white p-6 shadow-card">
+        <div className="receipt-print-area mx-auto max-w-sm rounded-xl border border-stone-200 bg-surface p-6 shadow-card">
           <h1 className="mb-1 text-lg font-semibold text-stone-900">
             {t('new_order_page.receipt_title')}
             {receipt.dailyNumber !== null && <span className="ms-2 text-stone-400">#{receipt.dailyNumber}</span>}
@@ -232,7 +232,7 @@ export default function NewOrderPage() {
         </div>
         <div className="mx-auto mt-4 flex max-w-sm gap-3">
           <button onClick={() => window.print()}
-            className="flex-1 rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 shadow-sm transition-colors hover:bg-stone-50">
+            className="flex-1 rounded-lg border border-stone-300 bg-surface px-4 py-2.5 text-sm font-medium text-stone-700 shadow-sm transition-colors hover:bg-stone-50">
             {t('new_order_page.print_receipt')}
           </button>
           <button onClick={() => router.push('/orders')}
@@ -251,7 +251,7 @@ export default function NewOrderPage() {
         <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
       )}
 
-      <div className="mb-4 rounded-xl border border-stone-200 bg-white p-5 shadow-card">
+      <div className="mb-4 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
         <label className="mb-1 block">
           <span className={labelClasses}>{t('new_order_page.customer_label')}</span>
           <input className={inputClasses} value={customer}
@@ -318,7 +318,7 @@ export default function NewOrderPage() {
             <div className="flex flex-wrap gap-2">
               {recentProducts.map(p => (
                 <button key={p.id} type="button" onClick={() => pickProduct(p.id)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${selectedId === p.id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-50'}`}>
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${selectedId === p.id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-stone-300 bg-surface text-stone-700 hover:bg-stone-50'}`}>
                   {p.name}
                 </button>
               ))}
@@ -357,14 +357,14 @@ export default function NewOrderPage() {
         <div className="mt-3 flex flex-wrap gap-2">
           {KG_PRESETS.map(preset => (
             <button key={preset} type="button" onClick={() => setKg(String(preset))}
-              className="min-w-[3.5rem] rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100">
+              className="min-w-[3.5rem] rounded-lg border border-stone-300 bg-surface px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100">
               {preset}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-card">
+      <div className="mb-4 overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
         {cart.length === 0 ? (
           <div className="p-8 text-center text-sm text-stone-400">{t('new_order_page.no_items_yet')}</div>
         ) : (
@@ -399,7 +399,7 @@ export default function NewOrderPage() {
 
       <div className="flex gap-3">
         <button onClick={() => submitOrder(true)} disabled={submitting || savingDraft || cart.length === 0}
-          className="flex items-center justify-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-3 text-sm font-medium text-stone-700 shadow-sm transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50">
+          className="flex items-center justify-center gap-2 rounded-lg border border-stone-300 bg-surface px-4 py-3 text-sm font-medium text-stone-700 shadow-sm transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50">
           {savingDraft ? t('new_order_page.saving_draft') : t('new_order_page.save_draft')}
         </button>
         <button onClick={() => submitOrder(false)} disabled={submitting || savingDraft || cart.length === 0}

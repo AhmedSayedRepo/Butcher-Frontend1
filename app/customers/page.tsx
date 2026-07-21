@@ -79,7 +79,7 @@ export default function CustomersPage() {
       {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       {showAdd && (
-        <form onSubmit={addCustomer} className="mb-4 grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-white p-5 shadow-card sm:grid-cols-3">
+        <form onSubmit={addCustomer} className="mb-4 grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-surface p-5 shadow-card sm:grid-cols-3">
           <input className={inputClasses} placeholder={t('customers_page.name_placeholder')} value={name} onChange={e => setName(e.target.value)} required />
           <input className={inputClasses} placeholder={t('customers_page.phone_placeholder')} value={phone} onChange={e => setPhone(e.target.value)} />
           <input className={inputClasses} placeholder={t('customers_page.address_placeholder')} value={address} onChange={e => setAddress(e.target.value)} />
@@ -93,15 +93,15 @@ export default function CustomersPage() {
       <input className={`${inputClasses} mb-4`} placeholder={t('customers_page.search_placeholder')} value={query} onChange={e => setQuery(e.target.value)} />
 
       {!loggedIn ? (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center">
+        <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
           <p className="text-sm text-stone-500">{t('orders_page.please_login')}</p>
         </div>
       ) : customers.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center">
+        <div className="rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center">
           <p className="text-sm text-stone-500">{t('customers_page.no_customers')}</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-card">
+        <div className="overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-100 bg-stone-50 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
