@@ -101,7 +101,13 @@
     "col_status": "Status",
     "status_low": "Low stock",
     "status_healthy": "Healthy",
-    "no_orders_in_progress": "Nothing in progress"
+    "no_orders_in_progress": "Nothing in progress",
+    "late_orders_title": "Late orders ({{count}})",
+    "late_orders_threshold": "Over {{count}} min in the same status",
+    "late_orders_more": "+{{count}} more on the orders board",
+    "col_order": "Order",
+    "col_waiting": "Waiting",
+    "col_total": "Total"
   },
   "orders_page": {
     "please_login": "Please log in to view orders.",
@@ -327,7 +333,23 @@
       "field_receiptShowAddressOfCustomer": "Delivery address"
     },
     "delivery_name_label": "Delivery person label",
-    "delivery_name_hint": "What your shop calls whoever takes an order out — Driver, Courier, Delivery. Shown on the order board and in order details, never printed on the receipt."
+    "delivery_name_hint": "What your shop calls whoever takes an order out — Driver, Courier, Delivery. Shown on the order board and in order details, never printed on the receipt.",
+    "logo": {
+      "app_label": "App logo",
+      "app_hint": "Shown in the navigation rail. Leave empty to use the default mark.",
+      "receipt_hint": "Printed at the top of the receipt. A high-contrast image works best on a thermal printer.",
+      "none": "None",
+      "upload": "Upload image",
+      "working": "Processing…",
+      "remove": "Remove",
+      "uploaded_placeholder": "Uploaded image — remove it to paste a URL instead",
+      "too_large": "Image is still over {{kb}} KB after resizing. Try a simpler or smaller image.",
+      "unreadable": "That file couldn't be read as an image.",
+      "not_an_image": "That file isn't an image.",
+      "file_too_large": "File is over {{mb}} MB. Pick a smaller one.",
+      "too_small": "Image is smaller than {{px}}×{{px}} px — it would look blurry.",
+      "limits": "PNG, JPG, WebP or SVG · up to {{mb}} MB · at least {{px}}px · resized automatically"
+    }
   },
   "admin_users_page": {
     "title": "User Management",
@@ -342,6 +364,7 @@
     "saved": "Saved",
     "error_load": "Failed to load users.",
     "error_save": "Failed to save changes.",
+    "role_viewer": "Viewer",
     "role_cashier": "Cashier",
     "role_manager": "Manager",
     "role_admin": "Admin",
@@ -350,6 +373,7 @@
     "cap_manage_orders": "Manage orders",
     "cap_dismantle_carcass": "Dismantle carcasses",
     "cap_manage_cash": "Manage cash",
+    "cap_create_orders": "Create orders",
     "invite_title": "Invite a new user",
     "invite_user": "Send invite",
     "inviting": "Inviting…",

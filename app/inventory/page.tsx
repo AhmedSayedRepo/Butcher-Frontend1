@@ -154,6 +154,9 @@ export default function InventoryPage() {
 
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
   const labelClasses = 'mb-1 block text-sm font-medium text-stone-700'
+  // Smaller sibling for the inline card editor, where the same six labels have
+  // to fit in half the width without pushing the fields off the card.
+  const editLabelClasses = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500'
 
   return (
     <div>
@@ -241,26 +244,60 @@ export default function InventoryPage() {
             return (
               <div key={p.id} className="rounded-xl border border-stone-200 bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover">
                 {editingId === p.id ? (
+                  /* v3.1 follow-up 10f: every field carries a visible label and
+                     a `title` tooltip. It used to be six bare boxes with a
+                     placeholder on three of them — once you typed a value the
+                     placeholder vanished, so a half-filled edit form was a
+                     column of unlabelled numbers with no way to tell price
+                     from stock from threshold. */
                   <div className="grid grid-cols-2 gap-2">
-                    <input className={`${inputClasses} col-span-2`} value={editDraft.name}
-                      onChange={e => setEditDraft({ ...editDraft, name: e.target.value })} />
-                    <input className={inputClasses} value={editDraft.category} list="inventory-categories"
-                      placeholder={t('inventory_page.category_label')}
-                      onChange={e => setEditDraft({ ...editDraft, category: e.target.value })} />
-                    <input type="number" step="0.01" min="0.01" className={inputClasses} value={editDraft.pricePerKg}
-                      onChange={e => setEditDraft({ ...editDraft, pricePerKg: e.target.value })} />
-                    <input type="number" step="0.001" min="0" className={inputClasses} value={editDraft.stockKg}
-                      onChange={e => setEditDraft({ ...editDraft, stockKg: e.target.value })} />
-                    <input type="number" step="0.001" min="0" className={inputClasses} value={editDraft.lowStockAlertKg}
-                      placeholder={t('inventory_page.threshold_label')}
-                      onChange={e => setEditDraft({ ...editDraft, lowStockAlertKg: e.target.value })} />
-                    <input className={inputClasses} value={editDraft.barcode}
-                      placeholder={t('inventory_page.barcode_label')}
-                      onChange={e => setEditDraft({ ...editDraft, barcode: e.target.value })} />
+                    <label className="col-span-2">
+                      <span className={editLabelClasses}>{t('inventory_page.name_label')}</span>
+                      <input className={inputClasses} value={editDraft.name}
+                        title={t('inventory_page.name_label')}
+                        onChange={e => setEditDraft({ ...editDraft, name: e.target.value })} />
+                    </label>
+                    <label>
+                      <span className={editLabelClasses}>{t('inventory_page.category_label')}</span>
+                      <input className={inputClasses} value={editDraft.category} list="inventory-categories"
+                        title={t('inventory_page.category_label')}
+                        placeholder={t('inventory_page.category_label')}
+                        onChange={e => setEditDraft({ ...editDraft, category: e.target.value })} />
+                    </label>
+                    <label>
+                      <span className={editLabelClasses}>{t('inventory_page.price_label')}</span>
+                      <input type="number" step="0.01" min="0.01" className={inputClasses} value={editDraft.pricePerKg}
+                        title={t('inventory_page.price_label')}
+                        onChange={e => setEditDraft({ ...editDraft, pricePerKg: e.target.value })} />
+                    </label>
+                    <label>
+                      <span className={editLabelClasses}>{t('inventory_page.stock_label')}</span>
+                      <input type="number" step="0.001" min="0" className={inputClasses} value={editDraft.stockKg}
+                        title={t('inventory_page.stock_label')}
+                        onChange={e => setEditDraft({ ...editDraft, stockKg: e.target.value })} />
+                    </label>
+                    <label>
+                      <span className={editLabelClasses}>{t('inventory_page.threshold_label')}</span>
+                      <input type="number" step="0.001" min="0" className={inputClasses} value={editDraft.lowStockAlertKg}
+                        title={t('inventory_page.threshold_label')}
+                        placeholder={t('inventory_page.threshold_label')}
+                        onChange={e => setEditDraft({ ...editDraft, lowStockAlertKg: e.target.value })} />
+                    </label>
+                    <label className="col-span-2">
+                      <span className={editLabelClasses}>{t('inventory_page.barcode_label')}</span>
+                      <input className={inputClasses} value={editDraft.barcode}
+                        title={t('inventory_page.barcode_label')}
+                        placeholder={t('inventory_page.barcode_label')}
+                        onChange={e => setEditDraft({ ...editDraft, barcode: e.target.value })} />
+                    </label>
                     {stockWillChange(p) && (
-                      <input className={`${inputClasses} col-span-2`} value={editReason}
-                        placeholder={t('inventory_page.reason_placeholder')}
-                        onChange={e => setEditReason(e.target.value)} />
+                      <label className="col-span-2">
+                        <span className={editLabelClasses}>{t('inventory_page.reason_placeholder')}</span>
+                        <input className={inputClasses} value={editReason}
+                          title={t('inventory_page.reason_placeholder')}
+                          placeholder={t('inventory_page.reason_placeholder')}
+                          onChange={e => setEditReason(e.target.value)} />
+                      </label>
                     )}
                     <div className="col-span-2 flex justify-end gap-2 pt-1">
                       <button onClick={() => setEditingId(null)}
@@ -274,13 +311,32 @@ export default function InventoryPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-stone-900">{p.name}</p>
-                      <p className="text-sm text-stone-500">
-                        {Number(p.stockKg).toFixed(3)} kg @ {Number(p.pricePerKg).toFixed(2)}/kg
-                        {p.category !== null && p.category !== '' && <span className="text-stone-400"> · {p.category}</span>}
-                      </p>
+                  /* v3.1 follow-up 10f: the card used to compress everything
+                     into one line — "129.000 kg @ 15.00/kg · category" — which
+                     assumed you already knew what each number meant, and hid
+                     the barcode and the per-product low-stock threshold
+                     entirely. Now every stored field is shown with its own
+                     label, and fields the product doesn't have say so rather
+                     than silently disappearing. */
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-stone-900" title={p.name}>{p.name}</p>
+                      <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                        {[
+                          { label: t('inventory_page.stock_label'), value: `${Number(p.stockKg).toFixed(3)} ${p.unit}` },
+                          { label: t('inventory_page.price_label'), value: `${Number(p.pricePerKg).toFixed(2)} / ${p.unit}` },
+                          { label: t('inventory_page.category_label'), value: p.category },
+                          { label: t('inventory_page.threshold_label'), value: p.lowStockAlertKg === null ? null : `${Number(p.lowStockAlertKg).toFixed(3)} ${p.unit}` },
+                          { label: t('inventory_page.barcode_label'), value: p.barcode },
+                        ].map(({ label, value }) => (
+                          <div key={label} className="min-w-0">
+                            <dt className="text-[11px] font-semibold uppercase tracking-wide text-stone-400">{label}</dt>
+                            <dd className="truncate font-num text-stone-800" title={value ?? undefined}>
+                              {value === null || value === '' ? <span className="text-stone-400">—</span> : value}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       {lowStock && (

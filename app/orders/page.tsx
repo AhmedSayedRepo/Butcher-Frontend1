@@ -40,6 +40,10 @@ const COLUMNS: { status: OrderStatus, key: string }[] = [
   { status: 'COMPLETED', key: 'completed' }
 ]
 
+// Statuses whose dwell time is worth a clock on the card — everything that is
+// still someone's problem. See statusMinutes() below.
+const TIMED_STATUSES: OrderStatus[] = ['CREATED', 'IN_PROGRESS', 'ON_THE_WAY']
+
 // v3.1 follow-up: ON_THE_WAY and IN_PREMISE are alternate terminal branches
 // (delivery vs. walk-in/pickup), not a forced chain — a delivery order was
 // previously stuck being marched through "On the Way" *then* "In Premise"
@@ -143,12 +147,24 @@ export default function OrdersPage() {
   const tt = (key: string, vars?: Record<string, number>): string => t(key, vars ?? {})
   const deliveryLabel = shopSettings?.deliveryNameLabel ?? t('orders_page.delivery_name_fallback')
 
-  function onTheWayMinutes(order: Order): number | null {
-    const at = statusEnteredAt(order, 'ON_THE_WAY')
+  // v3.1 follow-up 10f: every order still moving through the board is timed,
+  // not just deliveries. A ticket sitting in "in progress" for two hours is
+  // exactly as much of a problem as a van that hasn't come back, and the board
+  // gave no hint of it. Terminal columns (completed/cancelled) are excluded —
+  // a finished order's age isn't actionable.
+  //
+  // Timed from the *status* event, so the clock restarts on each transition
+  // and answers "how long has it been stuck here", not "how old is it".
+  // CREATED falls back to createdAt because an order's first status may
+  // predate the audit trail (rows created before Phase D shipped).
+  function statusMinutes(order: Order): number | null {
+    if (!TIMED_STATUSES.includes(order.status)) return null
+    const at = statusEnteredAt(order, order.status)
+      ?? (order.status === 'CREATED' ? new Date(order.createdAt) : null)
     return at === null ? null : minutesSince(at, nowMs)
   }
   function isOverdue(order: Order): boolean {
-    const mins = onTheWayMinutes(order)
+    const mins = statusMinutes(order)
     const threshold = shopSettings?.pendingOrderAlertMinutes
     return mins !== null && threshold !== undefined && mins >= threshold
   }
@@ -256,19 +272,19 @@ export default function OrdersPage() {
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
           <OrderMeta order={order} />
         </div>
-        {/* How long this delivery has been out. Timed from the ON_THE_WAY
+        {/* How long this order has sat in its current status. Timed from the
             status event, not from createdAt — an order raised at 09:00 and
             dispatched at 14:00 has been out since 14:00. Amber past the shop's
             own pending-order threshold, so "too long" is the same number the
             dashboard alerts on rather than a second hardcoded one. */}
-        {order.status === 'ON_THE_WAY' && onTheWayMinutes(order) !== null && (
+        {statusMinutes(order) !== null && (
           <p className={`tabular mb-2 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold ${
             isOverdue(order) ? 'bg-amber-50 text-amber-800' : 'bg-stone-100 text-stone-600'
           }`}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
               <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
             </svg>
-            {formatElapsed(onTheWayMinutes(order) ?? 0, tt)}
+            {formatElapsed(statusMinutes(order) ?? 0, tt)}
           </p>
         )}
         {order.deliveryName !== null && order.deliveryName !== undefined && order.deliveryName !== '' && (
@@ -362,7 +378,11 @@ export default function OrdersPage() {
                 </span>
                 <span className="text-sm font-bold text-stone-900">{t('orders_page.drafts')}</span>
               </h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {/* Same column count as the status board below (5 at xl), so a draft card
+                  is the same width as every other order card. It was on a 4-column
+                  grid, which made a single draft render noticeably wider than the
+                  cards underneath it and read as a different kind of thing. */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {drafts.map(o => (
                   // Bug fix: this card was a plain <div> with no click handler,
                   // so a draft could never open the detail modal — which is
@@ -480,8 +500,8 @@ export default function OrdersPage() {
           onDeleted={() => { setDetailOrder(null); load() }}
           deliveryLabel={deliveryLabel}
           elapsedLabel={
-            detailOrder.status === 'ON_THE_WAY' && onTheWayMinutes(detailOrder) !== null
-              ? formatElapsed(onTheWayMinutes(detailOrder) ?? 0, tt)
+            statusMinutes(detailOrder) !== null
+              ? formatElapsed(statusMinutes(detailOrder) ?? 0, tt)
               : null
           }
         />

@@ -166,6 +166,10 @@ export type ShopSettings = {
   receiptHeaderText: string | null
   receiptFooterText: string | null
   receiptLogoUrl: string | null
+  // v3.1 follow-up 10e: the nav rail's logo. Separate from the receipt's —
+  // one is printed, one is on screen — and either may be set alone. Holds an
+  // https:// URL or a data: URL produced by the settings uploader.
+  appLogoUrl: string | null
   receiptShowShopName: boolean
   receiptShowPhone: boolean
   receiptShowAddress: boolean

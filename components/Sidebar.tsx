@@ -66,6 +66,17 @@ const IX_CHIP_COLLAPSED = 'rail-ix flex h-8 w-8 shrink-0 items-center justify-ce
 const FOOTER_ROW = 'rail-item flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold'
 const IX_CHIP = 'rail-ix ms-auto flex h-6 min-w-6 shrink-0 items-center justify-center px-1 text-[11px] font-bold'
 
+// v3.1 follow-up 10e: the shop's own mark, when it has set one. Kept as a
+// plain <img> — next/image can't serve a `data:` URL without a custom loader,
+// and at 34px there's nothing to optimise.
+function ShopMark({ src }: { src: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- see above.
+    <img src={src} alt="" width={34} height={34}
+      className="h-[34px] w-[34px] shrink-0 rounded-[10px] object-contain" />
+  )
+}
+
 function BrandMark() {
   return (
     <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true" className="shrink-0">
@@ -95,6 +106,25 @@ export default function Sidebar() {
   // need a pre-paint inline script.
   const [collapsed, setCollapsed] = useState(false)
   useEffect(() => { setCollapsed(readStoredRailCollapsed()) }, [])
+
+  // v3.1 follow-up 10e: the rail shows the shop's logo and name once they're
+  // configured, falling back to the built-in mark and "Butcher Cashier". Only
+  // fetched when logged in — GET /api/shop-settings requires a session, and
+  // the logged-out rail shows no module links to brand anyway. Failure is
+  // silent on purpose: a branding fetch must never block the nav.
+  const [brand, setBrand] = useState<{ appLogoUrl: string | null, shopName: string } | null>(null)
+  useEffect(() => {
+    if (user === null) { setBrand(null); return }
+    let live = true
+    api.get<{ appLogoUrl: string | null, shopName: string }>('/api/shop-settings')
+      .then(r => { if (live) setBrand({ appLogoUrl: r.data.appLogoUrl, shopName: r.data.shopName }) })
+      .catch(() => { /* keep the default mark */ })
+    return () => { live = false }
+  }, [user])
+
+  const logoUrl = brand?.appLogoUrl ?? null
+  const brandName = brand?.shopName ?? ''
+  const railTitle = brandName === '' ? t('app_name') : brandName
 
   function toggleCollapsed() {
     setCollapsed((v) => {
@@ -194,9 +224,9 @@ export default function Sidebar() {
   const railBody = (
     <>
       <div className={`rail-brand mb-6 flex items-center ${collapsed ? 'flex-col gap-2' : 'gap-2.5'} px-2 py-1`}>
-        <Link href="/" className="flex min-w-0 items-center gap-2.5" title={collapsed ? t('app_name') : undefined}>
-          <BrandMark />
-          {!collapsed && <span className="truncate text-lg font-extrabold tracking-tight">{t('app_name')}</span>}
+        <Link href="/" className="flex min-w-0 items-center gap-2.5" title={collapsed ? railTitle : undefined}>
+          {logoUrl === null || logoUrl === '' ? <BrandMark /> : <ShopMark src={logoUrl} />}
+          {!collapsed && <span className="truncate text-lg font-extrabold tracking-tight">{railTitle}</span>}
         </Link>
         {/* Collapse control. Hidden on the mobile drawer (`lg:inline-flex`),
             where the rail is already full-width and closing it is what the

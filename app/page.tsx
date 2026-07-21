@@ -24,6 +24,7 @@ import api from '../lib/api'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../lib/useAuth'
 import { Order, OrderStatus, Product, ShopSettings } from '../lib/types'
+import { formatElapsed, minutesSince, statusEnteredAt } from '../lib/elapsed'
 
 // Revamp follow-up: Recharts takes colours as props rather than classes, so
 // these never picked up the theme — they were hardcoded hex and stayed the old
@@ -78,6 +79,15 @@ const DASHBOARD_COLUMNS: OrderStatus[] = ['CREATED', 'IN_PROGRESS', 'ON_THE_WAY'
 // second orders page; both panels link through for the full list.
 const DASHBOARD_COLUMN_LIMIT = 4
 const DASHBOARD_INVENTORY_LIMIT = 8
+// Late orders are the one list you'd want in full, but a dashboard that can
+// grow to fifty rows stops being a dashboard. Overflow is counted in a line
+// under the table, with the board a click away.
+const DASHBOARD_LATE_LIMIT = 10
+// Statuses where an order is still someone's responsibility, so sitting in one
+// too long is worth surfacing. DRAFT is included — an unconfirmed order that
+// nobody has picked up is the original stale case.
+const LATE_WATCH_STATUSES: OrderStatus[] = ['DRAFT', 'CREATED', 'IN_PROGRESS', 'ON_THE_WAY']
+
 const SOURCE_LABELS = ['in_premise', 'social', 'phone', 'whatsapp', 'cashier'] as const
 
 export default function Page() {
@@ -192,6 +202,35 @@ export default function Page() {
     const all = orders ?? []
     return DASHBOARD_COLUMNS.map(status => ({ status, orders: all.filter(o => o.status === status) }))
   }, [orders])
+
+  // v3.1 follow-up 10f: how long each order has sat in its current status,
+  // shared with the orders board via lib/elapsed so the two can't disagree.
+  // Falls back to createdAt when the audit trail has no event for the current
+  // status — true for rows that predate the trail, and for DRAFT, which is
+  // where an order starts rather than somewhere it moves to.
+  function statusMinutes(order: Order): number {
+    const at = statusEnteredAt(order, order.status) ?? new Date(order.createdAt)
+    return minutesSince(at, nowMs)
+  }
+
+  // Every order that has been in its current status longer than the shop's
+  // alert threshold — not just stale drafts. The badge above counts drafts
+  // because that's where the notification logic lives; this lists the whole
+  // set, because "which ones are late" is the question a badge saying "3" makes
+  // you go and ask. Sorted worst-first: the top row is the one to deal with.
+  const lateOrders = useMemo(() => {
+    if (alertThresholdMinutes === null) return []
+    const live = (orders ?? []).filter(o => LATE_WATCH_STATUSES.includes(o.status))
+    return live
+      .map(o => ({ order: o, minutes: statusMinutes(o) }))
+      .filter(row => row.minutes >= alertThresholdMinutes)
+      .sort((a, b) => b.minutes - a.minutes)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- statusMinutes is redefined each render; nowMs is the input that actually changes.
+  }, [orders, alertThresholdMinutes, nowMs])
+
+  // `t` narrowed to the plain (key, vars) shape formatElapsed expects, so that
+  // helper stays free of the translation runtime.
+  const tt = (key: string, vars?: Record<string, number>): string => t(key, vars ?? {})
 
   function itemsSummary(order: Order): string {
     return order.items
@@ -341,12 +380,78 @@ export default function Page() {
                           <span className="tabular text-xs font-bold">{Number(o.totalAmount).toFixed(2)}</span>
                         </p>
                         <p className="truncate text-xs text-stone-500">{itemsSummary(o)}</p>
+                        {/* v3.1 follow-up 10f: dwell time, matching the clock
+                            on the orders board. Amber once it crosses the
+                            shop's own alert threshold — the same number the
+                            late list below uses, not a second hardcoded one. */}
+                        <p className={`tabular mt-1 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-bold ${
+                          alertThresholdMinutes !== null && statusMinutes(o) >= alertThresholdMinutes
+                            ? 'bg-amber-50 text-amber-800'
+                            : 'text-stone-400'
+                        }`}>
+                          {formatElapsed(statusMinutes(o), tt)}
+                        </p>
                       </Link>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* v3.1 follow-up 10f — every late order, not a count of them. The badge
+          on the panel above says how many drafts are stale; this says which
+          orders they are, what status each is stuck in and for how long, across
+          the whole live pipeline rather than drafts alone. Same threshold, same
+          data already on the page — no extra request. */}
+      {loggedIn && lateOrders.length > 0 && (
+        <div className="mt-6 overflow-hidden rounded-xl border border-amber-200 bg-surface shadow-card">
+          <div className="flex items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-5 py-3">
+            <h2 className="flex items-center gap-2 text-base font-bold text-amber-900">
+              <AlertIcon />
+              {t('dashboard_page.late_orders_title', { count: lateOrders.length })}
+            </h2>
+            <span className="text-xs font-semibold text-amber-800">
+              {t('dashboard_page.late_orders_threshold', { count: alertThresholdMinutes ?? 0 })}
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-200 bg-stone-100 text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
+                  <th className="px-5 py-2.5 text-start">{t('dashboard_page.col_order')}</th>
+                  <th className="px-5 py-2.5 text-start">{t('dashboard_page.col_status')}</th>
+                  <th className="w-32 px-5 py-2.5 text-end">{t('dashboard_page.col_waiting')}</th>
+                  <th className="w-28 px-5 py-2.5 text-end">{t('dashboard_page.col_total')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {lateOrders.slice(0, DASHBOARD_LATE_LIMIT).map(({ order: o, minutes }) => (
+                  <tr key={o.id} className="hover:bg-stone-50">
+                    <td className="px-5 py-2.5">
+                      <Link href="/orders" className="flex items-baseline gap-2 font-medium text-stone-900 hover:underline">
+                        {o.dailyNumber !== null && <span className="tabular text-xs text-stone-400">#{o.dailyNumber}</span>}
+                        <span className="truncate" title={o.customer ?? undefined}>
+                          {o.customer !== null && o.customer !== '' ? o.customer : t('orders_page.walk_in')}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="px-5 py-2.5 text-xs font-semibold text-stone-600">
+                      {t(`orders_page.status_${o.status.toLowerCase()}`)}
+                    </td>
+                    <td className="tabular px-5 py-2.5 text-end font-bold text-amber-800">{formatElapsed(minutes, tt)}</td>
+                    <td className="tabular px-5 py-2.5 text-end text-stone-700">{Number(o.totalAmount).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {lateOrders.length > DASHBOARD_LATE_LIMIT && (
+            <p className="px-5 py-2.5 text-xs text-stone-500">
+              {t('dashboard_page.late_orders_more', { count: lateOrders.length - DASHBOARD_LATE_LIMIT })}
+            </p>
           )}
         </div>
       )}

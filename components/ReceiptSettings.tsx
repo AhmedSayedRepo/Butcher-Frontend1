@@ -15,6 +15,7 @@ import api from '../lib/api'
 import { extractApiErrorMessage } from '../lib/apiError'
 import { Order, ShopSettings } from '../lib/types'
 import Receipt from './Receipt'
+import LogoInput from './LogoInput'
 
 const TOGGLES = [
   'receiptShowShopName',
@@ -87,6 +88,7 @@ export default function ReceiptSettings({
         receiptHeaderText: draft.receiptHeaderText === '' ? null : draft.receiptHeaderText,
         receiptFooterText: draft.receiptFooterText === '' ? null : draft.receiptFooterText,
         receiptLogoUrl: draft.receiptLogoUrl === '' ? null : draft.receiptLogoUrl,
+        appLogoUrl: draft.appLogoUrl === '' ? null : draft.appLogoUrl,
         shopName: draft.shopName,
         shopPhone: draft.shopPhone === '' ? null : draft.shopPhone,
         shopAddress: draft.shopAddress === '' ? null : draft.shopAddress,
@@ -148,11 +150,23 @@ export default function ReceiptSettings({
             <textarea rows={2} value={draft.shopAddress ?? ''} onChange={e => set('shopAddress', e.target.value)} />
           </label>
 
-          <label className="block">
-            <span className={label}>{t('settings_page.receipt.logo_url')}</span>
-            <input value={draft.receiptLogoUrl ?? ''} placeholder="https://…"
-              onChange={e => set('receiptLogoUrl', e.target.value)} />
-          </label>
+          {/* v3.1 follow-up 10e: two logos, not one. The receipt mark is
+              printed by a thermal printer — usually a small, high-contrast
+              version — while the app mark sits in the nav rail at 28px in
+              full colour. Same picker, different targets. */}
+          <LogoInput
+            label={t('settings_page.receipt.logo_url')}
+            hint={t('settings_page.logo.receipt_hint')}
+            value={draft.receiptLogoUrl ?? null}
+            onChange={v => set('receiptLogoUrl', v)}
+          />
+
+          <LogoInput
+            label={t('settings_page.logo.app_label')}
+            hint={t('settings_page.logo.app_hint')}
+            value={draft.appLogoUrl ?? null}
+            onChange={v => set('appLogoUrl', v)}
+          />
 
           <label className="block">
             <span className={label}>{t('settings_page.receipt.header_text')}</span>

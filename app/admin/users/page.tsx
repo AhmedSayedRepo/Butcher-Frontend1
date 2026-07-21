@@ -11,10 +11,13 @@ import api from '../../../lib/api'
 import { extractApiErrorMessage } from '../../../lib/apiError'
 import { useAuth } from '../../../lib/useAuth'
 
-const ROLES = ['cashier', 'manager', 'admin'] as const
+// v3.1 follow-up 10d: `viewer` is new — a role with no default capabilities,
+// which is the only way to make a read-only account now that creating an
+// order is itself a capability (per-user caps can only add, never subtract).
+const ROLES = ['viewer', 'cashier', 'manager', 'admin'] as const
 // v3 replan (Phase K, ADR-012): `manage_cash` added — must mirror
 // backend/src/lib/caps.ts's CAPS list exactly, same as before.
-const CAPS = ['manage_users', 'manage_inventory', 'manage_orders', 'dismantle_carcass', 'manage_cash'] as const
+const CAPS = ['manage_users', 'manage_inventory', 'manage_orders', 'dismantle_carcass', 'manage_cash', 'create_orders'] as const
 type RoleT = (typeof ROLES)[number]
 type CapT = (typeof CAPS)[number]
 
