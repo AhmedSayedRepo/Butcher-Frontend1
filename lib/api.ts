@@ -26,27 +26,37 @@ const api = axios.create({
 // Multi-tenancy phase 3 (Butcher-Multi-Tenancy-Plan.md §3) — tells the API
 // which shop's subdomain this tab was loaded from.
 //
-// Read from the browser's own hostname, at request time rather than at module
-// load, because the app is a static bundle served to every subdomain — there
-// is no build-time value to bake in.
+// ONLY sent when `NEXT_PUBLIC_ROOT_DOMAIN` is configured AND the hostname is
+// genuinely a subdomain of it. Both halves matter.
 //
-// This header does **not** decide which data the caller gets; the session
-// does, server-side. All it can do is cause a mismatch to be refused, so a
-// user signed into shop A can't sit on shop B's subdomain looking at A's
-// numbers under B's branding. Spoofing it gains an attacker nothing: the only
-// achievable outcome is locking yourself out.
+// The first version guessed: "three or more labels means the first one is the
+// shop". That is wrong for almost every PaaS hostname, and it broke production
+// immediately — `butcher-frontend-eight.vercel.app` has three labels, so every
+// request went out claiming to be for a shop called `butcher-frontend-eight`.
+// No such organization exists, the backend saw a mismatch against the user's
+// real one, and **every non-super-admin login was refused** with
+// WRONG_ORGANIZATION. (Super admins are exempt from that check, which is the
+// only reason it wasn't obvious straight away — the one account still able to
+// sign in was the one account that skipped the check.)
 //
-// Sent only when there genuinely is a subdomain. `localhost` and the current
-// single-host deployment have none, and an absent header means "no opinion".
-const RESERVED_HOSTS = new Set(['www', 'localhost'])
-const MIN_HOST_LABELS = 3
+// So: no guessing. Until the wildcard domain is live and this variable is set,
+// no header is sent and the deployment behaves exactly as a single-tenant one.
+//
+// This header does not decide which data the caller gets; the session does,
+// server-side. All it can do is cause a mismatch to be refused. Spoofing it
+// achieves nothing except locking yourself out.
+const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN?.trim().toLowerCase() ?? ''
 
 function currentOrganizationSlug(): string | null {
-  if (typeof window === 'undefined') return null
-  const labels = window.location.hostname.split('.')
-  if (labels.length < MIN_HOST_LABELS) return null
-  const [first] = labels
-  return first === undefined || RESERVED_HOSTS.has(first) ? null : first.toLowerCase()
+  if (typeof window === 'undefined' || ROOT_DOMAIN === '') return null
+
+  const host = window.location.hostname.toLowerCase()
+  const suffix = `.${ROOT_DOMAIN}`
+  if (!host.endsWith(suffix)) return null
+
+  const slug = host.slice(0, -suffix.length)
+  // One label only. `a.b.example.com` is not a shop called "a".
+  return slug === '' || slug.includes('.') ? null : slug
 }
 
 api.interceptors.request.use((config) => {
