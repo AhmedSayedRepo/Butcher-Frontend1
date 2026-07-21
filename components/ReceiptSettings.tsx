@@ -12,7 +12,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
-import { extractApiErrorMessage } from '../lib/apiError'
+import { translateApiError } from '../lib/apiError'
 import { Order, ShopSettings } from '../lib/types'
 import Receipt from './Receipt'
 import LogoInput from './LogoInput'
@@ -98,7 +98,7 @@ export default function ReceiptSettings({
       onSaved(r.data)
       setSaved(true)
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('settings_page.receipt.error_save'))
+      setError(translateApiError(err, t, t('settings_page.receipt.error_save')))
     } finally {
       setSaving(false)
     }
@@ -200,7 +200,7 @@ export default function ReceiptSettings({
           )}
 
           <button onClick={() => void save()} disabled={saving}
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:opacity-50">
+            className="btn btn-primary">
             {saving ? t('inventory_page.saving') : t('inventory_page.save')}
           </button>
         </div>

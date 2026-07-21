@@ -129,8 +129,6 @@ export default function LogoInput({
     }
   }
 
-  const btn = 'rounded-lg border border-stone-200 bg-surface px-3 py-1.5 text-xs font-semibold text-stone-600 hover:border-brand-600 hover:text-brand-700 disabled:opacity-50'
-
   return (
     <div className="block">
       <span className="mb-1 block text-xs font-semibold text-stone-600">{label}</span>
@@ -147,12 +145,12 @@ export default function LogoInput({
 
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex gap-2">
-            <button type="button" className={btn} disabled={busy}
+            <button type="button" className="btn btn-secondary btn-sm" disabled={busy}
               onClick={() => fileRef.current?.click()}>
               {busy ? t('settings_page.logo.working') : t('settings_page.logo.upload')}
             </button>
             {value !== null && value !== EMPTY && (
-              <button type="button" className={btn} onClick={() => { onChange(null) }}>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => { onChange(null) }}>
                 {t('settings_page.logo.remove')}
               </button>
             )}

@@ -18,23 +18,13 @@ import { useEffect, ReactNode } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../lib/useAuth'
+import { PUBLIC_PATHS } from '../lib/publicPaths'
+import Spinner from './Spinner'
 
-// v3 follow-up: forgot-password and set-password (invite + reset landing
-// page) both need to be reachable by someone who isn't logged in yet — that's
-// the whole point of them.
-const PUBLIC_PATHS = ['/login', '/forgot-password', '/set-password']
-
-function Spinner({ label }: { label: string }) {
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center">
-      <svg className="h-6 w-6 animate-spin text-stone-400" viewBox="0 0 24 24" fill="none">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
-      </svg>
-      <span className="sr-only">{label}</span>
-    </div>
-  )
-}
+// v3.1 follow-up 10i: the list moved to lib/publicPaths.ts, because AppShell
+// needs the same one to decide whether to render the nav rail. Two copies of
+// this list drifting apart would produce a page that renders app chrome and
+// then redirects you out of it.
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const { t } = useTranslation()

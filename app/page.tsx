@@ -506,7 +506,7 @@ export default function Page() {
               <div className="flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs font-medium">
                 {RANGE_OPTIONS.map(d => (
                   <button key={d} onClick={() => setRangeDays(d)}
-                    className={`rounded-md px-2 py-1 transition-colors ${rangeDays === d ? 'bg-surface text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+                    className={`seg-item ${rangeDays === d ? 'seg-item-active' : ''}`}>
                     {t('dashboard_page.days', { count: d })}
                   </button>
                 ))}
@@ -545,19 +545,19 @@ export default function Page() {
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
           href="/orders/new"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700"
+          className="btn btn-primary"
         >
           {t('new_order')}
         </Link>
         <Link
           href="/orders"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-surface px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+          className="btn btn-secondary"
         >
           {t('dashboard_page.go_to_orders')}
         </Link>
         <Link
           href="/inventory"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-surface px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+          className="btn btn-secondary"
         >
           {t('dashboard_page.go_to_inventory')}
         </Link>

@@ -8,8 +8,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../../../lib/api'
-import { extractApiErrorMessage } from '../../../lib/apiError'
-import { useAuth } from '../../../lib/useAuth'
+import { translateApiError } from '../../../lib/apiError'
+import { useAuth, useAuthLoading } from '../../../lib/useAuth'
+import Spinner from '../../../components/Spinner'
 
 // v3.1 follow-up 10d: `viewer` is new — a role with no default capabilities,
 // which is the only way to make a read-only account now that creating an
@@ -59,6 +60,7 @@ function isConfirmationRequired(err: unknown): boolean {
 export default function AdminUsersPage() {
   const { t } = useTranslation()
   const me = useAuth()
+  const authLoading = useAuthLoading()
   const [users, setUsers] = useState<ManagedUser[]>([])
   const [error, setError] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, { role: RoleT, caps: string[] }>>({})
@@ -94,7 +96,7 @@ export default function AdminUsersPage() {
         }
         setDrafts(next)
       })
-      .catch(() => setError(t('admin_users_page.error_load')))
+      .catch((err: unknown) => setError(translateApiError(err, t, t('admin_users_page.error_load'))))
   }
 
   useEffect(() => {
@@ -131,7 +133,7 @@ export default function AdminUsersPage() {
       setInviteEmail('')
       load()
     } catch (err) {
-      setInviteError(extractApiErrorMessage(err) ?? t('admin_users_page.error_invite'))
+      setInviteError(translateApiError(err, t, t('admin_users_page.error_invite')))
     } finally {
       setInviting(false)
     }
@@ -148,7 +150,7 @@ export default function AdminUsersPage() {
     try {
       await run()
     } catch (err) {
-      setActionError({ id, message: extractApiErrorMessage(err) ?? t('admin_users_page.error_action') })
+      setActionError({ id, message: translateApiError(err, t, t('admin_users_page.error_action')) })
     } finally {
       setActionId(null)
     }
@@ -189,7 +191,7 @@ export default function AdminUsersPage() {
       if (isConfirmationRequired(err)) {
         setConfirmTarget(id)
       } else {
-        setError(extractApiErrorMessage(err) ?? t('admin_users_page.error_save'))
+        setError(translateApiError(err, t, t('admin_users_page.error_save')))
       }
     } finally {
       setSavingId(null)
@@ -198,7 +200,11 @@ export default function AdminUsersPage() {
 
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
 
-  if (me === undefined) return null
+  // v3.1 follow-up 10h: "still checking" is not "denied". Without this the
+  // permission check below is false while GET /auth/me is in flight, so the
+  // page announced no access and then replaced it with the real content.
+  if (authLoading) return <Spinner />
+
   if (!isAdmin) {
     return (
       <div>
@@ -238,7 +244,7 @@ export default function AdminUsersPage() {
             {ROLES.map((r) => <option key={r} value={r}>{t(`admin_users_page.role_${r}`)}</option>)}
           </select>
           <button type="submit" disabled={inviting}
-            className="rounded-lg bg-brand-600 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+            className="btn btn-primary">
             {inviting ? t('admin_users_page.inviting') : t('admin_users_page.invite_user')}
           </button>
         </div>
@@ -251,7 +257,7 @@ export default function AdminUsersPage() {
             </p>
             <div className="mt-2 flex items-center gap-2">
               <code className="flex-1 truncate rounded bg-surface px-2 py-1 text-xs text-stone-600">{inviteResult.setPasswordUrl}</code>
-              <button type="button" onClick={copyInviteLink} className="shrink-0 rounded-md border border-stone-300 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-surface">
+              <button type="button" onClick={copyInviteLink} className="btn btn-secondary btn-sm shrink-0">
                 {copied ? t('admin_users_page.copied') : t('admin_users_page.copy_link')}
               </button>
             </div>
@@ -303,7 +309,7 @@ export default function AdminUsersPage() {
                   <button
                     onClick={() => save(u.id, false)}
                     disabled={saving}
-                    className="rounded-lg bg-brand-600 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="btn btn-primary"
                   >
                     {saving ? t('admin_users_page.saving') : t('admin_users_page.save')}
                   </button>
@@ -334,7 +340,7 @@ export default function AdminUsersPage() {
                   onClick={() => void generateResetLink(u.id)}
                   disabled={actionId === u.id}
                   title={t('admin_users_page.reset_link_hint')}
-                  className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                  className="btn btn-secondary btn-sm"
                 >
                   {t('admin_users_page.reset_link')}
                 </button>
@@ -342,7 +348,7 @@ export default function AdminUsersPage() {
                   onClick={() => void toggleBan(u)}
                   disabled={actionId === u.id || me?.id === u.id}
                   title={me?.id === u.id ? t('admin_users_page.cannot_self') : undefined}
-                  className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 disabled:opacity-50"
+                  className="btn btn-ghost-warn btn-sm"
                 >
                   {u.bannedAt !== null && u.bannedAt !== undefined
                     ? t('admin_users_page.unban')
@@ -352,7 +358,7 @@ export default function AdminUsersPage() {
                   onClick={() => setConfirmDelete(u.id)}
                   disabled={actionId === u.id || me?.id === u.id}
                   title={me?.id === u.id ? t('admin_users_page.cannot_self') : undefined}
-                  className="ms-auto rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  className="btn btn-ghost-danger btn-sm ms-auto"
                 >
                   {t('admin_users_page.delete')}
                 </button>
@@ -374,7 +380,7 @@ export default function AdminUsersPage() {
                       onFocus={e => e.currentTarget.select()} />
                     <button
                       onClick={() => void navigator.clipboard.writeText(resetLink.url)}
-                      className="shrink-0 rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+                      className="btn btn-secondary btn-sm shrink-0"
                     >
                       {t('admin_users_page.copy_link')}
                     </button>
@@ -389,11 +395,11 @@ export default function AdminUsersPage() {
                   <p className="mt-1 text-xs text-red-700">{t('admin_users_page.confirm_delete_message')}</p>
                   <div className="mt-3 flex justify-end gap-2">
                     <button onClick={() => setConfirmDelete(null)}
-                      className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-sm font-semibold text-stone-700 hover:bg-stone-50">
+                      className="btn btn-secondary">
                       {t('admin_users_page.confirm_demote_cancel')}
                     </button>
                     <button onClick={() => void deleteUser(u.id)} disabled={actionId === u.id}
-                      className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">
+                      className="btn btn-danger">
                       {t('admin_users_page.delete')}
                     </button>
                   </div>
@@ -407,13 +413,13 @@ export default function AdminUsersPage() {
                   <div className="mt-3 flex justify-end gap-2">
                     <button
                       onClick={() => setConfirmTarget(null)}
-                      className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                      className="btn btn-secondary"
                     >
                       {t('admin_users_page.confirm_demote_cancel')}
                     </button>
                     <button
                       onClick={() => save(u.id, true)}
-                      className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
+                      className="btn btn-warn"
                     >
                       {t('admin_users_page.confirm_demote_confirm')}
                     </button>

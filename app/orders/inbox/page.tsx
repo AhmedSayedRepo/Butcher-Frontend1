@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import api from '../../../lib/api'
-import { extractApiErrorMessage } from '../../../lib/apiError'
+import { translateApiError } from '../../../lib/apiError'
 import { Customer, Order, Product } from '../../../lib/types'
 
 type CartLine = { productId: string, name: string, pricePerKg: number, kg: number }
@@ -48,7 +48,7 @@ export default function OrdersInboxPage() {
   useEffect(() => {
     api.get<Product[]>('/api/products')
       .then(r => { setProducts(r.data); if (r.data.length > 0) setSelectedId(r.data[0].id) })
-      .catch(() => setError(t('inbox_page.error_load_products')))
+      .catch((err: unknown) => setError(translateApiError(err, t, t('inbox_page.error_load_products'))))
   }, [t])
 
   const CUSTOMER_SEARCH_MIN_LENGTH = 2
@@ -126,7 +126,7 @@ export default function OrdersInboxPage() {
         setNotice(t('inbox_page.parse_no_matches'))
       }
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('inbox_page.error_parse'))
+      setError(translateApiError(err, t, t('inbox_page.error_parse')))
     } finally {
       setParsing(false)
     }
@@ -149,7 +149,7 @@ export default function OrdersInboxPage() {
       }, { headers: { 'Idempotency-Key': crypto.randomUUID() } })
       router.push('/orders')
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('new_order_page.error_submit'))
+      setError(translateApiError(err, t, t('new_order_page.error_submit')))
     } finally {
       setSaving(false)
     }
@@ -168,7 +168,7 @@ export default function OrdersInboxPage() {
         <div className="mb-4 flex gap-2">
           {(['social', 'phone'] as const).map(s => (
             <button key={s} type="button" onClick={() => setSource(s)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${source === s ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-stone-300 bg-surface text-stone-700 hover:bg-stone-50'}`}>
+              className={`chip ${source === s ? 'chip-active' : ''}`}>
               {t(`inbox_page.source_${s}`)}
             </button>
           ))}
@@ -205,7 +205,7 @@ export default function OrdersInboxPage() {
             placeholder={t('inbox_page.message_placeholder')} />
         </label>
         <button type="button" onClick={parseMessage} disabled={parsing || customerMessage.trim() === ''}
-          className="mb-4 inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-stone-50 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50">
+          className="btn btn-secondary btn-sm mb-4">
           {parsing ? t('inbox_page.parsing') : t('inbox_page.parse_message')}
         </button>
         <p className="mb-4 -mt-3 text-xs text-stone-400">{t('inbox_page.parse_hint')}</p>
@@ -226,7 +226,7 @@ export default function OrdersInboxPage() {
             <input type="number" step="0.001" min="0.001" className={inputClasses} value={kg} onChange={e => setKg(e.target.value)} />
           </label>
           <button onClick={addLine}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-stone-300 bg-stone-50 px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100">
+            className="btn btn-secondary">
             {t('new_order_page.add_to_order')}
           </button>
         </div>
@@ -258,7 +258,7 @@ export default function OrdersInboxPage() {
       </div>
 
       <button onClick={saveDraft} disabled={saving || cart.length === 0}
-        className="w-full rounded-lg bg-brand-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+        className="btn btn-primary btn-lg w-full">
         {saving ? t('new_order_page.saving_draft') : t('inbox_page.save_draft')}
       </button>
     </div>

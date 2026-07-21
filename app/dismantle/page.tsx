@@ -7,8 +7,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
-import { extractApiErrorMessage } from '../../lib/apiError'
-import { useAuth } from '../../lib/useAuth'
+import { translateApiError } from '../../lib/apiError'
+import { useAuth, useAuthLoading } from '../../lib/useAuth'
+import Spinner from '../../components/Spinner'
 import { DismantleEvent, DismantleTemplate, Product } from '../../lib/types'
 import { ANIMAL_TYPE_AR, CUT_NAME_AR, TEMPLATE_NAME_AR, localizedName } from '../../lib/dismantleNames'
 
@@ -19,6 +20,7 @@ const WEIGHT_DECIMALS = 3
 export default function DismantlePage() {
   const { t, i18n } = useTranslation()
   const user = useAuth()
+  const authLoading = useAuthLoading()
   const canDismantle = user != null && Array.isArray(user.caps) && user.caps.includes('dismantle_carcass')
 
   const [templates, setTemplates] = useState<DismantleTemplate[]>([])
@@ -47,7 +49,7 @@ export default function DismantlePage() {
         setTemplates(r.data)
         if (r.data.length > 0) setTemplateId(r.data[0].id)
       })
-      .catch(() => setError(t('dismantle_page.error_load_templates')))
+      .catch((err: unknown) => setError(translateApiError(err, t, t('dismantle_page.error_load_templates'))))
     api.get<Product[]>('/api/products').then(r => setProducts(r.data)).catch(() => undefined)
   }, [t])
 
@@ -55,7 +57,7 @@ export default function DismantlePage() {
     if (!canDismantle) return
     api.get<DismantleEvent[]>('/api/dismantle-events')
       .then(r => setEvents(r.data))
-      .catch(() => setError(t('dismantle_page.error_load_events')))
+      .catch((err: unknown) => setError(translateApiError(err, t, t('dismantle_page.error_load_events'))))
   }
 
   useEffect(() => {
@@ -136,7 +138,7 @@ export default function DismantlePage() {
       setCutInputs({})
       loadEvents()
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('dismantle_page.error_submit'))
+      setError(translateApiError(err, t, t('dismantle_page.error_submit')))
     } finally {
       setSubmitting(false)
     }
@@ -166,7 +168,7 @@ export default function DismantlePage() {
       setEditingEventId(null)
       loadEvents()
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('dismantle_page.error_edit_event'))
+      setError(translateApiError(err, t, t('dismantle_page.error_edit_event')))
     } finally {
       setEventBusyId(null)
     }
@@ -180,7 +182,7 @@ export default function DismantlePage() {
       await api.delete(`/api/dismantle-events/${ev.id}`)
       loadEvents()
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('dismantle_page.error_delete_event'))
+      setError(translateApiError(err, t, t('dismantle_page.error_delete_event')))
     } finally {
       setEventBusyId(null)
     }
@@ -198,7 +200,11 @@ export default function DismantlePage() {
         <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
       )}
 
-      {!canDismantle && (
+      {/* v3.1 follow-up 10h: only claim "no access" once the session is
+          actually known — while it's loading, `canDismantle` is false for the
+          same reason a denied user's is, and the page used to say so. */}
+      {authLoading && <Spinner />}
+      {!authLoading && !canDismantle && (
         <div className="mb-6 rounded-xl border border-dashed border-stone-300 bg-surface p-6 text-center text-sm text-stone-500">
           {t('dismantle_page.no_access')}
         </div>
@@ -272,7 +278,7 @@ export default function DismantlePage() {
           )}
 
           <button type="submit" disabled={submitting}
-            className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+            className="btn btn-primary mt-4">
             {submitting ? t('dismantle_page.submitting') : t('dismantle_page.submit')}
           </button>
         </form>
@@ -319,22 +325,22 @@ export default function DismantlePage() {
                         {isEditing ? (
                           <>
                             <button type="button" onClick={() => saveEditEvent(ev)} disabled={isBusy}
-                              className="rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                              className="btn btn-primary btn-sm">
                               {isBusy ? t('dismantle_page.saving_event') : t('dismantle_page.save_event')}
                             </button>
                             <button type="button" onClick={cancelEditEvent} disabled={isBusy}
-                              className="rounded-md px-2 py-1 text-xs font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-50">
+                              className="btn btn-ghost btn-sm">
                               {t('dismantle_page.cancel_edit')}
                             </button>
                           </>
                         ) : (
                           <>
                             <button type="button" onClick={() => startEditEvent(ev)} disabled={isBusy}
-                              className="rounded-md px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50">
+                              className="btn btn-ghost-brand btn-sm">
                               {t('dismantle_page.edit_event')}
                             </button>
                             <button type="button" onClick={() => deleteEvent(ev)} disabled={isBusy}
-                              className="rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
+                              className="btn btn-ghost-danger btn-sm">
                               {isBusy ? t('dismantle_page.deleting_event') : t('dismantle_page.delete_event')}
                             </button>
                           </>

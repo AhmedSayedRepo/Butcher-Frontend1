@@ -22,7 +22,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import api from '../../../lib/api'
-import { extractApiErrorMessage } from '../../../lib/apiError'
+import { translateApiError } from '../../../lib/apiError'
 import { Customer, Order, Product, ShopSettings } from '../../../lib/types'
 import Receipt from '../../../components/Receipt'
 
@@ -79,7 +79,7 @@ export default function NewOrderPage() {
         setProducts(r.data)
         if (r.data.length > 0) setSelectedId(r.data[0].id)
       })
-      .catch(() => setError(t('new_order_page.error_load_products')))
+      .catch((err: unknown) => setError(translateApiError(err, t, t('new_order_page.error_load_products'))))
   }, [t])
 
   // Fetched up front rather than when the receipt appears: a failed or slow
@@ -200,7 +200,7 @@ export default function NewOrderPage() {
         setReceipt(res.data)
       }
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('new_order_page.error_submit'))
+      setError(translateApiError(err, t, t('new_order_page.error_submit')))
     } finally {
       setBusy(false)
     }
@@ -228,11 +228,11 @@ export default function NewOrderPage() {
         />
         <div className="mx-auto mt-4 flex max-w-sm gap-3">
           <button onClick={() => window.print()}
-            className="flex-1 rounded-lg border border-stone-300 bg-surface px-4 py-2.5 text-sm font-medium text-stone-700 shadow-sm transition-colors hover:bg-stone-50">
+            className="btn btn-secondary btn-lg flex-1">
             {t('new_order_page.print_receipt')}
           </button>
           <button onClick={() => router.push('/orders')}
-            className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700">
+            className="btn btn-primary btn-lg flex-1">
             {t('new_order_page.done')}
           </button>
         </div>
@@ -314,7 +314,7 @@ export default function NewOrderPage() {
             <div className="flex flex-wrap gap-2">
               {recentProducts.map(p => (
                 <button key={p.id} type="button" onClick={() => pickProduct(p.id)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${selectedId === p.id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-stone-300 bg-surface text-stone-700 hover:bg-stone-50'}`}>
+                  className={`chip ${selectedId === p.id ? 'chip-active' : ''}`}>
                   {p.name}
                 </button>
               ))}
@@ -341,7 +341,7 @@ export default function NewOrderPage() {
           </label>
           <button
             onClick={addLine}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-stone-300 bg-stone-50 px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100"
+            className="btn btn-secondary"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M12 5v14M5 12h14" />
@@ -353,7 +353,7 @@ export default function NewOrderPage() {
         <div className="mt-3 flex flex-wrap gap-2">
           {KG_PRESETS.map(preset => (
             <button key={preset} type="button" onClick={() => setKg(String(preset))}
-              className="min-w-[3.5rem] rounded-lg border border-stone-300 bg-surface px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100">
+              className="btn btn-secondary min-w-[3.5rem]">
               {preset}
             </button>
           ))}
@@ -395,11 +395,11 @@ export default function NewOrderPage() {
 
       <div className="flex gap-3">
         <button onClick={() => submitOrder(true)} disabled={submitting || savingDraft || cart.length === 0}
-          className="flex items-center justify-center gap-2 rounded-lg border border-stone-300 bg-surface px-4 py-3 text-sm font-medium text-stone-700 shadow-sm transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50">
+          className="btn btn-secondary btn-lg">
           {savingDraft ? t('new_order_page.saving_draft') : t('new_order_page.save_draft')}
         </button>
         <button onClick={() => submitOrder(false)} disabled={submitting || savingDraft || cart.length === 0}
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+          className="btn btn-primary btn-lg flex-1">
           {submitting && (
             <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

@@ -345,7 +345,7 @@ export default function Sidebar() {
           onClick={() => { setMenuOpen((v) => !v) }}
           aria-expanded={menuOpen}
           aria-label={t('toggle_menu')}
-          className="rounded-md p-2 text-stone-700 hover:bg-stone-100"
+          className="btn btn-ghost btn-icon"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             {menuOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}

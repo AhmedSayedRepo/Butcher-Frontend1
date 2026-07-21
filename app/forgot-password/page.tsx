@@ -6,6 +6,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import AuthCardShell from '../../components/AuthCardShell'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
 
@@ -30,13 +31,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center text-center">
-          <h1 className="text-xl font-semibold tracking-tight text-stone-900">{t('forgot_password_page.title')}</h1>
-        </div>
-
-        <div className="rounded-2xl border border-stone-200 bg-surface p-6 shadow-card">
+    <AuthCardShell title={t('forgot_password_page.title')}>
           {submitted ? (
             <div className="text-center">
               <p className="text-sm text-stone-700">{t('forgot_password_page.submitted_message')}</p>
@@ -59,7 +54,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn btn-primary btn-lg w-full"
               >
                 {submitting ? t('forgot_password_page.sending') : t('forgot_password_page.send_link')}
               </button>
@@ -68,8 +63,6 @@ export default function ForgotPasswordPage() {
               </Link>
             </form>
           )}
-        </div>
-      </div>
-    </div>
+    </AuthCardShell>
   )
 }

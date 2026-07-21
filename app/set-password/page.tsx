@@ -8,8 +8,9 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
+import AuthCardShell from '../../components/AuthCardShell'
 import api from '../../lib/api'
-import { extractApiErrorMessage } from '../../lib/apiError'
+import { translateApiError } from '../../lib/apiError'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -63,7 +64,7 @@ function SetPasswordForm() {
       await api.post('/auth/reset-password', { token, password })
       setDone(true)
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('set_password_page.error_submit'))
+      setError(translateApiError(err, t, t('set_password_page.error_submit')))
     } finally {
       setSubmitting(false)
     }
@@ -72,14 +73,8 @@ function SetPasswordForm() {
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center text-center">
-          <h1 className="text-xl font-semibold tracking-tight text-stone-900">{t('set_password_page.title')}</h1>
-          {email !== null && <p className="mt-1 text-sm text-stone-500">{email}</p>}
-        </div>
-
-        <div className="rounded-2xl border border-stone-200 bg-surface p-6 shadow-card">
+    <AuthCardShell title={t('set_password_page.title')}>
+          {email !== null && <p className="mb-4 text-center text-sm text-stone-500">{email}</p>}
           {tokenState === 'checking' && (
             <p className="text-center text-sm text-stone-500">{t('set_password_page.checking_link')}</p>
           )}
@@ -116,13 +111,11 @@ function SetPasswordForm() {
                 <input type="password" className={inputClasses} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required minLength={MIN_PASSWORD_LENGTH} />
               </label>
               <button type="submit" disabled={submitting}
-                className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60">
+                className="btn btn-primary btn-lg w-full">
                 {submitting ? t('set_password_page.saving') : t('set_password_page.save_password')}
               </button>
             </form>
           )}
-        </div>
-      </div>
-    </div>
+    </AuthCardShell>
   )
 }

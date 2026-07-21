@@ -17,7 +17,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
-import { extractApiErrorMessage } from '../../lib/apiError'
+import { translateApiError } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import { Product, ShopSettings } from '../../lib/types'
 
@@ -61,9 +61,9 @@ export default function InventoryPage() {
   function load() {
     api.get<Product[]>('/api/products')
       .then(r => setProducts(r.data))
-      .catch(() => {
+      .catch((err: unknown) => {
         setProducts([])
-        setError(t('inventory_page.error_load'))
+        setError(translateApiError(err, t, t('inventory_page.error_load')))
       })
   }
 
@@ -101,7 +101,7 @@ export default function InventoryPage() {
       setNewDraft(EMPTY_DRAFT)
       load()
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('inventory_page.error_create'))
+      setError(translateApiError(err, t, t('inventory_page.error_create')))
     } finally {
       setCreating(false)
     }
@@ -146,7 +146,7 @@ export default function InventoryPage() {
       setEditingId(null)
       load()
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('inventory_page.error_save'))
+      setError(translateApiError(err, t, t('inventory_page.error_save')))
     } finally {
       setSaving(false)
     }
@@ -206,7 +206,7 @@ export default function InventoryPage() {
                 onChange={e => setNewDraft({ ...newDraft, stockKg: e.target.value })} required />
             </label>
             <button type="submit" disabled={creating}
-              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+              className="btn btn-primary">
               {creating ? t('inventory_page.adding') : t('inventory_page.add_product')}
             </button>
           </div>
@@ -301,11 +301,11 @@ export default function InventoryPage() {
                     )}
                     <div className="col-span-2 flex justify-end gap-2 pt-1">
                       <button onClick={() => setEditingId(null)}
-                        className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+                        className="btn btn-secondary">
                         {t('inventory_page.cancel')}
                       </button>
                       <button onClick={() => onSaveEdit(p)} disabled={saving}
-                        className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                        className="btn btn-primary">
                         {saving ? t('inventory_page.saving') : t('inventory_page.save')}
                       </button>
                     </div>
@@ -346,7 +346,7 @@ export default function InventoryPage() {
                       )}
                       {canManageInventory && (
                         <button onClick={() => startEdit(p)}
-                          className="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50">
+                          className="btn btn-secondary btn-sm">
                           {t('inventory_page.edit')}
                         </button>
                       )}

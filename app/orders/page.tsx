@@ -26,7 +26,7 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
 import PageHeader from '../../components/PageHeader'
-import { extractApiErrorMessage } from '../../lib/apiError'
+import { translateApiError } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import { Order, OrderStatus, Product, ShopSettings } from '../../lib/types'
 import Receipt from '../../components/Receipt'
@@ -68,6 +68,10 @@ const NEXT_STATUSES: Partial<Record<OrderStatus, OrderStatus[]>> = {
 // keep it honest without re-rendering the board constantly.
 const ELAPSED_TICK_MS = 30 * 1000
 
+// A 401 on the board's own load just means "not signed in", which the page
+// already handles with a dedicated placeholder — see the catch in load().
+const UNAUTHORIZED_STATUS = 401
+
 export default function OrdersPage() {
   const { t } = useTranslation()
   const user = useAuth()
@@ -101,8 +105,8 @@ export default function OrdersPage() {
         // below already renders a dedicated "please log in" placeholder, so
         // showing the generic red error banner on top of it would be
         // redundant/confusing. Only surface the banner for real failures.
-        if (e?.response?.status !== 401) {
-          setError(t('orders_page.failed_to_load'))
+        if (e?.response?.status !== UNAUTHORIZED_STATUS) {
+          setError(translateApiError(e, t, t('orders_page.failed_to_load')))
         }
       })
   }
@@ -170,7 +174,19 @@ export default function OrdersPage() {
   }
 
   const drafts = orders.filter(o => o.status === 'DRAFT')
-  const byColumn = (status: OrderStatus) => orders.filter(o => o.status === status)
+  // v3.1 follow-up 10g: the live columns are queues, so they're sorted
+  // oldest-first — the order that has been waiting longest sits at the top,
+  // which is the one to pick up next. Sorted by how long it's been in *this*
+  // status (the same figure the card's timer shows) rather than by createdAt,
+  // so a card can't sit above another with a smaller number on it.
+  //
+  // Terminal columns keep newest-first: for completed and in-premise orders
+  // the useful question is "what just happened", not "what's been waiting".
+  const byColumn = (status: OrderStatus) => {
+    const rows = orders.filter(o => o.status === status)
+    if (!TIMED_STATUSES.includes(status)) return rows
+    return [...rows].sort((a, b) => (statusMinutes(b) ?? 0) - (statusMinutes(a) ?? 0))
+  }
 
   async function advance(order: Order, next: OrderStatus) {
     setError(null)
@@ -179,7 +195,7 @@ export default function OrdersPage() {
       await api.patch(`/api/orders/${order.id}/status`, { status: next })
       load()
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('orders_page.error_status'))
+      setError(translateApiError(err, t, t('orders_page.error_status')))
     } finally {
       setBusyId(null)
     }
@@ -192,7 +208,7 @@ export default function OrdersPage() {
       await api.patch(`/api/orders/${order.id}/status`, { status: 'CANCELLED' })
       load()
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('orders_page.error_status'))
+      setError(translateApiError(err, t, t('orders_page.error_status')))
     } finally {
       setBusyId(null)
     }
@@ -205,7 +221,7 @@ export default function OrdersPage() {
       await api.post(`/api/orders/${order.id}/promote`)
       load()
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('orders_page.error_promote'))
+      setError(translateApiError(err, t, t('orders_page.error_promote')))
     } finally {
       setBusyId(null)
     }
@@ -304,14 +320,14 @@ export default function OrdersPage() {
             {nextOptions.map((next) => (
               <button key={next} onClick={() => advance(order, next)} disabled={busyId === order.id}
                 title={t('orders_page.advance_to', { status: t(`orders_page.status_${next.toLowerCase()}`) })}
-                className="rounded-md bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 disabled:opacity-50">
+                className="btn btn-ghost-brand btn-sm">
                 {t('orders_page.advance_to', { status: t(`orders_page.status_${next.toLowerCase()}`) })}
               </button>
             ))}
             {order.status !== 'COMPLETED' && (
               <button onClick={() => cancel(order)} disabled={busyId === order.id}
                 title={t('orders_page.cancel_order')}
-                className="rounded-md px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50">
+                className="btn btn-ghost-danger btn-sm">
                 {t('orders_page.cancel_order')}
               </button>
             )}
@@ -321,7 +337,7 @@ export default function OrdersPage() {
               <button onClick={() => printReceipt(order)}
                 title={t('new_order_page.print_receipt')}
                 aria-label={t('new_order_page.print_receipt')}
-                className="ms-auto rounded-md p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700">
+                className="btn btn-ghost btn-icon ms-auto">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                   <path d="M6 14h12v8H6z" />
@@ -343,7 +359,7 @@ export default function OrdersPage() {
         actions={
           <Link
             href="/orders/new"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
+            className="btn btn-primary"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
               <path d="M12 5v14M5 12h14" />
@@ -422,12 +438,12 @@ export default function OrdersPage() {
                     <div className="flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
                       <button onClick={() => promote(o)} disabled={busyId === o.id}
                         title={t('orders_page.promote')}
-                        className="rounded-md bg-brand-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                        className="btn btn-primary btn-sm">
                         {busyId === o.id ? t('orders_page.promoting') : t('orders_page.promote')}
                       </button>
                       <button onClick={() => setDetailOrder(o)}
                         title={t('orders_page.edit_draft')}
-                        className="rounded-md px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50">
+                        className="btn btn-ghost-brand btn-sm">
                         {t('orders_page.edit_draft')}
                       </button>
                     </div>
@@ -587,7 +603,7 @@ function OrderDetailModal({
       setEditing(false)
       onReload()
     } catch (err) {
-      setSaveError(extractApiErrorMessage(err) ?? t('orders_page.error_edit_draft'))
+      setSaveError(translateApiError(err, t, t('orders_page.error_edit_draft')))
     } finally {
       setSaving(false)
     }
@@ -600,7 +616,7 @@ function OrderDetailModal({
       await api.delete(`/api/orders/${order.id}`)
       onDeleted()
     } catch (err) {
-      setSaveError(extractApiErrorMessage(err) ?? t('orders_page.error_delete_draft'))
+      setSaveError(translateApiError(err, t, t('orders_page.error_delete_draft')))
       setSaving(false)
     }
   }
@@ -616,7 +632,7 @@ function OrderDetailModal({
       onReload()
       onClose()
     } catch (err) {
-      setScanError(extractApiErrorMessage(err) ?? t('orders_page.error_scan_receipt'))
+      setScanError(translateApiError(err, t, t('orders_page.error_scan_receipt')))
     } finally {
       setScanning(false)
     }
@@ -641,7 +657,7 @@ function OrderDetailModal({
           <div className="flex shrink-0 items-center gap-1">
             {order.status !== 'DRAFT' && (
               <button onClick={onPrint} title={t('new_order_page.print_receipt')} aria-label={t('new_order_page.print_receipt')}
-                className="rounded-md p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700">
+                className="btn btn-ghost btn-icon">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                   <path d="M6 14h12v8H6z" />
@@ -650,12 +666,12 @@ function OrderDetailModal({
             )}
             {isDraft && !editing && (
               <button onClick={startEditing} title={t('orders_page.edit_draft')}
-                className="rounded-md px-2 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-50">
+                className="btn btn-ghost-brand btn-sm">
                 {t('orders_page.edit_draft')}
               </button>
             )}
             <button onClick={onClose} title={t('orders_page.close')} aria-label={t('orders_page.close')}
-              className="rounded-md p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600">
+              className="btn btn-ghost btn-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
@@ -709,7 +725,7 @@ function OrderDetailModal({
                     />
                     <button type="button" title={t('new_order_page.remove')} aria-label={t('new_order_page.remove')}
                       onClick={() => setEditItems(items => items.filter((_, i) => i !== index))}
-                      className="shrink-0 rounded-md p-1.5 text-stone-400 hover:bg-red-50 hover:text-red-600">
+                      className="btn btn-ghost btn-icon shrink-0">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                         <path d="M18 6L6 18M6 6l12 12" />
                       </svg>
@@ -720,7 +736,7 @@ function OrderDetailModal({
               <div className="flex items-center justify-between border-t border-stone-200 p-2">
                 <button type="button" disabled={products.length === 0}
                   onClick={() => setEditItems(items => [...items, { productId: products[0]?.id ?? '', kg: '1' }])}
-                  className="rounded-md bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 disabled:opacity-50">
+                  className="btn btn-ghost-brand btn-sm">
                   + {t('new_order_page.add_to_order')}
                 </button>
                 {/* Preview only — the server re-reads prices from the product
@@ -733,15 +749,15 @@ function OrderDetailModal({
 
             <div className="flex flex-wrap items-center gap-2">
               <button onClick={() => void saveDraft()} disabled={saving}
-                className="rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                className="btn btn-primary">
                 {saving ? t('inventory_page.saving') : t('inventory_page.save')}
               </button>
               <button onClick={() => setEditing(false)} disabled={saving}
-                className="rounded-lg border border-stone-300 bg-surface px-3.5 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50">
+                className="btn btn-secondary">
                 {t('inventory_page.cancel')}
               </button>
               <button onClick={() => setConfirmingDelete(true)} disabled={saving}
-                className="ms-auto rounded-lg px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50">
+                className="btn btn-ghost-danger ms-auto">
                 {t('orders_page.delete_draft')}
               </button>
             </div>
@@ -755,7 +771,7 @@ function OrderDetailModal({
                     {t('inventory_page.cancel')}
                   </button>
                   <button onClick={() => void deleteDraft()} disabled={saving}
-                    className="rounded-md bg-red-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50">
+                    className="btn btn-danger btn-sm">
                     {t('orders_page.delete_draft')}
                   </button>
                 </div>
@@ -824,7 +840,7 @@ function OrderDetailModal({
                 autoComplete="off"
               />
               <button onClick={() => void confirmReceipt()} disabled={scanning || scanCode.trim() === ''}
-                className="shrink-0 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+                className="btn btn-primary shrink-0">
                 {scanning ? t('orders_page.scanning') : t('orders_page.scan_receipt_button')}
               </button>
             </div>
@@ -835,13 +851,13 @@ function OrderDetailModal({
           <div className="flex flex-wrap gap-2">
             {(NEXT_STATUSES[order.status] ?? []).map((next) => (
               <button key={next} onClick={() => onAdvance(next)} disabled={busy}
-                className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                className="btn btn-primary">
                 {t('orders_page.advance_to', { status: t(`orders_page.status_${next.toLowerCase()}`) })}
               </button>
             ))}
             {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && (
               <button onClick={onCancel} disabled={busy}
-                className="rounded-md px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
+                className="btn btn-ghost-danger">
                 {t('orders_page.cancel_order')}
               </button>
             )}

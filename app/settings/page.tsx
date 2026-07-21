@@ -11,8 +11,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
-import { extractApiErrorMessage } from '../../lib/apiError'
-import { useAuth } from '../../lib/useAuth'
+import { translateApiError } from '../../lib/apiError'
+import { useAuth, useAuthLoading } from '../../lib/useAuth'
+import Spinner from '../../components/Spinner'
 import { ShopSettings } from '../../lib/types'
 import ReceiptSettings from '../../components/ReceiptSettings'
 
@@ -73,7 +74,7 @@ function SettingsFieldCard({ label, badge, hint, value, type = 'text', placehold
       // this and keep showing the value that was just confirmed saved.
       if (clearOnSave) setDraft('')
     } catch (err) {
-      setFieldError(extractApiErrorMessage(err) ?? t('settings_page.error_save'))
+      setFieldError(translateApiError(err, t, t('settings_page.error_save')))
     } finally {
       setSaving(false)
     }
@@ -109,7 +110,7 @@ function SettingsFieldCard({ label, badge, hint, value, type = 'text', placehold
           )}
         </div>
         <button type="button" onClick={() => { void handleUpdate() }} disabled={saving}
-          className="shrink-0 rounded-lg border border-stone-300 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50">
+          className="btn btn-secondary shrink-0">
           {saving ? t('settings_page.updating') : t('settings_page.update')}
         </button>
       </div>
@@ -122,6 +123,7 @@ function SettingsFieldCard({ label, badge, hint, value, type = 'text', placehold
 export default function SettingsPage() {
   const { t } = useTranslation()
   const user = useAuth()
+  const authLoading = useAuthLoading()
   const isAdmin = user != null && user.role === 'admin'
 
   const [settings, setSettings] = useState<ShopSettings | null>(null)
@@ -172,7 +174,7 @@ export default function SettingsPage() {
       setSettings(r.data)
       setSaved(true)
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('settings_page.error_save'))
+      setError(translateApiError(err, t, t('settings_page.error_save')))
     } finally {
       setSaving(false)
     }
@@ -200,6 +202,11 @@ export default function SettingsPage() {
 
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
   const labelClasses = 'mb-1 block text-sm font-medium text-stone-700'
+
+  // v3.1 follow-up 10h: "still checking" is not "denied". Without this the
+  // permission check below is false while GET /auth/me is in flight, so the
+  // page announced no access and then replaced it with the real content.
+  if (authLoading) return <Spinner />
 
   if (!isAdmin) {
     return (
@@ -267,7 +274,7 @@ export default function SettingsPage() {
             </div>
 
             <button type="submit" disabled={saving}
-              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
+              className="btn btn-primary">
               {saving ? t('customers_page.saving') : t('customers_page.save')}
             </button>
           </form>

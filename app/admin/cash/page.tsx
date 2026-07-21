@@ -8,8 +8,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 import api from '../../../lib/api'
-import { extractApiErrorMessage } from '../../../lib/apiError'
-import { useAuth } from '../../../lib/useAuth'
+import { translateApiError } from '../../../lib/apiError'
+import { useAuth, useAuthLoading } from '../../../lib/useAuth'
+import Spinner from '../../../components/Spinner'
 import { CashSummary, CashTransaction, CashTransactionType, DailyClosing } from '../../../lib/types'
 import { cashCategoryLabel, cashNoteLabel } from '../../../lib/cashLabels'
 
@@ -25,6 +26,7 @@ type CardFilter = 'ALL' | 'IN' | 'OUT'
 export default function CashManagementPage() {
   const { t } = useTranslation()
   const user = useAuth()
+  const authLoading = useAuthLoading()
   const canManageCash = user != null && Array.isArray(user.caps) && user.caps.includes('manage_cash')
 
   const [transactions, setTransactions] = useState<CashTransaction[]>([])
@@ -65,7 +67,7 @@ export default function CashManagementPage() {
       setConfirmingClose(false)
       load()
     } catch (err) {
-      setCloseError(extractApiErrorMessage(err) ?? t('cash_page.error_close_day'))
+      setCloseError(translateApiError(err, t, t('cash_page.error_close_day')))
     } finally {
       setClosingDay(false)
     }
@@ -92,7 +94,7 @@ export default function CashManagementPage() {
       setNote('')
       load()
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('cash_page.error_save'))
+      setError(translateApiError(err, t, t('cash_page.error_save')))
     } finally {
       setSaving(false)
     }
@@ -104,6 +106,11 @@ export default function CashManagementPage() {
   )
 
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
+
+  // v3.1 follow-up 10h: "still checking" is not "denied". Without this the
+  // permission check below is false while GET /auth/me is in flight, so the
+  // page announced no access and then replaced it with the real content.
+  if (authLoading) return <Spinner />
 
   if (!canManageCash) {
     return (
@@ -120,7 +127,7 @@ export default function CashManagementPage() {
         {/* v3.1 replan (Phase L, ADR-015): a deliberate staff action, not an
             automatic midnight reset — shifts/closing times vary by shop. */}
         <button onClick={() => setConfirmingClose(true)}
-          className="rounded-lg border border-stone-300 bg-surface px-3.5 py-1.5 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50">
+          className="btn btn-secondary">
           {t('cash_page.close_day')}
         </button>
       </div>
@@ -133,11 +140,11 @@ export default function CashManagementPage() {
           <p className="mt-1 text-sm text-amber-800">{t('cash_page.confirm_close_message')}</p>
           <div className="mt-3 flex justify-end gap-2">
             <button onClick={() => setConfirmingClose(false)} disabled={closingDay}
-              className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50">
+              className="btn btn-secondary">
               {t('cash_page.confirm_close_cancel')}
             </button>
             <button onClick={closeDay} disabled={closingDay}
-              className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50">
+              className="btn btn-warn">
               {closingDay ? t('cash_page.closing') : t('cash_page.confirm_close_confirm')}
             </button>
           </div>
@@ -147,7 +154,7 @@ export default function CashManagementPage() {
       <div className="mb-6 flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs font-medium w-fit">
         {RANGES.map(r => (
           <button key={r} onClick={() => setRange(r)}
-            className={`rounded-md px-3 py-1.5 transition-colors ${range === r ? 'bg-surface text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+            className={`seg-item ${range === r ? 'seg-item-active' : ''}`}>
             {t(`cash_page.range_${r}`)}
           </button>
         ))}
@@ -177,7 +184,7 @@ export default function CashManagementPage() {
         <input className={inputClasses} placeholder={t('cash_page.category_placeholder')} value={category} onChange={e => setCategory(e.target.value)} required />
         <input type="number" step="0.01" min="0.01" className={inputClasses} placeholder={t('cash_page.amount_placeholder')} value={amount} onChange={e => setAmount(e.target.value)} required />
         <input className={inputClasses} placeholder={t('cash_page.note_placeholder')} value={note} onChange={e => setNote(e.target.value)} />
-        <button type="submit" disabled={saving} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 disabled:opacity-50">
+        <button type="submit" disabled={saving} className="btn btn-primary">
           {saving ? t('cash_page.saving') : t('cash_page.add_entry')}
         </button>
       </form>

@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
-import { extractApiErrorMessage } from '../../lib/apiError'
+import { translateApiError } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import { Customer } from '../../lib/types'
 
@@ -57,7 +57,7 @@ export default function CustomersPage() {
       setShowAdd(false)
       load(query)
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('customers_page.error_save'))
+      setError(translateApiError(err, t, t('customers_page.error_save')))
     } finally {
       setSaving(false)
     }
@@ -70,7 +70,7 @@ export default function CustomersPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight text-stone-900">{t('customers_page.title')}</h1>
         <button onClick={() => setShowAdd(v => !v)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700">
+          className="btn btn-primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
           {t('customers_page.add_customer')}
         </button>
@@ -84,7 +84,7 @@ export default function CustomersPage() {
           <input className={inputClasses} placeholder={t('customers_page.phone_placeholder')} value={phone} onChange={e => setPhone(e.target.value)} />
           <input className={inputClasses} placeholder={t('customers_page.address_placeholder')} value={address} onChange={e => setAddress(e.target.value)} />
           <textarea className={`${inputClasses} sm:col-span-2`} rows={2} placeholder={t('customers_page.notes_placeholder')} value={notes} onChange={e => setNotes(e.target.value)} />
-          <button type="submit" disabled={saving} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 disabled:opacity-50">
+          <button type="submit" disabled={saving} className="btn btn-primary">
             {saving ? t('customers_page.saving') : t('customers_page.save')}
           </button>
         </form>

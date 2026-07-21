@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import api from '../../../lib/api'
-import { extractApiErrorMessage } from '../../../lib/apiError'
+import { translateApiError } from '../../../lib/apiError'
 import { Customer, CustomerProfile } from '../../../lib/types'
 
 export default function CustomerProfilePage() {
@@ -30,7 +30,7 @@ export default function CustomerProfilePage() {
   useEffect(() => {
     api.get<CustomerProfile>(`/api/customers/${params.id}`)
       .then(r => setProfile(r.data))
-      .catch((err) => setError(extractApiErrorMessage(err) ?? t('customers_page.error_load')))
+      .catch((err) => setError(translateApiError(err, t, t('customers_page.error_load'))))
   }, [params.id, t])
 
   function startEdit() {
@@ -56,7 +56,7 @@ export default function CustomerProfilePage() {
       setProfile(prev => prev === null ? prev : { ...prev, ...r.data })
       setEditing(false)
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('customers_page.error_save'))
+      setError(translateApiError(err, t, t('customers_page.error_save')))
     } finally {
       setSaving(false)
     }
@@ -69,7 +69,7 @@ export default function CustomerProfilePage() {
       await api.delete(`/api/customers/${params.id}`, { data: { confirm: true } })
       router.push('/customers')
     } catch (err) {
-      setError(extractApiErrorMessage(err) ?? t('customers_page.error_delete'))
+      setError(translateApiError(err, t, t('customers_page.error_delete')))
       setDeleting(false)
     }
   }
@@ -102,32 +102,32 @@ export default function CustomerProfilePage() {
         <div className="flex shrink-0 items-center gap-2">
           {editing ? (
             <>
-              <button onClick={() => setEditing(false)} className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+              <button onClick={() => setEditing(false)} className="btn btn-secondary">
                 {t('customers_page.cancel')}
               </button>
-              <button onClick={saveEdit} disabled={saving} className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+              <button onClick={saveEdit} disabled={saving} className="btn btn-primary">
                 {saving ? t('customers_page.saving') : t('customers_page.save')}
               </button>
             </>
           ) : (
-            <button onClick={startEdit} className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+            <button onClick={startEdit} className="btn btn-secondary">
               {t('customers_page.edit_customer')}
             </button>
           )}
           {!confirmingDelete ? (
             <button onClick={() => setConfirmingDelete(true)}
-              className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50">
+              className="btn btn-ghost-danger">
               {t('customers_page.delete_customer')}
             </button>
           ) : (
             <div className="flex items-center gap-2">
               <span className="text-xs text-red-700">{t('customers_page.delete_confirm')}</span>
               <button onClick={deleteCustomer} disabled={deleting}
-                className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50">
+                className="btn btn-danger">
                 {deleting ? t('customers_page.deleting') : t('customers_page.confirm_delete')}
               </button>
               <button onClick={() => setConfirmingDelete(false)}
-                className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+                className="btn btn-secondary">
                 {t('customers_page.cancel')}
               </button>
             </div>
