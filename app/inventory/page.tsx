@@ -226,7 +226,11 @@ export default function InventoryPage() {
         </form>
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {/* `items-start` — grid items stretch to the tallest row by default, so
+          opening the inline editor on one product stretched the card *beside*
+          it to the same height, which looked like the other card had expanded
+          too. Each card now sizes to its own content. */}
+      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
         {visibleProducts.length === 0 ? (
           <div className="col-span-full rounded-xl border border-dashed border-stone-300 bg-surface p-10 text-center text-sm text-stone-500">
             {t('inventory_page.no_products')}

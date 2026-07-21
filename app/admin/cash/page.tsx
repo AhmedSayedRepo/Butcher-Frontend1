@@ -11,6 +11,7 @@ import api from '../../../lib/api'
 import { extractApiErrorMessage } from '../../../lib/apiError'
 import { useAuth } from '../../../lib/useAuth'
 import { CashSummary, CashTransaction, CashTransactionType, DailyClosing } from '../../../lib/types'
+import { cashCategoryLabel, cashNoteLabel } from '../../../lib/cashLabels'
 
 const RANGES = ['day', 'week', 'month', 'year'] as const
 // v3 follow-up: each summary card now links to the records that make up its
@@ -215,11 +216,11 @@ export default function CashManagementPage() {
             <tbody className="divide-y divide-stone-100">
               {visibleTransactions.map(tx => (
                 <tr key={tx.id}>
-                  <td className="px-4 py-2.5 font-medium text-stone-900">{tx.category}</td>
+                  <td className="px-4 py-2.5 font-medium text-stone-900" title={tx.category}>{cashCategoryLabel(tx.category, t)}</td>
                   <td className={`tabular whitespace-nowrap px-4 py-2.5 text-end font-bold ${tx.type === 'IN' ? 'text-emerald-700' : 'text-red-600'}`}>
                     {tx.type === 'IN' ? '+' : '−'}{Number(tx.amount).toFixed(2)}
                   </td>
-                  <td className="px-4 py-2.5 text-stone-500">{tx.note ?? '—'}</td>
+                  <td className="px-4 py-2.5 text-stone-500" title={tx.note ?? undefined}>{cashNoteLabel(tx.note, t)}</td>
                   <td className="tabular whitespace-nowrap px-4 py-2.5 text-end text-xs text-stone-400">{new Date(tx.createdAt).toLocaleString()}</td>
                 </tr>
               ))}

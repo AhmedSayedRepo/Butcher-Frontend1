@@ -26,6 +26,8 @@ interface ManagedUser {
   // v3 follow-up: false for an account an admin invited that hasn't
   // finished the "set your password" step yet.
   passwordSet: boolean
+  // v3.1 follow-up 10c: null = active, a timestamp = banned.
+  bannedAt?: string | null
   createdAt: string
 }
 
@@ -57,6 +59,14 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<ManagedUser[]>([])
   const [error, setError] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, { role: RoleT, caps: string[] }>>({})
+  // v3.1 follow-up 10c: per-row action state. `actionError` is shown against
+  // the row that produced it rather than at the top of the page — the backend's
+  // refusals here ("only active admin", "has history, ban instead") are about a
+  // specific user and are useless floating somewhere else.
+  const [actionId, setActionId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<{ id: string, message: string } | null>(null)
+  const [resetLink, setResetLink] = useState<{ id: string, url: string, emailSent: boolean } | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null)
 
@@ -127,6 +137,41 @@ export default function AdminUsersPage() {
   function copyInviteLink() {
     if (inviteResult === null) return
     void navigator.clipboard.writeText(inviteResult.setPasswordUrl).then(() => setCopied(true))
+  }
+
+  async function runAction(id: string, run: () => Promise<void>) {
+    setActionId(id)
+    setActionError(null)
+    try {
+      await run()
+    } catch (err) {
+      setActionError({ id, message: extractApiErrorMessage(err) ?? t('admin_users_page.error_action') })
+    } finally {
+      setActionId(null)
+    }
+  }
+
+  async function generateResetLink(id: string) {
+    await runAction(id, async () => {
+      const r = await api.post<{ resetUrl: string, emailSent: boolean }>(`/api/users/${id}/reset-link`)
+      setResetLink({ id, url: r.data.resetUrl, emailSent: r.data.emailSent })
+    })
+  }
+
+  async function toggleBan(u: ManagedUser) {
+    const banned = u.bannedAt !== null && u.bannedAt !== undefined
+    await runAction(u.id, async () => {
+      await api.post(`/api/users/${u.id}/${banned ? 'unban' : 'ban'}`)
+      load()
+    })
+  }
+
+  async function deleteUser(id: string) {
+    await runAction(id, async () => {
+      await api.delete(`/api/users/${id}`)
+      setConfirmDelete(null)
+      load()
+    })
   }
 
   async function save(id: string, confirm: boolean) {
@@ -218,6 +263,9 @@ export default function AdminUsersPage() {
           const saving = savingId === u.id
           return (
             <div key={u.id} className="rounded-xl border border-stone-200 bg-surface p-4 shadow-card">
+              {/* Destructive/recovery actions, kept visually separate from the
+                  role/caps editor above so a ban is never a stray click while
+                  adjusting permissions. */}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -225,6 +273,12 @@ export default function AdminUsersPage() {
                     {!u.passwordSet && (
                       <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
                         {t('admin_users_page.pending_invite')}
+                      </span>
+                    )}
+                    {u.bannedAt !== null && u.bannedAt !== undefined && (
+                      <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700"
+                        title={new Date(u.bannedAt).toLocaleString()}>
+                        {t('admin_users_page.banned')}
                       </span>
                     )}
                   </div>
@@ -267,6 +321,81 @@ export default function AdminUsersPage() {
                   </label>
                 ))}
               </div>
+
+              {/* Account actions. `me?.id === u.id` disables both destructive
+                  ones on your own row — the backend refuses it anyway, but a
+                  disabled button explains why better than an error after the
+                  fact. */}
+              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-stone-100 pt-3">
+                <button
+                  onClick={() => void generateResetLink(u.id)}
+                  disabled={actionId === u.id}
+                  title={t('admin_users_page.reset_link_hint')}
+                  className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+                >
+                  {t('admin_users_page.reset_link')}
+                </button>
+                <button
+                  onClick={() => void toggleBan(u)}
+                  disabled={actionId === u.id || me?.id === u.id}
+                  title={me?.id === u.id ? t('admin_users_page.cannot_self') : undefined}
+                  className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 disabled:opacity-50"
+                >
+                  {u.bannedAt !== null && u.bannedAt !== undefined
+                    ? t('admin_users_page.unban')
+                    : t('admin_users_page.ban')}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(u.id)}
+                  disabled={actionId === u.id || me?.id === u.id}
+                  title={me?.id === u.id ? t('admin_users_page.cannot_self') : undefined}
+                  className="ms-auto rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                >
+                  {t('admin_users_page.delete')}
+                </button>
+              </div>
+
+              {actionError?.id === u.id && (
+                <p className="mt-2 rounded-lg bg-red-50 p-2.5 text-xs text-red-700">{actionError.message}</p>
+              )}
+
+              {resetLink?.id === u.id && (
+                <div className="mt-2 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                  <p className="mb-2 text-xs text-stone-600">
+                    {resetLink.emailSent
+                      ? t('admin_users_page.reset_link_sent')
+                      : t('admin_users_page.reset_link_not_sent')}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input readOnly value={resetLink.url} className="tabular flex-1 text-xs"
+                      onFocus={e => e.currentTarget.select()} />
+                    <button
+                      onClick={() => void navigator.clipboard.writeText(resetLink.url)}
+                      className="shrink-0 rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+                    >
+                      {t('admin_users_page.copy_link')}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-stone-400">{t('admin_users_page.reset_link_expiry')}</p>
+                </div>
+              )}
+
+              {confirmDelete === u.id && (
+                <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
+                  <p className="text-sm font-semibold text-red-700">{t('admin_users_page.confirm_delete_title')}</p>
+                  <p className="mt-1 text-xs text-red-700">{t('admin_users_page.confirm_delete_message')}</p>
+                  <div className="mt-3 flex justify-end gap-2">
+                    <button onClick={() => setConfirmDelete(null)}
+                      className="rounded-lg border border-stone-300 bg-surface px-3 py-1.5 text-sm font-semibold text-stone-700 hover:bg-stone-50">
+                      {t('admin_users_page.confirm_demote_cancel')}
+                    </button>
+                    <button onClick={() => void deleteUser(u.id)} disabled={actionId === u.id}
+                      className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">
+                      {t('admin_users_page.delete')}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {confirmTarget === u.id && (
                 <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">

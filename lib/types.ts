@@ -55,6 +55,10 @@ export type Order = {
   customerId: string | null
   // v3 replan (Phase I.3 — phone delivery orders).
   deliveryAddress: string | null
+  // v3.1 follow-up 10b: who is taking this delivery out. Free text — a
+  // delivery is often handed to someone with no login. Board + detail only,
+  // never printed on the receipt.
+  deliveryName?: string | null
   // v3 replan (Phase K — cash management). Defaults "cash" on every order.
   paymentMethod: string
   // v3.1 follow-up 6: assigned once an order becomes real (creation/draft
@@ -64,6 +68,14 @@ export type Order = {
   createdAt: string
   userId: string
   items: OrderItem[]
+  // v3.1 follow-up 10a: joined by GET /api/orders so the printed receipt can
+  // show a labelled phone/address for orders linked to a real Customer. Null
+  // for walk-ins and any order that was never linked.
+  customerRecord?: { id: string, name: string, phone: string | null, address: string | null } | null
+  // v3.1 follow-up 10b: the audit trail, oldest first. Used to time how long an
+  // order has been sitting in its current status — `createdAt` can't answer
+  // that, it only says when the order was first raised.
+  statusEvents?: Array<{ status: OrderStatus, createdAt: string }>
 }
 
 // v3 replan (Phase H — CRM). Deliberately minimal — see ADR-013.
@@ -167,6 +179,9 @@ export type ShopSettings = {
   shopName: string
   shopPhone: string | null
   shopAddress: string | null
+  // v3.1 follow-up 10b: what this shop calls the person who takes a delivery
+  // out (Driver / Courier / …). Display label only.
+  deliveryNameLabel: string
 }
 
 // v2 replan (Phase B): audit trail row for a direct stock edit.

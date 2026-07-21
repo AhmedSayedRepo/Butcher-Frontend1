@@ -93,7 +93,15 @@
     "wait_minutes": "{{count}}m",
     "wait_hours": "{{count}}h",
     "wait_hours_minutes": "{{hours}}h {{minutes}}m",
-    "wait_days": "{{count}}d"
+    "wait_days": "{{count}}d",
+    "orders_in_progress_title": "Orders in progress",
+    "inventory_title": "Inventory",
+    "col_product": "Product",
+    "col_in_stock": "In stock",
+    "col_status": "Status",
+    "status_low": "Low stock",
+    "status_healthy": "Healthy",
+    "no_orders_in_progress": "Nothing in progress"
   },
   "orders_page": {
     "please_login": "Please log in to view orders.",
@@ -133,7 +141,9 @@
     "confirm_delete_draft": "Delete this draft permanently? It was never confirmed, so no stock or cash is affected.",
     "error_edit_draft": "Couldn't save the draft.",
     "error_delete_draft": "Couldn't delete the draft.",
-    "error_draft_needs_item": "A draft needs at least one item."
+    "error_draft_needs_item": "A draft needs at least one item.",
+    "delivery_name_fallback": "Delivery",
+    "on_the_way_for": "On the way for"
   },
   "new_order_page": {
     "title": "New Order",
@@ -315,7 +325,9 @@
       "field_receiptShowItems": "Items table",
       "field_receiptShowCustomer": "Customer name",
       "field_receiptShowAddressOfCustomer": "Delivery address"
-    }
+    },
+    "delivery_name_label": "Delivery person label",
+    "delivery_name_hint": "What your shop calls whoever takes an order out — Driver, Courier, Delivery. Shown on the order board and in order details, never printed on the receipt."
   },
   "admin_users_page": {
     "title": "User Management",
@@ -350,7 +362,20 @@
     "confirm_demote_title": "Remove your own admin access?",
     "confirm_demote_message": "You're changing your own role away from Admin. You'll lose access to this screen until another admin restores it.",
     "confirm_demote_confirm": "Yes, change my role",
-    "confirm_demote_cancel": "Cancel"
+    "confirm_demote_cancel": "Cancel",
+    "banned": "Banned",
+    "ban": "Ban",
+    "unban": "Unban",
+    "delete": "Delete",
+    "cannot_self": "You can't ban or delete your own account.",
+    "reset_link": "Reset link",
+    "reset_link_hint": "Generate a password-reset link for this user and email it. The link is also shown here so you can hand it over directly if email doesn't arrive.",
+    "reset_link_sent": "Emailed — and here's the link in case it doesn't arrive:",
+    "reset_link_not_sent": "The email didn't send. Share this link with them directly:",
+    "reset_link_expiry": "This link expires in 1 hour and replaces any previous one.",
+    "confirm_delete_title": "Delete this account permanently?",
+    "confirm_delete_message": "This cannot be undone. Accounts with order, stock or cash history can't be deleted — ban them instead, which blocks sign-in immediately and keeps the audit trail.",
+    "error_action": "That action failed."
   },
   "customers_page": {
     "title": "Customers",
@@ -432,12 +457,22 @@
     "closed_at": "Closed at",
     "closed_by": "Closed by",
     "closing_order_count": "Orders",
-    "date_header": "Date"
+    "date_header": "Date",
+    "category_sale": "Sale ({{source}})",
+    "category_sale_plain": "Sale",
+    "category_sale_reversal": "Sale reversed (cancelled)",
+    "note_order": "Order #{{number}}",
+    "note_cancelled_order": "Cancelled order #{{number}}"
   },
   "nav_group_pipeline": "Pipeline",
   "language": "Language",
   "theme_light_mode": "Light mode",
   "theme_dark_mode": "Dark mode",
   "rail_collapse": "Collapse menu",
-  "rail_expand": "Expand menu"
+  "rail_expand": "Expand menu",
+  "receipt_labels": {
+    "customer": "Customer",
+    "phone": "Phone",
+    "address": "Address"
+  }
 }

@@ -23,7 +23,7 @@ import {
 import api from '../lib/api'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../lib/useAuth'
-import { Order, Product, ShopSettings } from '../lib/types'
+import { Order, OrderStatus, Product, ShopSettings } from '../lib/types'
 
 // Revamp follow-up: Recharts takes colours as props rather than classes, so
 // these never picked up the theme — they were hardcoded hex and stayed the old
@@ -71,6 +71,13 @@ const HOURS_PER_DAY = 24
 // The badge shows a live-ageing wait time, so it needs its own tick independent
 // of the 45s order poll — a minute is the smallest unit it displays.
 const STALE_TICK_MS = 30 * 1000
+// The board's live stages, in pipeline order. Terminal states and drafts are
+// deliberately absent — this panel is "what's moving", not a full board.
+const DASHBOARD_COLUMNS: OrderStatus[] = ['CREATED', 'IN_PROGRESS', 'ON_THE_WAY']
+// Enough to see the shape of the queue without the dashboard turning into a
+// second orders page; both panels link through for the full list.
+const DASHBOARD_COLUMN_LIMIT = 4
+const DASHBOARD_INVENTORY_LIMIT = 8
 const SOURCE_LABELS = ['in_premise', 'social', 'phone', 'whatsapp', 'cashier'] as const
 
 export default function Page() {
@@ -171,10 +178,26 @@ export default function Page() {
   }, [staleDrafts.length])
 
   const lowStockThresholdKg = shopSettings === null ? FALLBACK_LOW_STOCK_THRESHOLD_KG : Number(shopSettings.defaultLowStockThresholdKg)
-  const stockAlerts = products.filter(p => {
+  // Per-product override wins over the shop-wide default — same rule the
+  // Inventory page and the backend's lib/lowStock.ts apply.
+  function isLowStock(p: Product): boolean {
     const threshold = p.lowStockAlertKg === null || p.lowStockAlertKg === '' ? lowStockThresholdKg : Number(p.lowStockAlertKg)
     return Number(p.stockKg) < threshold
-  }).length
+  }
+  const stockAlerts = products.filter(isLowStock).length
+
+  // The three live stages, mirroring /orders. DRAFT and the two terminal
+  // states are excluded: this panel answers "what's moving right now".
+  const inProgressColumns = useMemo(() => {
+    const all = orders ?? []
+    return DASHBOARD_COLUMNS.map(status => ({ status, orders: all.filter(o => o.status === status) }))
+  }, [orders])
+
+  function itemsSummary(order: Order): string {
+    return order.items
+      .map(i => `${Number(i.kg).toFixed(3)}${t('new_order_page.kg_label')} ${i.product?.name ?? ''}`.trim())
+      .join(' · ')
+  }
   const hasAlerts = stockAlerts > 0
   const productCount = products.length
 
@@ -274,6 +297,98 @@ export default function Page() {
                 <span className="text-stone-500">{t(`orders_page.source_${s}`)}</span>
               </Link>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* v3.1 follow-up 10b — the two sections from the design mockup: a compact
+          read-only mirror of the orders board, and the inventory table. Both are
+          derived from data this page already fetches (`orders`, `products`), so
+          neither adds a request. Deliberately read-only and link-through: the
+          dashboard is a glance, and duplicating the board's actions here would
+          mean two places to keep in step. */}
+      {loggedIn && (
+        <div className="mt-6 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="text-base font-bold text-stone-900">{t('dashboard_page.orders_in_progress_title')}</h2>
+            <Link href="/orders" className="text-xs font-semibold text-brand-700 hover:underline">
+              {t('dashboard_page.go_to_orders')}
+            </Link>
+          </div>
+          {inProgressColumns.every(col => col.orders.length === 0) ? (
+            <p className="py-4 text-center text-sm text-stone-400">{t('dashboard_page.no_orders_in_progress')}</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {inProgressColumns.map(col => (
+                <div key={col.status}>
+                  <h3 className="mb-2 flex items-center gap-2">
+                    <span className="tabular flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-100 text-[11px] font-bold text-brand-800">
+                      {col.orders.length}
+                    </span>
+                    <span className="text-xs font-bold text-stone-700">
+                      {t(`orders_page.status_${col.status.toLowerCase()}`)}
+                    </span>
+                  </h3>
+                  <div className="space-y-2">
+                    {col.orders.slice(0, DASHBOARD_COLUMN_LIMIT).map(o => (
+                      <Link key={o.id} href="/orders"
+                        className="block rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 transition-colors hover:bg-surface">
+                        <p className="flex items-baseline gap-2 text-sm font-semibold text-stone-900">
+                          {o.dailyNumber !== null && <span className="tabular text-xs text-stone-400">#{o.dailyNumber}</span>}
+                          <span className="min-w-0 flex-1 truncate" title={o.customer ?? undefined}>
+                            {o.customer !== null && o.customer !== '' ? o.customer : t('orders_page.walk_in')}
+                          </span>
+                          <span className="tabular text-xs font-bold">{Number(o.totalAmount).toFixed(2)}</span>
+                        </p>
+                        <p className="truncate text-xs text-stone-500">{itemsSummary(o)}</p>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {products.length > 0 && (
+        <div className="mt-6 overflow-hidden rounded-xl border border-stone-200 bg-surface shadow-card">
+          <div className="flex items-center justify-between gap-2 p-5 pb-3">
+            <h2 className="text-base font-bold text-stone-900">{t('dashboard_page.inventory_title')}</h2>
+            <Link href="/inventory" className="text-xs font-semibold text-brand-700 hover:underline">
+              {t('dashboard_page.go_to_inventory')}
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-y border-stone-200 bg-stone-100 text-[11px] font-bold uppercase tracking-[0.08em] text-stone-500">
+                  <th className="px-5 py-2.5 text-start">{t('dashboard_page.col_product')}</th>
+                  <th className="w-32 px-5 py-2.5 text-end">{t('dashboard_page.col_in_stock')}</th>
+                  <th className="w-32 px-5 py-2.5 text-end">{t('dashboard_page.col_status')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {products.slice(0, DASHBOARD_INVENTORY_LIMIT).map(p => {
+                  const low = isLowStock(p)
+                  return (
+                    <tr key={p.id}>
+                      <td className="px-5 py-2.5 font-semibold text-stone-900" title={p.name}>{p.name}</td>
+                      <td className="tabular whitespace-nowrap px-5 py-2.5 text-end text-stone-700">
+                        {Number(p.stockKg).toFixed(1)} {p.unit}
+                      </td>
+                      <td className="px-5 py-2.5 text-end">
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          low ? 'bg-amber-50 text-amber-800' : 'bg-green-50 text-green-700'
+                        }`}>
+                          {low ? t('dashboard_page.status_low') : t('dashboard_page.status_healthy')}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

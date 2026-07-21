@@ -220,7 +220,10 @@ export default function NewOrderPage() {
             walkIn: t('orders_page.walk_in'),
             total: t('new_order_page.total'),
             receiptCode: t('new_order_page.receipt_code_label'),
-            kg: t('new_order_page.kg_label')
+            kg: t('new_order_page.kg_label'),
+            customer: t('receipt_labels.customer'),
+            phone: t('receipt_labels.phone'),
+            address: t('receipt_labels.address')
           }}
         />
         <div className="mx-auto mt-4 flex max-w-sm gap-3">

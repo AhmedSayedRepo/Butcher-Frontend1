@@ -16,6 +16,7 @@ import { ReactNode } from 'react'
 import { Manrope, IBM_Plex_Sans_Arabic, JetBrains_Mono } from 'next/font/google'
 import Sidebar from '../components/Sidebar'
 import AuthGate from '../components/AuthGate'
+import FieldTooltips from '../components/FieldTooltips'
 import { DEFAULT_THEME, THEME_INIT_SCRIPT } from '../lib/theme'
 
 // Self-hosted via next/font (downloaded at build time, served from our own
@@ -62,6 +63,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-screen bg-stone-50 font-sans text-stone-900 antialiased">
+        {/* Fills in a `title` tooltip on every form field app-wide — see the
+            component for why this is a DOM pass rather than a per-field edit. */}
+        <FieldTooltips />
         <div className="flex min-h-screen flex-col lg:flex-row">
           <Sidebar />
           <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">

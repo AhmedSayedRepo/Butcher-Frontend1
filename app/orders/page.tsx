@@ -30,6 +30,7 @@ import { extractApiErrorMessage } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import { Order, OrderStatus, Product, ShopSettings } from '../../lib/types'
 import Receipt from '../../components/Receipt'
+import { formatElapsed, minutesSince, statusEnteredAt } from '../../lib/elapsed'
 
 const COLUMNS: { status: OrderStatus, key: string }[] = [
   { status: 'CREATED', key: 'created' },
@@ -59,6 +60,10 @@ const NEXT_STATUSES: Partial<Record<OrderStatus, OrderStatus[]>> = {
   IN_PREMISE: ['COMPLETED']
 }
 
+// A minute is the smallest unit the timer displays, so a 30s tick is enough to
+// keep it honest without re-rendering the board constantly.
+const ELAPSED_TICK_MS = 30 * 1000
+
 export default function OrdersPage() {
   const { t } = useTranslation()
   const user = useAuth()
@@ -75,6 +80,13 @@ export default function OrdersPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null)
   const [printOrder, setPrintOrder] = useState<Order | null>(null)
+  // Ticks the on-the-way timers. Independent of the order fetch so the figure
+  // ages on screen instead of jumping whenever the board reloads.
+  const [nowMs, setNowMs] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => { setNowMs(Date.now()) }, ELAPSED_TICK_MS)
+    return () => { clearInterval(id) }
+  }, [])
 
   function load() {
     api.get<Order[]>('/api/orders')
@@ -125,6 +137,21 @@ export default function OrdersPage() {
     if (fresh !== undefined && fresh !== detailOrder) setDetailOrder(fresh)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-sync when `orders` changes; re-running on `detailOrder` itself would loop.
   }, [orders])
+
+  // `t` typed loosely for formatElapsed, which takes a plain (key, vars) fn so
+  // it stays testable without a translation runtime.
+  const tt = (key: string, vars?: Record<string, number>): string => t(key, vars ?? {})
+  const deliveryLabel = shopSettings?.deliveryNameLabel ?? t('orders_page.delivery_name_fallback')
+
+  function onTheWayMinutes(order: Order): number | null {
+    const at = statusEnteredAt(order, 'ON_THE_WAY')
+    return at === null ? null : minutesSince(at, nowMs)
+  }
+  function isOverdue(order: Order): boolean {
+    const mins = onTheWayMinutes(order)
+    const threshold = shopSettings?.pendingOrderAlertMinutes
+    return mins !== null && threshold !== undefined && mins >= threshold
+  }
 
   const drafts = orders.filter(o => o.status === 'DRAFT')
   const byColumn = (status: OrderStatus) => orders.filter(o => o.status === status)
@@ -229,6 +256,26 @@ export default function OrdersPage() {
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
           <OrderMeta order={order} />
         </div>
+        {/* How long this delivery has been out. Timed from the ON_THE_WAY
+            status event, not from createdAt — an order raised at 09:00 and
+            dispatched at 14:00 has been out since 14:00. Amber past the shop's
+            own pending-order threshold, so "too long" is the same number the
+            dashboard alerts on rather than a second hardcoded one. */}
+        {order.status === 'ON_THE_WAY' && onTheWayMinutes(order) !== null && (
+          <p className={`tabular mb-2 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold ${
+            isOverdue(order) ? 'bg-amber-50 text-amber-800' : 'bg-stone-100 text-stone-600'
+          }`}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+            </svg>
+            {formatElapsed(onTheWayMinutes(order) ?? 0, tt)}
+          </p>
+        )}
+        {order.deliveryName !== null && order.deliveryName !== undefined && order.deliveryName !== '' && (
+          <p className="mb-2 truncate text-xs text-stone-500" title={`${deliveryLabel}: ${order.deliveryName}`}>
+            <span className="font-semibold">{deliveryLabel}:</span> {order.deliveryName}
+          </p>
+        )}
         {canManageOrders && (nextOptions.length > 0 || order.status !== 'COMPLETED') && (
           // v3.1 follow-up: Cancel is no longer bundled behind "has a next
           // status" — previously that meant ON_THE_WAY/IN_PREMISE orders
@@ -305,11 +352,11 @@ export default function OrdersPage() {
       ) : (
         <>
           {drafts.length > 0 && (
-            <div className="mb-8">
-              {/* Same header treatment as the status columns below, so the
-                  board reads as one thing rather than a styled list sitting
+            <div className="mb-6 rounded-xl border border-stone-200 bg-stone-100/60 p-2.5">
+              {/* Same panel + header treatment as the status columns below, so
+                  the board reads as one thing rather than a styled list sitting
                   on top of a differently-styled board. */}
-              <h2 className="mb-3 flex items-center gap-2.5 border-b border-stone-200 pb-2">
+              <h2 className="mb-2.5 flex items-center gap-2.5 px-1 pb-2">
                 <span className="tabular flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-brand-100 text-xs font-bold text-brand-800">
                   {drafts.length}
                 </span>
@@ -327,7 +374,12 @@ export default function OrdersPage() {
                     tabIndex={0}
                     onClick={() => setDetailOrder(o)}
                     onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOrder(o) } }}
-                    className="cursor-pointer rounded-lg border border-dashed border-stone-300 bg-stone-50 p-3 transition-colors hover:border-brand-400 hover:bg-surface"
+                    // Identical styling to the status-column cards. It used to
+                    // be dashed-on-grey to signal "not real yet", but sitting on
+                    // the same board as five columns of solid cards it just read
+                    // as broken. The Draft column header and the Confirm button
+                    // already say it's a draft.
+                    className="cursor-pointer rounded-lg border border-stone-200 bg-surface p-3 shadow-card transition-shadow hover:shadow-card-hover"
                   >
                     <div className="mb-1.5 flex items-baseline gap-2">
                       {o.dailyNumber !== null && (
@@ -367,15 +419,15 @@ export default function OrdersPage() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {COLUMNS.map(col => (
-              <div key={col.status}>
-                {/* Column header, built the way qa-studio's `ui.sec_head` builds
-                    section headings: a square count chip in the brand's soft
-                    tint, then the title in bold ink. The previous version was a
-                    muted uppercase label with the count floated to the far right
-                    — at a glance it read as body text rather than a header, and
-                    the count was visually detached from what it counted. The
-                    rule underneath separates each column from its cards. */}
-                <h2 className="mb-3 flex items-center gap-2.5 border-b border-stone-200 pb-2">
+              // Each column is its own panel. The headers used to be bare <h2>s
+              // sitting directly on the page background, which made them read as
+              // one detached strip across the top of the board rather than as
+              // five headers each belonging to the column under it — the header
+              // and its cards had nothing visually tying them together.
+              <div key={col.status} className="rounded-xl border border-stone-200 bg-stone-100/60 p-2.5">
+                {/* Count chip + bold title, the way qa-studio's `ui.sec_head`
+                    builds section headings. */}
+                <h2 className="mb-2.5 flex items-center gap-2.5 px-1 pb-2">
                   <span className="tabular flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-brand-100 text-xs font-bold text-brand-800">
                     {byColumn(col.status).length}
                   </span>
@@ -405,7 +457,10 @@ export default function OrdersPage() {
               walkIn: t('orders_page.walk_in'),
               total: t('new_order_page.total'),
               receiptCode: t('new_order_page.receipt_code_label'),
-              kg: t('new_order_page.kg_label')
+              kg: t('new_order_page.kg_label'),
+              customer: t('receipt_labels.customer'),
+              phone: t('receipt_labels.phone'),
+              address: t('receipt_labels.address')
             }}
           />
         </div>
@@ -423,6 +478,12 @@ export default function OrdersPage() {
           products={products}
           onPrint={() => printReceipt(detailOrder)}
           onDeleted={() => { setDetailOrder(null); load() }}
+          deliveryLabel={deliveryLabel}
+          elapsedLabel={
+            detailOrder.status === 'ON_THE_WAY' && onTheWayMinutes(detailOrder) !== null
+              ? formatElapsed(onTheWayMinutes(detailOrder) ?? 0, tt)
+              : null
+          }
         />
       )}
     </div>
@@ -435,7 +496,7 @@ export default function OrdersPage() {
 // backend guard in routes/orders.ts's PATCH /:id/status).
 function OrderDetailModal({
   order, canManageOrders, busy, onClose, onAdvance, onCancel, onReload,
-  products, onPrint, onDeleted
+  products, onPrint, onDeleted, deliveryLabel, elapsedLabel
 }: {
   order: Order
   canManageOrders: boolean
@@ -447,6 +508,8 @@ function OrderDetailModal({
   products: Product[]
   onPrint: () => void
   onDeleted: () => void
+  deliveryLabel: string
+  elapsedLabel: string | null
 }) {
   const { t } = useTranslation()
   const [scanCode, setScanCode] = useState('')
@@ -461,6 +524,7 @@ function OrderDetailModal({
   const [editCustomer, setEditCustomer] = useState('')
   const [editAddress, setEditAddress] = useState('')
   const [editItems, setEditItems] = useState<{ productId: string, kg: string }[]>([])
+  const [editDeliveryName, setEditDeliveryName] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -468,6 +532,7 @@ function OrderDetailModal({
   function startEditing() {
     setEditCustomer(order.customer ?? '')
     setEditAddress(order.deliveryAddress ?? '')
+    setEditDeliveryName(order.deliveryName ?? '')
     setEditItems(order.items.map(i => ({ productId: i.productId, kg: Number(i.kg).toFixed(3) })))
     setSaveError(null)
     setEditing(true)
@@ -496,6 +561,7 @@ function OrderDetailModal({
       await api.patch(`/api/orders/${order.id}`, {
         customer: editCustomer.trim() === '' ? null : editCustomer.trim(),
         deliveryAddress: editAddress.trim() === '' ? null : editAddress.trim(),
+        deliveryName: editDeliveryName.trim() === '' ? null : editDeliveryName.trim(),
         items
       })
       setEditing(false)
@@ -599,6 +665,10 @@ function OrderDetailModal({
               <label className="mb-1 block text-xs font-semibold text-stone-600">{t('new_order_page.delivery_address_label')}</label>
               <textarea value={editAddress} onChange={e => setEditAddress(e.target.value)} rows={2} />
             </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-stone-600">{deliveryLabel}</label>
+              <input value={editDeliveryName} onChange={e => setEditDeliveryName(e.target.value)} autoComplete="off" />
+            </div>
 
             <div className="rounded-lg border border-stone-200">
               <ul className="divide-y divide-stone-100">
@@ -697,6 +767,18 @@ function OrderDetailModal({
             <dl className="mb-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
               <dt className="text-stone-500">{t('orders_page.payment_method_label')}</dt>
               <dd className="text-stone-700">{order.paymentMethod}</dd>
+              {order.deliveryName !== null && order.deliveryName !== undefined && order.deliveryName !== '' && (
+                <>
+                  <dt className="text-stone-500">{deliveryLabel}</dt>
+                  <dd className="text-stone-700">{order.deliveryName}</dd>
+                </>
+              )}
+              {elapsedLabel !== null && (
+                <>
+                  <dt className="text-stone-500">{t('orders_page.on_the_way_for')}</dt>
+                  <dd className="tabular font-semibold text-stone-700">{elapsedLabel}</dd>
+                </>
+              )}
               {order.receiptCode !== null && order.receiptCode !== '' && (
                 <>
                   <dt className="text-stone-500">{t('new_order_page.receipt_code_label')}</dt>

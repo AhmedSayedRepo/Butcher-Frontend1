@@ -127,6 +127,8 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<ShopSettings | null>(null)
   const [minutes, setMinutes] = useState('')
   const [soundEnabled, setSoundEnabled] = useState(true)
+  // v3.1 follow-up 10b: what this shop calls whoever takes a delivery out.
+  const [deliveryLabel, setDeliveryLabel] = useState('Delivery')
   const [thresholdKg, setThresholdKg] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -138,6 +140,7 @@ export default function SettingsPage() {
       setSettings(r.data)
       setMinutes(String(r.data.pendingOrderAlertMinutes))
       setSoundEnabled(r.data.alertSoundEnabled)
+      setDeliveryLabel(r.data.deliveryNameLabel)
       setThresholdKg(String(r.data.defaultLowStockThresholdKg))
     }).catch(() => setSettings(null))
   }, [isAdmin])
@@ -163,7 +166,8 @@ export default function SettingsPage() {
       const r = await api.patch<ShopSettings>('/api/shop-settings', {
         pendingOrderAlertMinutes: minutesValue,
         alertSoundEnabled: soundEnabled,
-        defaultLowStockThresholdKg: thresholdValue
+        defaultLowStockThresholdKg: thresholdValue,
+        deliveryNameLabel: deliveryLabel.trim() === '' ? undefined : deliveryLabel.trim()
       })
       setSettings(r.data)
       setSaved(true)
@@ -235,6 +239,13 @@ export default function SettingsPage() {
                     <span className="text-sm text-stone-500">{t('admin_page.minutes')}</span>
                   </div>
                   <p className="mt-1 text-xs text-stone-400">{t('settings_page.pending_order_minutes_hint')}</p>
+                </label>
+
+                <label>
+                  <span className={labelClasses}>{t('settings_page.delivery_name_label')}</span>
+                  <input className={inputClasses} value={deliveryLabel}
+                    onChange={e => setDeliveryLabel(e.target.value)} />
+                  <p className="mt-1 text-xs text-stone-400">{t('settings_page.delivery_name_hint')}</p>
                 </label>
 
                 <label className="flex items-center gap-2">

@@ -561,6 +561,9 @@ body {
   margin: 0 auto;
   max-width: 100%;
 }
+.receipt-label {
+  font-weight: 700;
+}
 .receipt-code-text {
   margin-top: calc(1mm * var(--receipt-scale));
   font-size: calc(10px * var(--receipt-scale));
@@ -568,6 +571,15 @@ body {
 }
 
 @media print {
+  /* Kills Chrome's own page header/footer — the date top-left and the document
+     title ("Butcher Cashier") top-centre that were printing above the slip.
+     `size: auto` keeps the paper size the printer/driver chose; only the page
+     margin is zeroed, which is what suppresses those. */
+  @page {
+    size: auto;
+    margin: 0;
+  }
+
   body * {
     visibility: hidden;
   }

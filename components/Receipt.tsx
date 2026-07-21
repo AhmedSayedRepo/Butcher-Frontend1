@@ -40,6 +40,9 @@ export default function Receipt({
     total: string
     receiptCode: string
     kg: string
+    customer: string
+    phone: string
+    address: string
   }
 }) {
   const widthMm = settings?.receiptWidthMm ?? DEFAULT_WIDTH_MM
@@ -57,6 +60,13 @@ export default function Receipt({
     customer: settings?.receiptShowCustomer ?? true,
     customerAddress: settings?.receiptShowAddressOfCustomer ?? false,
   }
+
+  // Per-order values win over the linked Customer record: a one-off delivery
+  // address for this order is more correct than the customer's usual one.
+  const nonEmpty = (v: string | null | undefined): string | null =>
+    v === null || v === undefined || v === '' ? null : v
+  const customerPhone = nonEmpty(order.customerRecord?.phone)
+  const customerAddress = nonEmpty(order.deliveryAddress) ?? nonEmpty(order.customerRecord?.address)
 
   return (
     <div
@@ -95,11 +105,30 @@ export default function Receipt({
         {show.orderNo && order.dailyNumber !== null && (
           <p className="receipt-meta tabular">#{order.dailyNumber}</p>
         )}
+        {/* Labelled, so a bare line of Arabic text isn't ambiguous between the
+            customer's name, the shop's address and a note. The label comes from
+            the caller's `labels`, i.e. from i18n, so it follows the UI language.
+            Phone and address fall back to the linked Customer record when the
+            order itself doesn't carry them (a walk-in linked to a real customer
+            has no per-order deliveryAddress). */}
         {show.customer && (
-          <p className="receipt-meta">{order.customer !== null && order.customer !== '' ? order.customer : labels.walkIn}</p>
+          <p className="receipt-meta">
+            <span className="receipt-label">{labels.customer}:</span>{' '}
+            {order.customer !== null && order.customer !== ''
+              ? order.customer
+              : order.customerRecord?.name ?? labels.walkIn}
+          </p>
         )}
-        {show.customerAddress && order.deliveryAddress !== null && order.deliveryAddress !== '' && (
-          <p className="receipt-meta">{order.deliveryAddress}</p>
+        {show.customer && customerPhone !== null && (
+          <p className="receipt-meta">
+            <span className="receipt-label">{labels.phone}:</span>{' '}
+            <span className="tabular">{customerPhone}</span>
+          </p>
+        )}
+        {show.customerAddress && customerAddress !== null && (
+          <p className="receipt-meta">
+            <span className="receipt-label">{labels.address}:</span> {customerAddress}
+          </p>
         )}
         {show.dateTime && (
           <p className="receipt-meta tabular">{new Date(order.createdAt).toLocaleString()}</p>

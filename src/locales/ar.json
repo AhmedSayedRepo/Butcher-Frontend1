@@ -93,7 +93,15 @@
     "wait_minutes": "{{count}} دقيقة",
     "wait_hours": "{{count}} ساعة",
     "wait_hours_minutes": "{{hours}} ساعة و{{minutes}} دقيقة",
-    "wait_days": "{{count}} يوم"
+    "wait_days": "{{count}} يوم",
+    "orders_in_progress_title": "الطلبات قيد التنفيذ",
+    "inventory_title": "المخزون",
+    "col_product": "المنتج",
+    "col_in_stock": "المتوفر",
+    "col_status": "الحالة",
+    "status_low": "مخزون منخفض",
+    "status_healthy": "جيد",
+    "no_orders_in_progress": "لا يوجد قيد التنفيذ"
   },
   "orders_page": {
     "please_login": "يرجى تسجيل الدخول لعرض الطلبات.",
@@ -133,7 +141,9 @@
     "confirm_delete_draft": "حذف هذه المسودة نهائيًا؟ لم يتم تأكيدها، لذا لن يتأثر المخزون أو النقدية.",
     "error_edit_draft": "تعذّر حفظ المسودة.",
     "error_delete_draft": "تعذّر حذف المسودة.",
-    "error_draft_needs_item": "يجب أن تحتوي المسودة على عنصر واحد على الأقل."
+    "error_draft_needs_item": "يجب أن تحتوي المسودة على عنصر واحد على الأقل.",
+    "delivery_name_fallback": "التوصيل",
+    "on_the_way_for": "في الطريق منذ"
   },
   "new_order_page": {
     "title": "طلب جديد",
@@ -315,7 +325,9 @@
       "field_receiptShowItems": "جدول الأصناف",
       "field_receiptShowCustomer": "اسم العميل",
       "field_receiptShowAddressOfCustomer": "عنوان التوصيل"
-    }
+    },
+    "delivery_name_label": "مسمّى مندوب التوصيل",
+    "delivery_name_hint": "ما يسميه متجرك لمن يخرج بالطلب — سائق، مندوب، توصيل. يظهر على لوحة الطلبات وفي تفاصيل الطلب، ولا يُطبع على الإيصال أبدًا."
   },
   "admin_users_page": {
     "title": "إدارة المستخدمين",
@@ -350,7 +362,20 @@
     "confirm_demote_title": "إزالة صلاحية المسؤول الخاصة بك؟",
     "confirm_demote_message": "أنت بصدد تغيير دورك الخاص من مسؤول إلى دور آخر. ستفقد الوصول إلى هذه الشاشة حتى يقوم مسؤول آخر باستعادته.",
     "confirm_demote_confirm": "نعم، غيّر دوري",
-    "confirm_demote_cancel": "إلغاء"
+    "confirm_demote_cancel": "إلغاء",
+    "banned": "محظور",
+    "ban": "حظر",
+    "unban": "إلغاء الحظر",
+    "delete": "حذف",
+    "cannot_self": "لا يمكنك حظر أو حذف حسابك الخاص.",
+    "reset_link": "رابط إعادة التعيين",
+    "reset_link_hint": "إنشاء رابط إعادة تعيين كلمة المرور لهذا المستخدم وإرساله بالبريد. يظهر الرابط هنا أيضًا لتسليمه مباشرة إذا لم يصل البريد.",
+    "reset_link_sent": "تم الإرسال بالبريد — وهذا الرابط في حال لم يصل:",
+    "reset_link_not_sent": "لم يتم إرسال البريد. شارك هذا الرابط معه مباشرة:",
+    "reset_link_expiry": "تنتهي صلاحية هذا الرابط خلال ساعة ويُلغي أي رابط سابق.",
+    "confirm_delete_title": "حذف هذا الحساب نهائيًا؟",
+    "confirm_delete_message": "لا يمكن التراجع عن هذا. الحسابات التي لها سجل طلبات أو مخزون أو نقدية لا يمكن حذفها — احظرها بدلًا من ذلك، فهذا يمنع تسجيل الدخول فورًا ويحافظ على سجل التدقيق.",
+    "error_action": "فشل تنفيذ الإجراء."
   },
   "customers_page": {
     "title": "العملاء",
@@ -432,12 +457,22 @@
     "closed_at": "وقت الإغلاق",
     "closed_by": "أُغلق بواسطة",
     "closing_order_count": "الطلبات",
-    "date_header": "التاريخ"
+    "date_header": "التاريخ",
+    "category_sale": "بيع ({{source}})",
+    "category_sale_plain": "بيع",
+    "category_sale_reversal": "عكس بيع (ملغى)",
+    "note_order": "طلب #{{number}}",
+    "note_cancelled_order": "طلب ملغى #{{number}}"
   },
   "nav_group_pipeline": "سير العمل",
   "language": "اللغة",
   "theme_light_mode": "الوضع الفاتح",
   "theme_dark_mode": "الوضع الداكن",
   "rail_collapse": "طيّ القائمة",
-  "rail_expand": "توسيع القائمة"
+  "rail_expand": "توسيع القائمة",
+  "receipt_labels": {
+    "customer": "العميل",
+    "phone": "الهاتف",
+    "address": "العنوان"
+  }
 }
