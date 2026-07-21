@@ -451,6 +451,18 @@ export default function OrdersPage() {
                     <div className="mb-2 flex flex-wrap items-center gap-1.5">
                       <OrderMeta order={o} />
                     </div>
+                    {/* v3.2: items the parser couldn't price. Shown BEFORE the
+                        raw message and in amber, because the whole failure mode
+                        here is a draft that looks complete and isn't — staff
+                        had no reason to re-read the message, so they didn't. */}
+                    {typeof o.unmatchedItems === 'string' && o.unmatchedItems !== '' && (
+                      <div className="mb-2 rounded-lg border border-amber-200 bg-amber-50 p-2">
+                        <p className="mb-0.5 text-[11px] font-bold text-amber-900">
+                          {t('orders_page.unmatched_title')}
+                        </p>
+                        <p className="whitespace-pre-line text-xs text-amber-800">{o.unmatchedItems}</p>
+                      </div>
+                    )}
                     {o.customerMessage && (
                       <p className="mb-2 line-clamp-2 text-xs italic text-stone-500" title={o.customerMessage}>&ldquo;{o.customerMessage}&rdquo;</p>
                     )}
@@ -713,6 +725,13 @@ function OrderDetailModal({
           <OrderMetaStandalone order={order} />
         </div>
 
+        {typeof order.unmatchedItems === 'string' && order.unmatchedItems !== '' && (
+          <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <p className="mb-1 text-xs font-bold text-amber-900">{t('orders_page.unmatched_title')}</p>
+            <p className="mb-1.5 whitespace-pre-line text-sm text-amber-800">{order.unmatchedItems}</p>
+            <p className="text-[11px] text-amber-700">{t('orders_page.unmatched_hint')}</p>
+          </div>
+        )}
         {order.customerMessage && (
           <p className="mb-3 rounded-lg bg-stone-50 p-2 text-xs italic text-stone-600">&ldquo;{order.customerMessage}&rdquo;</p>
         )}

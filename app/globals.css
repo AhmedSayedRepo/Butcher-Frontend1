@@ -724,12 +724,41 @@ body {
   transition-duration: 0.06s;
 }
 
+/* The compact variant, for cards inside a card: the dashboard's mirror of the
+   orders board, the pending-by-source chips. Same gesture, scaled down —
+   a 4px lift on a 56px-tall tile reads as the tile jumping rather than
+   responding, and the dashboard shows a dozen of them in a grid where a
+   mouse crossing diagonally would set off a ripple.
+
+   It also raises the background instead of only the shadow: these sit on
+   stone-50 inside a white card, so lifting to the surface colour is the
+   change the eye actually catches at this size. */
+.card-hover-sm {
+  transition: transform 0.14s cubic-bezier(0.16, 0.8, 0.24, 1),
+    box-shadow 0.14s ease,
+    border-color 0.14s ease,
+    background-color 0.14s ease;
+}
+.card-hover-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+  border-color: rgb(var(--brand-300));
+  background-color: rgb(var(--surface));
+}
+.card-hover-sm:active {
+  transform: translateY(0);
+  transition-duration: 0.06s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card-hover,
   .card-hover:hover,
-  .card-hover:active {
+  .card-hover:active,
+  .card-hover-sm,
+  .card-hover-sm:hover,
+  .card-hover-sm:active {
     transform: none;
-    transition: box-shadow 0.16s ease, border-color 0.16s ease;
+    transition: box-shadow 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
   }
 }
 

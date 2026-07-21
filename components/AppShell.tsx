@@ -3,6 +3,8 @@ import { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
 import AuthGate from './AuthGate'
+import IdleLogout from './IdleLogout'
+import InboundOrderAlert from './InboundOrderAlert'
 import { PUBLIC_PATHS } from '../lib/publicPaths'
 
 // v3.1 follow-up 10i — two chromes, one layout.
@@ -40,6 +42,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         <AuthGate>{children}</AuthGate>
       </main>
+      {/* Only inside the app. On the login page there's no session to time out,
+          and a countdown over a sign-in form would be baffling. */}
+      <IdleLogout />
+      {/* Announces inbound orders on every screen, not just the dashboard —
+          the cashier is on the board or the new-order form, which is exactly
+          where the old stale-draft alert wasn't. */}
+      <InboundOrderAlert />
     </div>
   )
 }

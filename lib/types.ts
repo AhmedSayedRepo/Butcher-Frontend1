@@ -51,6 +51,9 @@ export type Order = {
   // v3 replan (Phase I.2): raw inbound text for WhatsApp-originated drafts,
   // null for every other order.
   customerMessage: string | null
+  // v3.2 — parts of an inbound message that matched no product, newline
+  // separated. Null when everything matched (or the order wasn't parsed).
+  unmatchedItems?: string | null
   // v3 replan (Phase H — CRM): optional link to a Customer record.
   customerId: string | null
   // v3 replan (Phase I.3 — phone delivery orders).

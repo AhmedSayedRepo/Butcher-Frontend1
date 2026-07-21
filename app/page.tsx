@@ -18,7 +18,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import {
-  ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
+  ResponsiveContainer, AreaChart, Area, BarChart, Bar, LabelList,
+  XAxis, YAxis, CartesianGrid, Tooltip
 } from 'recharts'
 import api from '../lib/api'
 import PageHeader from '../components/PageHeader'
@@ -45,13 +46,52 @@ const CHART = {
   // the stronger ink colour rather than the muted tick grey — at 11px muted
   // they were close to unreadable, especially the Arabic product names on the
   // bar chart's category axis.
-  tooltip: {
-    background: 'var(--chart-tooltip-bg)',
-    border: '1px solid var(--chart-axis)',
-    borderRadius: 'var(--radius-card)',
-    color: 'var(--chart-ink)',
-  },
+  tooltipBg: 'var(--chart-tooltip-bg)',
 } as const
+
+// v3.2 — the charts were correct and plain: a 2px line on a full crosshatch
+// grid, and a bar chart whose values you had to read off an axis. Both now
+// look like the rest of the app rather than like Recharts' defaults.
+//
+// The changes are not only cosmetic. The revenue panel gained the total for
+// the period and its change against the period before, because a trend line
+// answers "which direction" and never "how much" — the number everyone
+// actually asks for was the one number not on screen. The bar chart prints
+// each weight on its own row and drops the axis, which is strictly less ink
+// for strictly more information.
+const BAR_RADIUS: [number, number, number, number] = [4, 4, 4, 4]
+const THOUSAND = 1000
+const PERCENT = 100
+const ONE_DECIMAL = 1
+
+// Axis labels: 12,400 becomes 12.4k. At 11px, a five-digit figure repeated
+// down a Y axis is most of what the eye lands on, and none of it is the
+// point of the chart.
+function compactNumber(value: number): string {
+  if (Math.abs(value) < THOUSAND) return String(Math.round(value))
+  return `${(value / THOUSAND).toFixed(ONE_DECIMAL)}k`
+}
+
+interface TooltipPayloadEntry { value: number }
+interface ChartTooltipProps {
+  active?: boolean
+  label?: string | number
+  payload?: TooltipPayloadEntry[]
+  format: (value: number) => string
+}
+
+// A component rather than `contentStyle`, so the tooltip picks up the app's
+// card shadow and type scale instead of Recharts' default panel — which is a
+// 1px box with 12px system text and looks like a different product.
+function ChartTooltip({ active, label, payload, format }: ChartTooltipProps) {
+  if (active !== true || payload === undefined || payload.length === 0) return null
+  return (
+    <div className="rounded-lg border border-stone-200 bg-surface px-3 py-2 shadow-card">
+      <p className="text-[11px] font-medium text-stone-500">{label}</p>
+      <p className="tabular text-sm font-bold text-stone-900">{format(payload[0].value)}</p>
+    </div>
+  )
+}
 
 // v3.1 follow-up 5 (Settings page): fallback only — the real value now
 // comes from ShopSettings.defaultLowStockThresholdKg (editable at
@@ -259,6 +299,27 @@ export default function Page() {
     return days
   }, [nonCancelled, rangeDays])
 
+  // Total for the visible window, and how it compares with the window
+  // immediately before it. `deltaPercent` is null when the previous period had
+  // no revenue at all — the honest answer there is "no comparison", not
+  // "+100%" or "+∞", both of which a new shop would see on its second week and
+  // reasonably take for a bug.
+  const revenueTrend = useMemo(() => {
+    const total = revenueByDay.reduce((sum, day) => sum + day.revenue, 0)
+    const windowStart = Date.now() - rangeDays * MS_PER_DAY
+    const previousStart = windowStart - rangeDays * MS_PER_DAY
+    const previous = nonCancelled
+      .filter(o => {
+        const at = new Date(o.createdAt).getTime()
+        return at >= previousStart && at < windowStart
+      })
+      .reduce((sum, o) => sum + Number(o.totalAmount), 0)
+    return {
+      total,
+      deltaPercent: previous === 0 ? null : ((total - previous) / previous) * PERCENT
+    }
+  }, [revenueByDay, nonCancelled, rangeDays])
+
   const topProducts = useMemo(() => {
     const nameById = new Map(products.map(p => [p.id, p.name]))
     const kgById = new Map<string, number>()
@@ -332,7 +393,7 @@ export default function Page() {
           <div className="flex flex-wrap gap-3">
             {SOURCE_LABELS.filter(s => (draftsBySource.get(s) ?? 0) > 0).map(s => (
               <Link key={s} href="/orders"
-                className="flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm hover:bg-stone-100">
+                className="card-hover-sm flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm">
                 <span className="font-medium text-stone-900">{draftsBySource.get(s)}</span>
                 <span className="text-stone-500">{t(`orders_page.source_${s}`)}</span>
               </Link>
@@ -376,8 +437,11 @@ export default function Page() {
                   </h3>
                   <div className="space-y-2">
                     {col.orders.slice(0, DASHBOARD_COLUMN_LIMIT).map(o => (
+                      // v3.2: same hover gesture as the rest of the app, in
+                      // the compact variant — these are cards inside a card,
+                      // and a dozen of them in a grid.
                       <Link key={o.id} href="/orders"
-                        className="block rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 transition-colors hover:bg-surface">
+                        className="card-hover-sm block rounded-lg border border-stone-200 bg-stone-50 px-3 py-2">
                         <p className="flex items-baseline gap-2 text-sm font-semibold text-stone-900">
                           {o.dailyNumber !== null && <span className="tabular text-xs text-stone-400">#{o.dailyNumber}</span>}
                           <span className="min-w-0 flex-1 truncate" title={o.customer ?? undefined}>
@@ -507,8 +571,31 @@ export default function Page() {
       {loggedIn && orders !== null && orders.length > 0 && (
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-stone-900">{t('dashboard_page.revenue_chart_title')}</h2>
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-stone-500">{t('dashboard_page.revenue_chart_title')}</h2>
+                {/* The headline the chart was missing. A trend line answers
+                    "which way", never "how much" — you had to read values off
+                    an axis to get the one number anyone asks for. */}
+                <div className="mt-1 flex items-baseline gap-2">
+                  <p className="tabular text-2xl font-extrabold tracking-tight text-stone-900">
+                    {revenueTrend.total.toFixed(2)}
+                  </p>
+                  {revenueTrend.deltaPercent !== null && (
+                    <span className={`tabular inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-bold ${
+                      revenueTrend.deltaPercent >= 0
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'bg-amber-50 text-amber-800'
+                    }`}>
+                      {revenueTrend.deltaPercent >= 0 ? '▲' : '▼'}
+                      {Math.abs(revenueTrend.deltaPercent).toFixed(0)}%
+                    </span>
+                  )}
+                </div>
+                <p className="mt-0.5 text-xs text-stone-400">
+                  {t('dashboard_page.vs_previous_period', { count: rangeDays })}
+                </p>
+              </div>
               <div className="flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs font-medium">
                 {RANGE_OPTIONS.map(d => (
                   <button key={d} onClick={() => setRangeDays(d)}
@@ -518,29 +605,75 @@ export default function Page() {
                 ))}
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={revenueByDay}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />
-                <XAxis dataKey="label" tick={{ fontSize: 13, fill: CHART.ink, fontWeight: 600 }} tickLine={false} axisLine={{ stroke: CHART.axis }} />
-                <YAxis tick={{ fontSize: 13, fill: CHART.ink, fontWeight: 600 }} tickLine={false} axisLine={false} width={40} />
-                <Tooltip formatter={(value: number) => value.toFixed(2)} contentStyle={CHART.tooltip} labelStyle={{ color: CHART.ink }} />
-                <Line type="monotone" dataKey="revenue" stroke={CHART.series} strokeWidth={2} dot={false} />
-              </LineChart>
+            {/* v3.2: area with a gradient fade rather than a bare 2px line.
+                The filled shape carries the magnitude, which a hairline
+                doesn't, and it survives the small size these render at on a
+                phone. Horizontal grid only — vertical lines on a time axis
+                are decoration; nobody reads a date off a gridline. */}
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={revenueByDay} margin={{ top: 4, right: 4, left: -18, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CHART.series} stopOpacity={0.28} />
+                    <stop offset="100%" stopColor={CHART.series} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} strokeDasharray="4 6" stroke={CHART.grid} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: CHART.tick, fontWeight: 600 }}
+                  tickLine={false} axisLine={false} interval="preserveStartEnd" minTickGap={16} />
+                <YAxis tick={{ fontSize: 11, fill: CHART.tick, fontWeight: 600 }}
+                  tickLine={false} axisLine={false} width={52} tickFormatter={compactNumber} />
+                <Tooltip
+                  cursor={{ stroke: CHART.axis, strokeWidth: 1 }}
+                  content={<ChartTooltip format={(value) => value.toFixed(2)} />}
+                />
+                <Area type="monotone" dataKey="revenue" stroke={CHART.series} strokeWidth={2.5}
+                  fill="url(#revenueFill)"
+                  // No dots at rest — thirty of them on a 30-day range is
+                  // clutter. One appears under the cursor, which is when a
+                  // specific day is actually being asked about.
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 2, stroke: CHART.tooltipBg, fill: CHART.series }} />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
 
           <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
-            <h2 className="mb-3 text-sm font-semibold text-stone-900">{t('dashboard_page.top_products_chart_title')}</h2>
+            <h2 className="text-sm font-semibold text-stone-500">{t('dashboard_page.top_products_chart_title')}</h2>
+            <p className="mt-0.5 mb-3 text-xs text-stone-400">{t('dashboard_page.top_products_subtitle')}</p>
             {topProducts.length === 0 ? (
-              <div className="flex h-[220px] items-center justify-center text-sm text-stone-400">{t('dashboard_page.no_sales_yet')}</div>
+              <div className="flex h-[200px] items-center justify-center text-sm text-stone-400">{t('dashboard_page.no_sales_yet')}</div>
             ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={topProducts} layout="vertical" margin={{ left: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 13, fill: CHART.ink, fontWeight: 600 }} tickLine={false} axisLine={{ stroke: CHART.axis }} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 13, fill: CHART.ink, fontWeight: 600 }} tickLine={false} axisLine={false} width={110} />
-                  <Tooltip formatter={(value: number) => `${value} kg`} contentStyle={CHART.tooltip} labelStyle={{ color: CHART.ink }} />
-                  <Bar dataKey="kg" fill={CHART.series} radius={[0, 4, 4, 0]} />
+              // Ranked bars with the figure printed on the bar. Reading a
+              // weight off an axis was always a worse way to answer "how much
+              // lamb" than simply writing it down, so the axis is gone and the
+              // number moved onto the row. The unfilled track behind each bar
+              // shows the share of the leader at a glance.
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={topProducts} layout="vertical" barCategoryGap="22%"
+                  margin={{ top: 0, right: 44, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="topProductFill" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor={CHART.series} stopOpacity={0.55} />
+                      <stop offset="100%" stopColor={CHART.series} stopOpacity={1} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis type="number" hide />
+                  <YAxis type="category" dataKey="name" width={104}
+                    tick={{ fontSize: 12, fill: CHART.ink, fontWeight: 600 }}
+                    tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{ fill: CHART.grid, opacity: 0.5 }}
+                    content={<ChartTooltip format={(value) => `${value} ${t('new_order_page.kg_label')}`} />} />
+                  {/* The track takes no radius: Recharts types `background`
+                      as a plain Rectangle whose `radius` must satisfy both
+                      the tuple and `number`, which nothing can. Square ends
+                      on a 20px-tall track behind a 4px-rounded bar is not a
+                      difference anyone will see. */}
+                  <Bar dataKey="kg" fill="url(#topProductFill)" radius={BAR_RADIUS}
+                    background={{ fill: CHART.grid }} isAnimationActive={false}>
+                    <LabelList dataKey="kg" position="right" offset={8}
+                      style={{ fill: CHART.ink, fontSize: 12, fontWeight: 700 }} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}

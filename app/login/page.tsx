@@ -13,8 +13,9 @@
 // shop's staff ever sees. On a phone the branded half collapses to a compact
 // header so the form is still the first thing under the thumb.
 'use client'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
 import { translateApiError } from '../../lib/apiError'
@@ -23,12 +24,30 @@ import ThemeToggle from '../../components/ThemeToggle'
 
 const HIGHLIGHT_KEYS = ['orders', 'stock', 'cash'] as const
 
+// `useSearchParams` opts the component into client-side rendering, and Next
+// requires a Suspense boundary around it or the production build fails while
+// prerendering this page. Same wrapper pattern as app/set-password/page.tsx.
+//
+// `fallback={null}` rather than a spinner: the search param only decides
+// whether one advisory banner shows, so there is nothing worth flashing a
+// loading state for.
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  // Read from the URL rather than held in state: the idle logout does a hard
+  // navigation, so there is no surviving React state to carry the reason.
+  const idleTimedOut = useSearchParams().get('idle') === '1'
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -120,6 +139,15 @@ export default function LoginPage() {
           <div className="w-full max-w-sm">
             <h2 className="mb-1 text-2xl font-bold tracking-tight text-stone-900">{t('login_page.title')}</h2>
             <p className="mb-7 text-sm text-stone-500">{t('login_page.subtitle')}</p>
+
+            {/* Idle logout sends `?idle=1`. Without this the user just finds
+                themselves back at a login screen with no explanation, which
+                reads as a bug and generates a support call. */}
+            {idleTimedOut && (
+              <div className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+                {t('idle.signed_out')}
+              </div>
+            )}
 
             {error !== null && (
               <div className="mb-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">

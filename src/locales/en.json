@@ -22,55 +22,183 @@
   },
   "help_page": {
     "title": "Help & Guide",
-    "intro": "A quick guide to using Butcher Cashier.",
-    "sections": [
+    "intro": "How the app works, and the things that aren't obvious until someone tells you.",
+    "search_placeholder": "Search the guide…",
+    "all": "All",
+    "no_results": "Nothing matches that. Try a different word — or the name of the screen you're on.",
+    "results_count": "{{count}} topics",
+    "clear": "Clear",
+    "tip_label": "Worth knowing",
+    "categories": {
+      "daily": "Everyday work",
+      "money": "Money",
+      "stock": "Stock & carcasses",
+      "channels": "Orders from outside the shop",
+      "admin": "Setup & people",
+      "trouble": "When something looks wrong"
+    },
+    "topics": [
       {
-        "heading": "Dashboard",
-        "body": "See today's order count, current low-stock alerts, how many products you're tracking, and a notification when orders have been pending longer than the alert threshold set in Admin."
+        "category": "daily",
+        "heading": "Drafts vs confirmed orders",
+        "body": "A draft is a request, not a sale. Nothing leaves your stock and no money is recorded until someone confirms it. That's why orders from WhatsApp arrive as drafts — the shop decides what's real.",
+        "tip": "If stock looks wrong, check whether an order is still sitting in Drafts. It hasn't been deducted yet.",
+        "keywords": "draft confirm promote stock deduct pending"
       },
       {
-        "heading": "New Order",
-        "body": "Pick a product, enter the weight in kg, and add it to the cart — or scan a barcode to add it instantly. Link the order to a customer, and the total updates live; the server checks stock automatically before saving."
+        "category": "daily",
+        "heading": "The order board",
+        "body": "Created → In progress → On the way or In the shop → Completed. Each column is a queue: the order that has been waiting longest sits at the top, and every card shows how long it has been in its current column.",
+        "tip": "The clock restarts at each move, so it answers \"how long has this been stuck here\", not \"how old is this order\".",
+        "keywords": "board kanban columns status queue waiting timer"
       },
       {
-        "heading": "Barcode scanning",
-        "body": "Plug in any USB or Bluetooth barcode scanner — it works like a keyboard, no setup needed. Give each product a barcode in Inventory, then click the barcode field on New Order and scan; the matching product is added automatically."
+        "category": "daily",
+        "heading": "Late orders find you",
+        "body": "Once an order sits in one status longer than your alert threshold, its clock turns amber and it appears in the Late orders table on the dashboard — with which status it's stuck in and for how long.",
+        "tip": "Set the threshold in Settings. It's the same number the board and the dashboard both use, so there's only one to tune.",
+        "keywords": "late alert threshold overdue amber dashboard waiting"
       },
       {
-        "heading": "Order Inbox",
-        "body": "Log an order that came in by phone or social media DM: pick the products, note the delivery address, and save it as a draft. Confirm it from Orders once it's ready to fulfill."
+        "category": "daily",
+        "heading": "Weight, not pieces",
+        "body": "Everything is priced per kilo and stored to three decimal places. 1.250 kg at 87.50/kg is 109.38 — the app does that arithmetic so nobody does it on a receipt pad.",
+        "keywords": "kg weight kilo price decimals precision"
       },
       {
-        "heading": "Orders",
-        "body": "View every past order and its total, including drafts saved from the Inbox and their source (walk-in, phone, social, WhatsApp)."
+        "category": "daily",
+        "heading": "You're signed out when idle",
+        "body": "After a period of no activity you'll see a countdown with \"I'm still here\". Ignore it and the app signs you out — shop terminals get walked away from. Anything you're actively doing keeps the session alive indefinitely.",
+        "tip": "Sign out at the end of a shift anyway. The next person should be working under their own name, or the order history credits the wrong person.",
+        "keywords": "idle timeout logout session security shift terminal"
       },
       {
-        "heading": "Customers",
-        "body": "Keep a record of each customer's name, phone, address, and notes, along with their order history and total spend. Search by name or phone, and open a profile to edit their details."
+        "category": "money",
+        "heading": "Cash position and revenue are different numbers",
+        "body": "Revenue is what you sold. Cash position is what's in the drawer — sales, plus money you put in, minus money you took out. They are never merged, because a supplier paid in cash changes one and not the other.",
+        "tip": "If those two figures agreeing feels like it should mean something, it doesn't. Only cash-in matching your drawer count does.",
+        "keywords": "cash revenue drawer position ledger reconcile difference"
       },
       {
-        "heading": "Inventory",
-        "body": "View all products. Once logged in, you can also add new products, assign a barcode, and edit the price or stock of existing ones."
+        "category": "money",
+        "heading": "Cash sales log themselves",
+        "body": "Confirm an order paid in cash and a matching entry appears in the ledger automatically, tagged with where the order came from. You only enter money by hand for things that aren't sales: a supplier payment, a float, a correction.",
+        "keywords": "cash automatic ledger sale entry supplier float"
       },
       {
-        "heading": "Cash Management",
-        "body": "Log cash in and out, and see net position and total revenue by day, week, month, or year. Click the \"Cash in\" or \"Cash out\" card to filter the entries below it; click \"Total revenue\" to jump to Orders."
+        "category": "money",
+        "heading": "Finding an old entry",
+        "body": "The ledger has search and date filters. Search matches the category, the note and the amount — and it matches what's on screen in your language, not just what's stored underneath.",
+        "tip": "While a filter is active the totals above the table show the filtered figures, so you can total one supplier or one day without doing sums.",
+        "keywords": "search filter ledger find date range totals"
       },
       {
-        "heading": "Carcass Dismantling",
-        "body": "Record a carcass breakdown against a template: enter the carcass weight, the actual weight of each cut, and where it should be stocked. See the yield and waste compared to the expected numbers."
+        "category": "money",
+        "heading": "Closing the day",
+        "body": "Closing takes a permanent snapshot of the day's orders and cash, then resets order numbering so tomorrow starts at #1. It does not delete or alter a single ledger entry — every past entry stays visible.",
+        "tip": "It's a deliberate action, not a midnight timer, because shops don't all close at the same hour or every day.",
+        "keywords": "close day closing snapshot reset numbering daily"
       },
       {
-        "heading": "Login",
-        "body": "Sign in with your email and password to create orders or manage inventory. Logged-out visitors can still view orders, inventory, and the dashboard. Forgot your password? Use the \"Forgot password?\" link on the sign-in page to get a reset link by email."
+        "category": "stock",
+        "heading": "Editing stock needs a reason",
+        "body": "Changing a product's quantity directly asks you why, and records it. Waste, a delivery, a recount — all of it is kept, so \"where did 4 kilos go\" has an answer instead of an argument.",
+        "keywords": "stock adjust reason audit waste recount delivery history"
       },
       {
-        "heading": "User Management",
-        "body": "Admins can invite new team members from Admin → Manage Users by email and role — there's no public sign-up. The invited person gets an emailed link to set their own password; if email isn't configured yet, copy the link shown after sending the invite and share it directly."
+        "category": "stock",
+        "heading": "Low-stock alerts",
+        "body": "The shop has a default threshold, and any product can override it. Lamb might need warning at 5 kg while a slow-moving cut doesn't. The dashboard counts anything under its own threshold.",
+        "keywords": "low stock threshold alert warning default product"
       },
       {
-        "heading": "Language",
-        "body": "Use the EN/AR button in the top bar to switch the interface language at any time."
+        "category": "stock",
+        "heading": "Breaking down a carcass",
+        "body": "Pick a template — calf, sheep, goat — enter the actual weight of each cut, and the resulting stock lands in inventory. The yield against the expected breakdown is recorded, so you can see which supplier's animals come up short.",
+        "tip": "The recorded yield is the point. One carcass tells you nothing; twenty tell you who to buy from.",
+        "keywords": "dismantle carcass template cuts yield calf sheep goat supplier"
+      },
+      {
+        "category": "channels",
+        "heading": "WhatsApp orders",
+        "body": "A customer's message is read for lines like \"2kg beef\", matched against your products, and turned into a draft. Arabic and English both work, and Arabic-Indic digits (٢) are understood the same as 2. The customer gets an automatic acknowledgement.",
+        "tip": "The original message is kept on the order. When the wording is ambiguous, read what they actually wrote rather than trusting the parse.",
+        "keywords": "whatsapp message parse automatic draft arabic digits"
+      },
+      {
+        "category": "channels",
+        "heading": "Items it couldn't match",
+        "body": "If someone asks for \"2kg beef and some liver\" and you have no product called liver, the draft shows an amber box listing what wasn't matched. Add it by hand or call them back.",
+        "tip": "This box is the one thing to check before confirming a WhatsApp order. Without it the draft looks complete when half the request is missing.",
+        "keywords": "unmatched items missing amber whatsapp incomplete parse failed"
+      },
+      {
+        "category": "channels",
+        "heading": "Known customers are recognised",
+        "body": "If the number that messaged is already in your customer list, the order is attached to them automatically and shows the name you know them by — not whatever they've set on their phone. Formatting differences don't matter.",
+        "tip": "It only ever links existing customers. A stranger messaging once won't be added to your list.",
+        "keywords": "customer link phone number match recognise crm history"
+      },
+      {
+        "category": "channels",
+        "heading": "You're told when one arrives",
+        "body": "A card appears in the corner of whatever screen you're on when an order comes in from outside the shop, with a chime if sound is enabled in Settings. It flags orders that have unmatched items.",
+        "tip": "It only announces orders that arrive while you're working — opening the app doesn't replay everything already waiting.",
+        "keywords": "alert notification sound chime arrive incoming new order"
+      },
+      {
+        "category": "channels",
+        "heading": "Deliveries close with the receipt",
+        "body": "An order that goes out for delivery can't just be marked done. The printed receipt carries a code, and completing the order means scanning or typing that code back in — the proof that the slip came back with the money.",
+        "tip": "Orders collected in the shop don't need this. It exists for the case where cash travels with someone else.",
+        "keywords": "delivery receipt code scan barcode complete confirm proof"
+      },
+      {
+        "category": "admin",
+        "heading": "Who can do what",
+        "body": "Viewer sees but changes nothing. Cashier takes orders. Manager adds stock, moves orders, handles cash. Admin manages people too. Individual permissions can be granted on top of a role, and every one is enforced by the server — not just hidden on screen.",
+        "tip": "For a genuinely read-only account use the Viewer role. Unticking a cashier's boxes doesn't achieve it, because permissions only ever add.",
+        "keywords": "roles permissions cashier manager admin viewer capabilities access"
+      },
+      {
+        "category": "admin",
+        "heading": "Accounts are created by invitation",
+        "body": "There's no public signup. An admin invites an email address and the person sets their own password from the link — so nobody, including you, ever types someone else's password.",
+        "tip": "If the invite email doesn't arrive, the link is shown on screen when you create the invite. Copy it and send it any way you like.",
+        "keywords": "invite account signup password email link new user staff"
+      },
+      {
+        "category": "admin",
+        "heading": "Ban rather than delete",
+        "body": "Banning blocks sign-in immediately and keeps the person's history intact. Deleting is refused for anyone who has ever touched an order, stock or cash — those records must stay attributable to whoever made them.",
+        "keywords": "ban delete disable user leaver history audit attributable"
+      },
+      {
+        "category": "admin",
+        "heading": "Making the receipt yours",
+        "body": "Settings controls the roll width, what appears on the slip, your shop's name, phone and address, and your logo. You can upload an image straight from your phone or computer — no image hosting needed.",
+        "tip": "There are two logos: one for the printed receipt and one for the app. A thermal printer wants a simple high-contrast mark; the screen can take the full-colour one.",
+        "keywords": "receipt customize logo width printer settings header footer branding"
+      },
+      {
+        "category": "trouble",
+        "heading": "The numbers look wrong",
+        "body": "Check the obvious three first: is the order still a draft (nothing deducted), was stock edited by hand (the reason is recorded on the product), and are you comparing cash position against revenue when they measure different things.",
+        "keywords": "wrong numbers mismatch stock cash difference investigate"
+      },
+      {
+        "category": "trouble",
+        "heading": "A page says you have no access",
+        "body": "Every module is visible to everyone; the page itself refuses if your role lacks the permission. If you think that's wrong, an admin can grant the specific capability without changing your whole role.",
+        "tip": "A brief spinner is not a refusal. If it settles into a refusal message, that's the real answer.",
+        "keywords": "no access denied permission forbidden role capability"
+      },
+      {
+        "category": "trouble",
+        "heading": "Nothing is loading",
+        "body": "If the app says it can't reach the server, that's the connection, not your data — nothing has been lost and nothing was half-saved. Check the shop's internet and try again.",
+        "tip": "Error messages that name a specific thing (\"that code belongs to a different order\") are the app telling you something real. \"Can't reach the server\" is the network.",
+        "keywords": "offline network error connection loading failed server down"
       }
     ]
   },
@@ -83,7 +211,9 @@
     "go_to_orders": "Go to Orders",
     "go_to_inventory": "Go to Inventory",
     "revenue_chart_title": "Revenue",
+    "vs_previous_period": "vs previous {{count}} days",
     "top_products_chart_title": "Top products (kg sold)",
+    "top_products_subtitle": "By weight sold, all time",
     "days": "{{count}}d",
     "no_sales_yet": "No sales yet",
     "pending_by_source_title": "Pending orders by source",
@@ -149,7 +279,9 @@
     "error_delete_draft": "Couldn't delete the draft.",
     "error_draft_needs_item": "A draft needs at least one item.",
     "delivery_name_fallback": "Delivery",
-    "on_the_way_for": "On the way for"
+    "on_the_way_for": "On the way for",
+    "unmatched_title": "Not matched to a product",
+    "unmatched_hint": "The customer asked for these but they didn't match any product. Add them manually or check the message."
   },
   "new_order_page": {
     "title": "New Order",
@@ -635,5 +767,17 @@
     "error_create": "Couldn't create the organization.",
     "error_save": "Couldn't save the change."
   },
-  "organizations": "Organizations"
+  "organizations": "Organizations",
+  "idle": {
+    "title": "Still there?",
+    "body": "You'll be signed out shortly for security.",
+    "stay": "I'm still here",
+    "logout_now": "Sign out now",
+    "signed_out": "You were signed out after a period of inactivity."
+  },
+  "inbound": {
+    "open": "Open orders",
+    "dismiss": "Dismiss",
+    "needs_check": "Some items need checking"
+  }
 }
