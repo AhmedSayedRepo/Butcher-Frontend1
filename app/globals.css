@@ -3,8 +3,33 @@
 @tailwind utilities;
 
 /* ---------------------------------------------------------------------------
-   Design revamp (2026-07-21) — two themes from the Claude-design mockups:
-   "Clean Operator" (light, default) and "Trade Floor" (dark).
+   Design revamp (2026-07-21). Two themes, light default.
+
+   Palette, radii, shadows and fonts are ported from the sibling **qa-studio**
+   project's `theme.py`, at Ahmed's request, so the two products read as one
+   family. That file is the source of truth; nothing in qa-studio was modified.
+   Mapping, for anyone diffing the two:
+
+     qa-studio            here
+     ─────────────────────────────────────────────
+     BG                   --stone-50      (canvas)
+     CARD                 --surface
+     CARD_2               --surface-2 / --stone-100
+     BORDER / BORDER_2    --stone-200 / --stone-300
+     INK / INK_2 / INK_3  --stone-900 / --stone-500 / --stone-400
+     VIOLET (cyan #0E9CC0) --brand-600    (its VIOLET* names are historical)
+     VIOLET_H             --brand-700
+     VIOLET_SOFT          --brand-100
+     VIOLET_INK           --brand-800
+     STORY, BRAND_GRAD_1  --brand-400, --brand-500 (neon cyan #22D3EE)
+     GREEN, RED, AMBER    --ok-600, --bad-600, --warn-600 (plus their -50 tints)
+     RAIL family          --rail-… (dark in BOTH themes — see below)
+     R_LG, R, R_SM        --radius-card, --radius-mid, --radius-sm (14, 10, 7)
+
+   The rail is the signature of that design language: a deep teal-navy sidebar
+   that stays dark whether the content area is light or dark, so the cyan
+   accents read as neon against it. It therefore gets its own token set rather
+   than following the neutral ramp.
 
    Why variables instead of rewriting every class: the app had ~700 hardcoded
    Tailwind colour utilities across 16 pages (`text-stone-900`, `bg-white`,
@@ -25,139 +50,160 @@
      - a genuine always-dark scrim (modal overlays) uses `--overlay`, so it
        doesn't invert into a white flash.
 
-   Values are kept in oklch component form (`L C H`) so Tailwind's
-   `<alpha-value>` opacity modifiers (`bg-surface/90`) still work, and so the
-   numbers stay identical to the mockups rather than being round-tripped
-   through sRGB hex.
+   Palette values are stored as space-separated sRGB triples ("14 156 192")
+   rather than finished colours, which is what lets Tailwind slot `<alpha-value>`
+   in and keep opacity modifiers (`bg-surface/90`) working against a variable.
+   The `--chart-*` and `--rail-*` sets stay as literal hex because they're
+   consumed directly — by Recharts props and by CSS gradients — where a bare
+   triple isn't a valid colour.
 --------------------------------------------------------------------------- */
 
 :root,
 [data-theme='light'] {
   color-scheme: light;
 
-  --font-ui: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-num: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-ui: var(--font-manrope), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-num: var(--font-jetbrains), ui-monospace, monospace;
 
-  /* Card/panel surface. Was literal white in the old UI. */
-  --surface: 100% 0 0;
-  --overlay: 20% 0.006 60;
+  --surface: 255 255 255;
+  --surface-2: 244 246 251;
+  --overlay: 24 26 36;
+  --white: 255 255 255;
 
-  /* "on-accent" — see note above. */
-  --white: 100% 0 0;
+  --stone-50: 250 251 254;
+  --stone-100: 244 246 251;
+  --stone-200: 230 232 241;
+  --stone-300: 237 239 246;
+  --stone-400: 159 162 178;
+  --stone-500: 110 113 128;
+  --stone-600: 91 94 109;
+  --stone-700: 67 70 90;
+  --stone-800: 43 46 63;
+  --stone-900: 24 26 36;
 
-  /* Warm neutral ramp (mockup: stone/ink/sub at hue ~60-70). */
-  --stone-50: 96.5% 0.004 70;
-  --stone-100: 94% 0.005 70;
-  --stone-200: 90% 0.006 70;
-  --stone-300: 85% 0.007 68;
-  --stone-400: 66% 0.008 65;
-  --stone-500: 50% 0.008 60;
-  --stone-600: 42% 0.008 60;
-  --stone-700: 34% 0.007 60;
-  --stone-800: 27% 0.006 60;
-  --stone-900: 20% 0.006 60;
+  --brand-50: 238 251 254;
+  --brand-100: 214 244 251;
+  --brand-200: 182 235 246;
+  --brand-300: 127 220 238;
+  --brand-400: 34 211 238;
+  --brand-500: 25 189 220;
+  --brand-600: 14 156 192;
+  --brand-700: 11 126 155;
+  --brand-800: 11 110 134;
+  --brand-900: 14 116 144;
+  --brand-950: 8 80 95;
 
-  /* Accent — the mockup's violet. Was a warm brand red before the revamp;
-     to go back, restore the old hex ramp for these values only. */
-  --brand-50: 97% 0.014 290;
-  --brand-100: 93% 0.04 290;
-  --brand-200: 88% 0.06 290;
-  --brand-300: 78% 0.09 290;
-  --brand-400: 66% 0.13 290;
-  --brand-500: 58% 0.15 290;
-  --brand-600: 48% 0.17 290;
-  --brand-700: 42% 0.16 290;
-  --brand-800: 36% 0.14 290;
-  --brand-900: 30% 0.11 290;
-  --brand-950: 22% 0.08 290;
+  --ok-50: 229 246 236;
+  --ok-600: 31 157 87;
+  --ok-700: 23 138 75;
+  --warn-50: 250 241 221;
+  --warn-200: 239 223 186;
+  --warn-600: 194 134 12;
+  --warn-700: 168 116 10;
+  --warn-800: 140 96 8;
+  --warn-900: 111 76 6;
+  --bad-50: 252 235 236;
+  --bad-200: 246 201 203;
+  --bad-600: 224 71 77;
+  --bad-700: 201 57 64;
+  --info-50: 232 242 253;
+  --info-600: 47 126 216;
+  --info-700: 37 105 182;
 
-  /* Status colours. */
-  --ok-50: 94% 0.04 150;
-  --ok-600: 50% 0.11 150;
-  --ok-700: 45% 0.1 150;
-  --warn-50: 95% 0.03 70;
-  --warn-200: 88% 0.06 75;
-  --warn-600: 58% 0.13 70;
-  --warn-700: 52% 0.13 70;
-  --warn-800: 45% 0.12 70;
-  --warn-900: 38% 0.1 70;
-  --bad-50: 95% 0.025 25;
-  --bad-200: 88% 0.05 25;
-  --bad-600: 55% 0.17 25;
-  --bad-700: 48% 0.16 25;
-  --info-50: 95% 0.03 230;
-  --info-600: 55% 0.12 230;
-  --info-700: 48% 0.11 230;
+  --chart-series: #0e9cc0;
+  --chart-grid: #edeff6;
+  --chart-axis: #e6e8f1;
+  --chart-tick: #6e7180;
+  --chart-ink: #181a24;
+  --chart-tooltip-bg: #ffffff;
 
-  --radius-card: 0.875rem;
-  --shadow-card: 0 1px 2px rgba(20, 10, 5, 0.04);
-  --shadow-card-hover: 0 2px 4px rgba(20, 10, 5, 0.06), 0 8px 16px -4px rgba(20, 10, 5, 0.08);
-  --shadow-rail: 2px 0 20px rgba(20, 10, 5, 0.05);
+  --radius-card: 14px;
+  --radius-mid: 10px;
+  --radius-sm: 7px;
+  --shadow-card: 0 9px 22px -12px rgba(27, 31, 58, 0.10);
+  --shadow-card-hover: 0 12px 28px -10px rgba(27, 31, 58, 0.18);
+  --shadow-rail: 2px 0 24px rgba(11, 16, 36, 0.22);
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
 
-  /* Trade Floor uses IBM Plex — Mono specifically for figures, which is most
-     of what this app displays (weights, money, order numbers). */
-  --font-ui: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-num: var(--font-plex-mono), ui-monospace, monospace;
+  --font-ui: var(--font-manrope), var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-num: var(--font-jetbrains), ui-monospace, monospace;
 
-  --surface: 19% 0.035 260;
-  --overlay: 8% 0.02 260;
+  --surface: 18 26 56;
+  --surface-2: 26 35 68;
+  --overlay: 5 7 15;
+  --white: 255 255 255;
 
-  /* Dark ink sitting on a filled accent/badge. */
-  --white: 15% 0.03 260;
+  --stone-50: 11 16 36;
+  --stone-100: 26 35 68;
+  --stone-200: 38 54 95;
+  --stone-300: 31 42 74;
+  --stone-400: 124 144 168;
+  --stone-500: 169 192 210;
+  --stone-600: 190 209 224;
+  --stone-700: 210 226 236;
+  --stone-800: 222 236 244;
+  --stone-900: 234 246 251;
 
-  /* Cool neutral ramp, inverted: 50 = canvas (darkest), 900 = text. */
-  --stone-50: 15% 0.03 260;
-  --stone-100: 24% 0.038 262;
-  --stone-200: 30% 0.04 265;
-  --stone-300: 35% 0.042 265;
-  --stone-400: 55% 0.025 258;
-  --stone-500: 65% 0.02 255;
-  --stone-600: 73% 0.018 253;
-  --stone-700: 81% 0.015 252;
-  --stone-800: 88% 0.012 251;
-  --stone-900: 94% 0.01 250;
+  --brand-50: 12 58 71;
+  --brand-100: 15 74 91;
+  --brand-200: 19 92 112;
+  --brand-300: 22 118 143;
+  --brand-400: 25 189 220;
+  --brand-500: 34 211 238;
+  --brand-600: 34 211 238;
+  --brand-700: 103 232 249;
+  --brand-800: 103 232 249;
+  --brand-900: 165 243 252;
+  --brand-950: 207 250 254;
 
-  /* Accent — the mockup's cyan. Ramp direction flips with the neutrals:
-     the low numbers stay dark (tinted panels), the high numbers go bright. */
-  --brand-50: 28% 0.06 205;
-  --brand-100: 32% 0.07 205;
-  --brand-200: 38% 0.08 205;
-  --brand-300: 45% 0.09 205;
-  --brand-400: 55% 0.11 205;
-  --brand-500: 60% 0.115 205;
-  --brand-600: 65% 0.12 205;
-  --brand-700: 73% 0.12 205;
-  --brand-800: 81% 0.1 205;
-  --brand-900: 88% 0.08 205;
-  --brand-950: 94% 0.05 205;
+  --ok-50: 21 51 30;
+  --ok-600: 47 190 108;
+  --ok-700: 69 209 131;
+  --warn-50: 51 40 15;
+  --warn-200: 74 58 22;
+  --warn-600: 224 165 42;
+  --warn-700: 237 186 76;
+  --warn-800: 243 205 116;
+  --warn-900: 248 224 163;
+  --bad-50: 58 30 32;
+  --bad-200: 85 41 44;
+  --bad-600: 240 103 109;
+  --bad-700: 247 139 144;
+  --info-50: 20 41 74;
+  --info-600: 94 163 238;
+  --info-700: 139 190 244;
 
-  --ok-50: 30% 0.05 150;
-  --ok-600: 66% 0.14 150;
-  --ok-700: 72% 0.15 150;
-  --warn-50: 30% 0.05 70;
-  --warn-200: 38% 0.07 75;
-  --warn-600: 72% 0.13 80;
-  --warn-700: 78% 0.14 80;
-  --warn-800: 84% 0.12 80;
-  --warn-900: 90% 0.09 80;
-  --bad-50: 30% 0.06 25;
-  --bad-200: 38% 0.08 25;
-  --bad-600: 66% 0.16 25;
-  --bad-700: 72% 0.15 25;
-  --info-50: 30% 0.05 230;
-  --info-600: 68% 0.12 230;
-  --info-700: 75% 0.11 230;
+  --chart-series: #22d3ee;
+  --chart-grid: #1f2a4a;
+  --chart-axis: #26365f;
+  --chart-tick: #a9c0d2;
+  --chart-ink: #eaf6fb;
+  --chart-tooltip-bg: #121a38;
 
-  /* Trade Floor is a flatter, sharper surface treatment than Clean Operator:
-     tighter corner radius and no soft drop shadows. */
-  --radius-card: 0.375rem;
-  --shadow-card: none;
-  --shadow-card-hover: 0 0 0 1px oklch(var(--brand-600) / 0.35);
-  --shadow-rail: 2px 0 24px rgba(0, 0, 0, 0.35);
+  --radius-card: 14px;
+  --radius-mid: 10px;
+  --radius-sm: 7px;
+  --shadow-card: 0 9px 22px -12px rgba(0, 0, 0, 0.55);
+  --shadow-card-hover: 0 12px 28px -10px rgba(0, 0, 0, 0.7);
+  --shadow-rail: 2px 0 24px rgba(0, 0, 0, 0.45);
+}
+
+/* Rail — qa-studio's RAIL/RAIL_2/RAIL_LINE/RAIL_INK/RAIL_DIM plus its GRAD_RAIL
+   and GRAD_NAV_ACT gradients. Declared once because they do NOT change with the
+   theme: the sidebar is deep teal-navy in both, by design. */
+:root {
+  --rail-1: #0e1430;
+  --rail-2: #080c1e;
+  --rail-surface: #0c1330;
+  --rail-elev: #142044;
+  --rail-line: #21314f;
+  --rail-ink: #e8f3f8;
+  --rail-dim: #8198ac;
+  --rail-active-1: #0b89a8;
+  --rail-active-2: #0e9cc0;
 }
 
 html,
@@ -167,6 +213,14 @@ body {
 
 html {
   scroll-behavior: smooth;
+  /* Revamp follow-up: the whole UI reads a step larger than Tailwind's 16px
+     default. This is a shop terminal read at arm's length or further, not a
+     desktop app leaned into. Setting it here rather than touching per-element
+     sizes means every rem-based size in the app — text, padding, gaps, icon
+     boxes — scales together and stays in proportion.
+     This is the single knob for overall UI scale: 16px is stock, 17px is +6%,
+     18px is +12.5%. */
+  font-size: 17px;
 }
 
 body {
@@ -178,22 +232,22 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Figures read better in Plex Mono under the dark theme; in light mode
-   --font-num is just the UI font, so this is a no-op there. */
+/* Figures are set in JetBrains Mono (qa-studio's F_MONO) in both themes —
+   weights, money and order numbers all line up in columns this way. */
 .tabular {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background-color: oklch(var(--brand-100));
-  color: oklch(var(--brand-900));
+  background-color: rgb(var(--brand-100));
+  color: rgb(var(--brand-900));
 }
 
 /* Consistent, visible keyboard-focus ring app-wide (accessibility) instead of
    relying on each component to remember to add one. */
 :focus-visible {
-  outline: 2px solid oklch(var(--brand-500));
+  outline: 2px solid rgb(var(--brand-500));
   outline-offset: 2px;
   border-radius: 0.25rem;
 }
@@ -209,11 +263,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: oklch(var(--stone-300));
+  background-color: rgb(var(--stone-300));
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: oklch(var(--stone-400));
+  background-color: rgb(var(--stone-400));
 }
 
 @keyframes drawerIn {
@@ -237,8 +291,54 @@ body {
   }
 }
 
+/* The rail itself — qa-studio's GRAD_RAIL, top-to-bottom, with its own ink
+   colours. Written as classes rather than Tailwind utilities because the
+   gradient and the active-item treatment are the two things that make this
+   design language recognisable, and they're easier to keep faithful in one
+   place than spread across className strings. */
 .app-rail {
   animation: drawerIn 0.4s ease-out;
+  background: linear-gradient(180deg, var(--rail-1) 0%, var(--rail-2) 100%);
+  border-color: var(--rail-line);
+  color: var(--rail-ink);
+}
+
+.app-rail .rail-brand {
+  color: var(--rail-ink);
+}
+
+.app-rail .rail-item {
+  color: var(--rail-dim);
+  border-radius: var(--radius-mid);
+}
+.app-rail .rail-item:hover {
+  background-color: var(--rail-elev);
+  color: var(--rail-ink);
+}
+.app-rail .rail-item[data-active='true'] {
+  /* GRAD_NAV_ACT */
+  background: linear-gradient(135deg, var(--rail-active-1) 0%, var(--rail-active-2) 100%);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 6px 16px -8px rgba(14, 156, 192, 0.9);
+}
+.app-rail .rail-item[data-active='true']:hover {
+  background: linear-gradient(135deg, var(--rail-active-1) 0%, var(--rail-active-2) 100%);
+  color: #fff;
+}
+.app-rail .rail-divider {
+  border-color: var(--rail-line);
+}
+/* The count/index chip qa-studio puts at the head of each nav row and section
+   header (its `ix` field and `sec_head`). */
+.app-rail .rail-ix {
+  background-color: var(--rail-elev);
+  color: var(--rail-dim);
+  border-radius: var(--radius-sm);
+}
+.app-rail .rail-item[data-active='true'] .rail-ix {
+  background-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
 }
 /* RTL: the rail slides in from the right instead. */
 [dir='rtl'] .app-rail {

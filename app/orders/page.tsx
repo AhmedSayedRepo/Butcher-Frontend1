@@ -267,10 +267,19 @@ export default function OrdersPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {COLUMNS.map(col => (
               <div key={col.status}>
-                <h2 className="mb-2 flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-stone-500">
-                  {t(`orders_page.status_${col.key}`)}
-                  <span className="rounded-full bg-stone-100 px-1.5 py-0.5 text-xs font-normal text-stone-500">
+                {/* Column header, built the way qa-studio's `ui.sec_head` builds
+                    section headings: a square count chip in the brand's soft
+                    tint, then the title in bold ink. The previous version was a
+                    muted uppercase label with the count floated to the far right
+                    — at a glance it read as body text rather than a header, and
+                    the count was visually detached from what it counted. The
+                    rule underneath separates each column from its cards. */}
+                <h2 className="mb-3 flex items-center gap-2.5 border-b border-stone-200 pb-2">
+                  <span className="tabular flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-brand-100 text-xs font-bold text-brand-800">
                     {byColumn(col.status).length}
+                  </span>
+                  <span className="text-sm font-bold text-stone-900">
+                    {t(`orders_page.status_${col.key}`)}
                   </span>
                 </h2>
                 <div className="space-y-2">

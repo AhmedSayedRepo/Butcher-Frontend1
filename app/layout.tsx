@@ -13,28 +13,28 @@
 // container. Also adds the two-theme system — see lib/theme.ts and globals.css.
 import './globals.css'
 import { ReactNode } from 'react'
-import { Inter, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
+import { Manrope, IBM_Plex_Sans_Arabic, JetBrains_Mono } from 'next/font/google'
 import Sidebar from '../components/Sidebar'
 import AuthGate from '../components/AuthGate'
 import { DEFAULT_THEME, THEME_INIT_SCRIPT } from '../lib/theme'
 
 // Self-hosted via next/font (downloaded at build time, served from our own
-// domain) rather than a runtime request to Google. Inter carries the light
-// "Clean Operator" theme; IBM Plex Sans/Mono carry the dark "Trade Floor" one,
-// where figures are set in mono. All three load as CSS variables and are
-// selected by --font-ui / --font-num in globals.css, so switching theme doesn't
-// re-request a font.
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
-const plexSans = IBM_Plex_Sans({
-  subsets: ['latin'],
+// domain) rather than a runtime request to Google. The three families are
+// qa-studio's F_UI / F_AR / F_MONO, so the two products set type identically:
+// Manrope for UI, IBM Plex Sans Arabic for Arabic text (which Manrope has no
+// coverage for — it sits second in the --font-ui stack and the browser falls
+// through to it per-glyph), JetBrains Mono for figures.
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' })
+const plexArabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-plex-sans',
+  variable: '--font-plex-arabic',
   display: 'swap',
 })
-const plexMono = IBM_Plex_Mono({
+const jetbrains = JetBrains_Mono({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-plex-mono',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-jetbrains',
   display: 'swap',
 })
 
@@ -43,7 +43,7 @@ export const metadata = {
   description: 'SaaS cashier for non-countable products (meat)',
 }
 
-const fontVars = `${inter.variable} ${plexSans.variable} ${plexMono.variable}`
+const fontVars = `${manrope.variable} ${plexArabic.variable} ${jetbrains.variable}`
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

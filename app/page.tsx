@@ -24,6 +24,28 @@ import api from '../lib/api'
 import { useAuth } from '../lib/useAuth'
 import { Order, Product, ShopSettings } from '../lib/types'
 
+// Revamp follow-up: Recharts takes colours as props rather than classes, so
+// these never picked up the theme — they were hardcoded hex and stayed the old
+// brand red under both themes, with axis text that was unreadable on a dark
+// card. Pointing them at the CSS variables (defined per theme in globals.css)
+// makes the charts follow the theme like everything else. `var()` is valid in
+// SVG presentation attributes and inline styles, which is all Recharts does
+// with these, so no re-render on theme change is needed — the browser
+// re-resolves them when the `data-theme` attribute flips.
+const CHART = {
+  series: 'var(--chart-series)',
+  grid: 'var(--chart-grid)',
+  axis: 'var(--chart-axis)',
+  tick: 'var(--chart-tick)',
+  ink: 'var(--chart-ink)',
+  tooltip: {
+    background: 'var(--chart-tooltip-bg)',
+    border: '1px solid var(--chart-axis)',
+    borderRadius: 'var(--radius-card)',
+    color: 'var(--chart-ink)',
+  },
+} as const
+
 // v3.1 follow-up 5 (Settings page): fallback only — the real value now
 // comes from ShopSettings.defaultLowStockThresholdKg (editable at
 // /settings), fetched below. Only used for the brief window before that
@@ -230,11 +252,11 @@ export default function Page() {
             </div>
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={revenueByDay}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0efee" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#78716c' }} tickLine={false} axisLine={{ stroke: '#e7e5e4' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#78716c' }} tickLine={false} axisLine={false} width={36} />
-                <Tooltip formatter={(value: number) => value.toFixed(2)} labelStyle={{ color: '#1c1917' }} />
-                <Line type="monotone" dataKey="revenue" stroke="#b8392a" strokeWidth={2} dot={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} />
+                <XAxis dataKey="label" tick={{ fontSize: 12, fill: CHART.tick }} tickLine={false} axisLine={{ stroke: CHART.axis }} />
+                <YAxis tick={{ fontSize: 12, fill: CHART.tick }} tickLine={false} axisLine={false} width={40} />
+                <Tooltip formatter={(value: number) => value.toFixed(2)} contentStyle={CHART.tooltip} labelStyle={{ color: CHART.ink }} />
+                <Line type="monotone" dataKey="revenue" stroke={CHART.series} strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -246,11 +268,11 @@ export default function Page() {
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={topProducts} layout="vertical" margin={{ left: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0efee" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: '#78716c' }} tickLine={false} axisLine={{ stroke: '#e7e5e4' }} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#78716c' }} tickLine={false} axisLine={false} width={90} />
-                  <Tooltip formatter={(value: number) => `${value} kg`} labelStyle={{ color: '#1c1917' }} />
-                  <Bar dataKey="kg" fill="#b8392a" radius={[0, 4, 4, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 12, fill: CHART.tick }} tickLine={false} axisLine={{ stroke: CHART.axis }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: CHART.tick }} tickLine={false} axisLine={false} width={110} />
+                  <Tooltip formatter={(value: number) => `${value} kg`} contentStyle={CHART.tooltip} labelStyle={{ color: CHART.ink }} />
+                  <Bar dataKey="kg" fill={CHART.series} radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}

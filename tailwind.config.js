@@ -9,7 +9,10 @@
 // The `<alpha-value>` placeholder is what lets Tailwind's opacity modifiers
 // (`bg-surface/90`, `text-stone-900/60`) keep working against a variable —
 // Tailwind substitutes the modifier into it at build time.
-const themed = (name) => `oklch(var(--${name}) / <alpha-value>)`
+// Palette variables are stored as space-separated sRGB triples ("14 156 192")
+// rather than finished colours, which is what lets `<alpha-value>` slot in and
+// keeps Tailwind's opacity modifiers working against a variable.
+const themed = (name) => `rgb(var(--${name}) / <alpha-value>)`
 
 const ramp = (prefix, steps) =>
   Object.fromEntries(steps.map((step) => [step, themed(`${prefix}-${step}`)]))
@@ -68,8 +71,12 @@ module.exports = {
         rail: 'var(--shadow-rail)',
       },
       borderRadius: {
-        // Clean Operator is soft (14px); Trade Floor is sharp (6px).
+        // qa-studio's radius scale (theme.py: R_LG 14 / R 10 / R_SM 7) mapped
+        // onto the three Tailwind steps this codebase actually uses, so cards,
+        // buttons and inputs all pick up its proportions without being touched.
         xl: 'var(--radius-card)',
+        lg: 'var(--radius-mid)',
+        md: 'var(--radius-sm)',
       },
     },
   },

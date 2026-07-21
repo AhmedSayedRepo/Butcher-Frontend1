@@ -31,22 +31,28 @@ import ThemeToggle from './ThemeToggle'
 // destination page itself shows a no-access message for anyone lacking the
 // `manage_cash` capability, rather than this list doing per-item filtering.
 // Same pattern for "admin" and "settings".
+// `ix` mirrors qa-studio's NAV entries: a one/two-letter index shown in a small
+// chip at the head of each row. It's a fast visual anchor in a list this long,
+// and it stays legible when the label is Arabic.
 const NAV_ITEMS = [
-  { href: '/', key: 'dashboard' },
-  { href: '/orders', key: 'orders' },
-  { href: '/orders/new', key: 'new_order' },
-  { href: '/orders/inbox', key: 'inbox' },
-  { href: '/customers', key: 'customers' },
-  { href: '/inventory', key: 'inventory' },
-  { href: '/dismantle', key: 'batches' },
-  { href: '/admin/cash', key: 'cash' },
-  { href: '/admin', key: 'admin' },
-  { href: '/settings', key: 'settings' },
-  { href: '/help', key: 'help' },
+  { href: '/', key: 'dashboard', ix: 'D' },
+  { href: '/orders', key: 'orders', ix: 'O' },
+  { href: '/orders/new', key: 'new_order', ix: '+' },
+  { href: '/orders/inbox', key: 'inbox', ix: 'In' },
+  { href: '/customers', key: 'customers', ix: 'C' },
+  { href: '/inventory', key: 'inventory', ix: 'Iv' },
+  { href: '/dismantle', key: 'batches', ix: 'B' },
+  { href: '/admin/cash', key: 'cash', ix: '$' },
+  { href: '/admin', key: 'admin', ix: 'A' },
+  { href: '/settings', key: 'settings', ix: 'S' },
+  { href: '/help', key: 'help', ix: '?' },
 ] as const
 
-const FOOTER_BUTTON =
-  'rail-item flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-stone-500 hover:bg-stone-100 hover:text-stone-900'
+// Colours come from the `.app-rail` rules in globals.css (qa-studio's RAIL_*
+// tokens), not from Tailwind's neutral ramp — the rail stays dark in both
+// themes, so it must not follow the ramp that inverts.
+const FOOTER_BUTTON = 'rail-item flex w-full items-center gap-2.5 px-3 py-2.5 text-sm font-semibold'
+const IX_CHIP = 'rail-ix flex h-6 w-6 shrink-0 items-center justify-center text-[11px] font-bold'
 
 function BrandMark() {
   return (
@@ -107,31 +113,15 @@ export default function Sidebar() {
     }
   }
 
-  function itemClasses(href: string) {
-    const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
-    return [
-      'rail-item flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm',
-      active
-        ? 'bg-brand-50 font-bold text-brand-700'
-        : 'font-medium text-stone-500 hover:bg-stone-100 hover:text-stone-900',
-    ].join(' ')
-  }
-
-  function itemDot(href: string) {
-    const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
-    return (
-      <span
-        aria-hidden="true"
-        className={`h-1.5 w-1.5 shrink-0 rounded-sm ${active ? 'bg-brand-600' : 'bg-stone-400 opacity-40'}`}
-      />
-    )
+  function isActive(href: string) {
+    return href === '/' ? pathname === '/' : pathname.startsWith(href)
   }
 
   const railBody = (
     <>
-      <Link href="/" className="mb-5 flex items-center gap-2.5 px-2.5 py-1.5">
+      <Link href="/" className="rail-brand mb-5 flex items-center gap-2.5 px-2.5 py-1.5">
         <BrandMark />
-        <span className="text-base font-extrabold tracking-tight text-stone-900">{t('app_name')}</span>
+        <span className="text-lg font-extrabold tracking-tight">{t('app_name')}</span>
       </Link>
 
       {/* Module links are hidden while logged out: every module requires a
@@ -141,28 +131,34 @@ export default function Sidebar() {
       {user && (
         <nav className="flex flex-col gap-1">
           {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className={itemClasses(item.href)}>
-              {itemDot(item.href)}
+            <Link
+              key={item.href}
+              href={item.href}
+              data-active={isActive(item.href)}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+              className="rail-item flex items-center gap-3 px-3 py-2.5 text-base font-medium"
+            >
+              <span aria-hidden="true" className={IX_CHIP}>{item.ix}</span>
               {t(item.key)}
             </Link>
           ))}
         </nav>
       )}
 
-      <div className="mt-auto flex flex-col gap-1 border-t border-stone-200 pt-3">
+      <div className="rail-divider mt-auto flex flex-col gap-1 border-t pt-3">
         <ThemeToggle className={FOOTER_BUTTON} />
         <button type="button" onClick={switchLang} className={FOOTER_BUTTON}>
-          <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-sm bg-stone-400 opacity-40" />
+          <span aria-hidden="true" className={IX_CHIP}>ع</span>
           EN / AR
         </button>
         {user ? (
           <button type="button" onClick={logout} className={FOOTER_BUTTON}>
-            <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-sm bg-stone-400 opacity-40" />
+            <span aria-hidden="true" className={IX_CHIP}>⏻</span>
             {t('logout')}
           </button>
         ) : (
           <Link href="/login" className={FOOTER_BUTTON}>
-            <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-sm bg-stone-400 opacity-40" />
+            <span aria-hidden="true" className={IX_CHIP}>→</span>
             {t('login')}
           </Link>
         )}
@@ -173,7 +169,7 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop rail — always present from `lg` up. */}
-      <aside className="app-rail sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col gap-1 border-e border-stone-200 bg-surface p-4 shadow-rail lg:flex">
+      <aside className="app-rail sticky top-0 hidden h-screen w-[268px] shrink-0 flex-col gap-1 border-e p-4 shadow-rail lg:flex">
         {railBody}
       </aside>
 
@@ -182,7 +178,7 @@ export default function Sidebar() {
       <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-stone-200 bg-surface/90 px-4 py-3 backdrop-blur lg:hidden">
         <Link href="/" className="flex items-center gap-2">
           <BrandMark />
-          <span className="text-base font-extrabold tracking-tight text-stone-900">{t('app_name')}</span>
+          <span className="text-lg font-extrabold tracking-tight text-stone-900">{t('app_name')}</span>
         </Link>
         <button
           type="button"
@@ -207,7 +203,7 @@ export default function Sidebar() {
             onClick={() => { setMenuOpen(false) }}
             className="absolute inset-0 h-full w-full cursor-default bg-overlay/50"
           />
-          <aside className="app-rail absolute inset-y-0 start-0 flex w-[260px] max-w-[85vw] flex-col gap-1 border-e border-stone-200 bg-surface p-4 shadow-rail">
+          <aside className="app-rail absolute inset-y-0 start-0 flex w-[260px] max-w-[85vw] flex-col gap-1 border-e p-4 shadow-rail">
             {railBody}
           </aside>
         </div>
