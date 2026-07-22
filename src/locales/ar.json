@@ -333,7 +333,8 @@
     "error_barcode_not_found": "لا يوجد منتج بهذا الباركود {{code}}.",
     "customer_linked": "مرتبط بـ {{name}}",
     "delivery_toggle_label": "هذا طلب توصيل",
-    "delivery_address_label": "عنوان التوصيل"
+    "delivery_address_label": "عنوان التوصيل",
+    "delivery_fee": "رسوم التوصيل"
   },
   "inventory_page": {
     "name_label": "الاسم",
@@ -488,7 +489,10 @@
       "error_save": "تعذّر حفظ إعدادات الإيصال.",
       "field_receiptShowItems": "جدول الأصناف",
       "field_receiptShowCustomer": "اسم العميل",
-      "field_receiptShowAddressOfCustomer": "عنوان التوصيل"
+      "field_receiptShowAddressOfCustomer": "عنوان التوصيل",
+      "delivery_fee_enabled": "تحصيل رسوم توصيل",
+      "delivery_fee": "قيمة الرسوم",
+      "delivery_fee_hint": "تُضاف إلى إجمالي أي طلب له عنوان توصيل، وتُطبع على الإيصال في سطر مستقل. ولا تتأثر مبيعات المحل. وتغييرها لا يمسّ الطلبات المسجَّلة من قبل."
     },
     "delivery_name_label": "مسمّى مندوب التوصيل",
     "delivery_name_hint": "ما يسميه متجرك لمن يخرج بالطلب — سائق، مندوب، توصيل. يظهر على لوحة الطلبات وفي تفاصيل الطلب، ولا يُطبع على الإيصال أبدًا.",

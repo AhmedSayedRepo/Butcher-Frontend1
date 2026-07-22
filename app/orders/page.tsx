@@ -179,31 +179,26 @@ export default function OrdersPage() {
     return mins !== null && threshold !== undefined && mins >= threshold
   }
 
-  const drafts = orders.filter(o => o.status === 'DRAFT')
-  // v3.1 follow-up 10g: the live columns are queues, so they're sorted
-  // oldest-first — the order that has been waiting longest sits at the top,
-  // which is the one to pick up next. Sorted by how long it's been in *this*
-  // status (the same figure the card's timer shows) rather than by createdAt,
-  // so a card can't sit above another with a smaller number on it.
+  // v3.4: every column is ordered oldest-first by creation time.
   //
-  // Terminal columns keep newest-first: for completed and in-premise orders
-  // the useful question is "what just happened", not "what's been waiting".
-  const byColumn = (status: OrderStatus) => {
-    const rows = orders.filter(o => o.status === status)
-    if (!TIMED_STATUSES.includes(status)) return rows
-    return [...rows].sort((a, b) => {
-      const waited = (statusMinutes(b) ?? 0) - (statusMinutes(a) ?? 0)
-      if (waited !== 0) return waited
-      // Tiebreak by age, oldest first.
-      //
-      // Dwell time is whole minutes, so two orders moved into a status in the
-      // same minute — which is what happens when someone advances several at
-      // once — compare equal. A stable sort then leaves them in the order the
-      // API sent them, which is newest-first, and the column looks like it
-      // isn't sorted at all. That's exactly what it looked like.
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    })
-  }
+  // This replaces the earlier dwell-time sort. That one ordered by how long a
+  // card had sat in its *current* status, which is a defensible queue rule but
+  // reorders the board as cards move — the same two orders swap places purely
+  // because one was advanced a minute later. Sorting on `createdAt` gives one
+  // fixed, predictable sequence: the order that arrived first is at the top,
+  // and it stays there whatever happens to its status.
+  //
+  // Applied to every column, terminal ones included, so the whole screen reads
+  // by a single rule rather than one rule per column.
+  const byCreatedAsc = (a: Order, b: Order) =>
+    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+
+  const byColumn = (status: OrderStatus) =>
+    orders.filter(o => o.status === status).sort(byCreatedAsc)
+
+  // Drafts follow the same rule — the oldest unconfirmed request first, which
+  // is also the one most likely to be going stale.
+  const drafts = orders.filter(o => o.status === 'DRAFT').sort(byCreatedAsc)
 
   async function advance(order: Order, next: OrderStatus) {
     setError(null)
@@ -529,6 +524,7 @@ export default function OrdersPage() {
             settings={shopSettings}
             labels={{
               receiptTitle: t('new_order_page.receipt_title'),
+                deliveryFee: t('new_order_page.delivery_fee'),
               walkIn: t('orders_page.walk_in'),
               total: t('new_order_page.total'),
               receiptCode: t('new_order_page.receipt_code_label'),

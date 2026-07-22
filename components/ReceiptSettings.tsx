@@ -92,6 +92,10 @@ export default function ReceiptSettings({
         shopName: draft.shopName,
         shopPhone: draft.shopPhone === '' ? null : draft.shopPhone,
         shopAddress: draft.shopAddress === '' ? null : draft.shopAddress,
+        // Decimal-as-string on the way in, number on the way out — the API
+        // takes a number here, same as the other numeric settings.
+        deliveryFeeEnabled: draft.deliveryFeeEnabled,
+        deliveryFee: Number(draft.deliveryFee),
         ...Object.fromEntries(TOGGLES.map(key => [key, draft[key]])),
       }
       const r = await api.patch<ShopSettings>('/api/shop-settings', payload)
@@ -132,6 +136,25 @@ export default function ReceiptSettings({
               <input type="number" min="0.6" max="2" step="0.05" value={draft.receiptFontScale}
                 onChange={e => set('receiptFontScale', e.target.value)} />
             </label>
+          </div>
+
+          {/* v3.4 — flat delivery fee. Off by default; when on it's added to
+              the total of any order that has a delivery address, and printed
+              as its own line above the total. The amount stays editable while
+              disabled so a shop can set it up before switching it on. */}
+          <div className="rounded-lg border border-stone-200 bg-stone-50 p-3">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="w-auto" checked={draft.deliveryFeeEnabled}
+                onChange={e => set('deliveryFeeEnabled', e.target.checked)} />
+              <span className="text-sm font-medium text-stone-700">{t('settings_page.receipt.delivery_fee_enabled')}</span>
+            </label>
+            <label className="mt-2 block max-w-[12rem]">
+              <span className={label}>{t('settings_page.receipt.delivery_fee')}</span>
+              <input type="number" min="0" step="0.01" value={draft.deliveryFee}
+                disabled={!draft.deliveryFeeEnabled}
+                onChange={e => set('deliveryFee', e.target.value)} />
+            </label>
+            <p className="mt-1.5 text-xs text-stone-500">{t('settings_page.receipt.delivery_fee_hint')}</p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -217,6 +240,7 @@ export default function ReceiptSettings({
               cashierName={t('settings_page.receipt.preview_cashier')}
               labels={{
                 receiptTitle: t('new_order_page.receipt_title'),
+                deliveryFee: t('new_order_page.delivery_fee'),
                 walkIn: t('orders_page.walk_in'),
                 total: t('new_order_page.total'),
                 receiptCode: t('new_order_page.receipt_code_label'),

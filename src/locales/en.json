@@ -333,7 +333,8 @@
     "error_barcode_not_found": "No product found for barcode {{code}}.",
     "customer_linked": "Linked to {{name}}",
     "delivery_toggle_label": "This is a delivery order",
-    "delivery_address_label": "Delivery address"
+    "delivery_address_label": "Delivery address",
+    "delivery_fee": "Delivery fee"
   },
   "inventory_page": {
     "name_label": "Name",
@@ -488,7 +489,10 @@
       "error_save": "Couldn't save the receipt settings.",
       "field_receiptShowItems": "Items table",
       "field_receiptShowCustomer": "Customer name",
-      "field_receiptShowAddressOfCustomer": "Delivery address"
+      "field_receiptShowAddressOfCustomer": "Delivery address",
+      "delivery_fee_enabled": "Charge a delivery fee",
+      "delivery_fee": "Fee amount",
+      "delivery_fee_hint": "Added to the total of any order with a delivery address, and printed on the receipt as its own line. Counter sales are unaffected. Changing it never alters orders already taken."
     },
     "delivery_name_label": "Delivery person label",
     "delivery_name_hint": "What your shop calls whoever takes an order out — Driver, Courier, Delivery. Shown on the order board and in order details, never printed on the receipt.",

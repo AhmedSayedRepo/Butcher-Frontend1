@@ -84,6 +84,9 @@ export type Order = {
   customerId: string | null
   // v3 replan (Phase I.3 — phone delivery orders).
   deliveryAddress: string | null
+  // v3.4 — the delivery fee charged on this order; already included in
+  // totalAmount. Decimal-as-string like the other money fields.
+  deliveryFee: string
   // v3.1 follow-up 10b: who is taking this delivery out. Free text — a
   // delivery is often handed to someone with no login. Board + detail only,
   // never printed on the receipt.
@@ -215,6 +218,9 @@ export type ShopSettings = {
   // v3.1 follow-up 10b: what this shop calls the person who takes a delivery
   // out (Driver / Courier / …). Display label only.
   deliveryNameLabel: string
+  // v3.4 — flat delivery fee, added to delivery orders when enabled.
+  deliveryFeeEnabled: boolean
+  deliveryFee: string
   // v3.3 — the weighing-scale barcode scheme, null until configured.
   scaleBarcodeConfig: ScaleBarcodeConfig | null
 }

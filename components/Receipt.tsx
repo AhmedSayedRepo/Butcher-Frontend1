@@ -39,6 +39,7 @@ export default function Receipt({
     receiptTitle: string
     walkIn: string
     total: string
+    deliveryFee: string
     receiptCode: string
     kg: string
     customer: string
@@ -158,6 +159,18 @@ export default function Receipt({
         )}
 
         <hr className="receipt-rule" />
+
+        {/* v3.4 — the delivery fee on its own line, above the total it's
+            already part of. Shown whenever this order was charged one, not
+            when the shop-wide toggle happens to be on: an order placed before
+            the fee existed (or a counter sale) has 0 here and prints nothing,
+            which keeps old receipts reprinting exactly as they were. */}
+        {Number(order.deliveryFee ?? 0) > 0 && (
+          <p className="receipt-line">
+            <span>{labels.deliveryFee}</span>
+            <span className="tabular">{Number(order.deliveryFee).toFixed(2)}</span>
+          </p>
+        )}
 
         <p className="receipt-total">
           <span>{labels.total}</span>

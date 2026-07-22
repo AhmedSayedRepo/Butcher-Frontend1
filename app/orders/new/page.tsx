@@ -224,6 +224,7 @@ export default function NewOrderPage() {
           settings={shopSettings}
           labels={{
             receiptTitle: t('new_order_page.receipt_title'),
+                deliveryFee: t('new_order_page.delivery_fee'),
             walkIn: t('orders_page.walk_in'),
             total: t('new_order_page.total'),
             receiptCode: t('new_order_page.receipt_code_label'),

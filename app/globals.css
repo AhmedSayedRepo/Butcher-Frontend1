@@ -957,11 +957,44 @@ body {
   animation-name: drawerInRtl;
 }
 
-/* Note: no translate on hover. The earlier version nudged the row sideways,
-   which pushed it past the rail's edge and made the hover background look like
-   a button floating outside the sidebar. qa-studio only changes the fill. */
+/* Hover: fill, colour, and a small inward nudge.
+
+   An earlier version nudged the row far enough that it crossed the rail's
+   edge and read as a button floating outside the sidebar — which is why this
+   carried a "no translate" note for a while. The fix isn't to drop the motion
+   (the qa-studio reference does nudge, by ~2%), it's to keep the travel well
+   inside the rail's own 16px padding. 3px does that at every rail width, in
+   both the expanded and collapsed states.
+
+   Direction is logical, not physical: the row moves *inward* — right in LTR,
+   left in RTL — so it always travels away from the rail's outer edge rather
+   than toward it. Arabic is the default language here, so getting that flip
+   right matters more than usual. */
 .app-rail .rail-item {
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s cubic-bezier(0.16, 0.8, 0.24, 1);
+}
+.app-rail .rail-item:hover {
+  transform: translateX(3px);
+}
+[dir='rtl'] .app-rail .rail-item:hover {
+  transform: translateX(-3px);
+}
+/* Pressing settles it back — the nudge is "you're about to click this", and
+   holding the lift through the press makes the click feel unacknowledged. */
+.app-rail .rail-item:active,
+[dir='rtl'] .app-rail .rail-item:active {
+  transform: translateX(0);
+  transition-duration: 0.06s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-rail .rail-item,
+  .app-rail .rail-item:hover,
+  [dir='rtl'] .app-rail .rail-item:hover,
+  .app-rail .rail-item:active {
+    transform: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1049,6 +1082,17 @@ body {
   text-align: end;
   white-space: nowrap;
   font-weight: 700;
+}
+/* v3.4 — a subtotal-style line (the delivery fee) sitting above the total.
+   Same two-column shape, lighter weight and a step smaller, so the total below
+   still reads as the figure to pay. */
+.receipt-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-weight: 600;
+  font-size: calc(12px * var(--receipt-scale));
+  margin-bottom: calc(1mm * var(--receipt-scale));
 }
 .receipt-total {
   display: flex;
