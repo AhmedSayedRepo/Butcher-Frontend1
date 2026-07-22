@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     setSubmitting(true)
     try {
-      await api.post('/auth/forgot-password', { email })
+      await api.post('/auth/forgot-password', { email }, { silentError: true })
     } finally {
       // Shown regardless of success/failure — a network error here still
       // shouldn't reveal anything different than the "check your email"

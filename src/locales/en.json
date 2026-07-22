@@ -860,5 +860,21 @@
     "open": "Open orders",
     "dismiss": "Dismiss",
     "needs_check": "Some items need checking"
+  },
+  "toast": {
+    "generic_error": "Something went wrong. Please try again.",
+    "dismiss": "Dismiss",
+    "saved": "Saved",
+    "created": "Created",
+    "updated": "Updated",
+    "deleted": "Deleted",
+    "order_created": "Order created",
+    "draft_saved": "Draft saved",
+    "order_updated": "Order updated",
+    "product_saved": "Product saved",
+    "customer_saved": "Customer saved",
+    "entry_added": "Entry added",
+    "settings_saved": "Settings saved",
+    "invite_sent": "Invitation sent"
   }
 }

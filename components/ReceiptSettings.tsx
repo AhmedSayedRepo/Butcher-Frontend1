@@ -12,10 +12,10 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
-import { translateApiError } from '../lib/apiError'
 import { Order, ShopSettings } from '../lib/types'
 import Receipt from './Receipt'
 import LogoInput from './LogoInput'
+import { useToast } from './ToastProvider'
 
 const TOGGLES = [
   'receiptShowShopName',
@@ -61,9 +61,9 @@ export default function ReceiptSettings({
   onSaved: (next: ShopSettings) => void
 }) {
   const { t } = useTranslation()
+  const toast = useToast()
   const [draft, setDraft] = useState<ShopSettings>(settings)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
   // Re-sync if the parent reloads settings (e.g. after an email field saves).
@@ -76,7 +76,6 @@ export default function ReceiptSettings({
 
   async function save() {
     setSaving(true)
-    setError(null)
     setSaved(false)
     try {
       const payload = {
@@ -101,8 +100,10 @@ export default function ReceiptSettings({
       const r = await api.patch<ShopSettings>('/api/shop-settings', payload)
       onSaved(r.data)
       setSaved(true)
-    } catch (err) {
-      setError(translateApiError(err, t, t('settings_page.receipt.error_save')))
+      toast.success(t('toast.settings_saved'))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setSaving(false)
     }
@@ -217,8 +218,7 @@ export default function ReceiptSettings({
             </div>
           </fieldset>
 
-          {error !== null && <p className="text-sm text-red-700">{error}</p>}
-          {saved && error === null && (
+          {saved && (
             <p className="text-sm text-green-700">{t('settings_page.saved')}</p>
           )}
 

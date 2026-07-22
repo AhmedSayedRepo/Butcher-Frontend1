@@ -128,7 +128,7 @@ export default function Sidebar() {
   useEffect(() => {
     if (user === null) { setBrand(null); return }
     let live = true
-    api.get<{ appLogoUrl: string | null, shopName: string }>('/api/shop-settings')
+    api.get<{ appLogoUrl: string | null, shopName: string }>('/api/shop-settings', { silentError: true })
       .then(r => { if (live) setBrand({ appLogoUrl: r.data.appLogoUrl, shopName: r.data.shopName }) })
       .catch(() => { /* keep the default mark */ })
     return () => { live = false }

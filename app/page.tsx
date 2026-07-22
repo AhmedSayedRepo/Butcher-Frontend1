@@ -140,7 +140,7 @@ export default function Page() {
   const [rangeDays, setRangeDays] = useState<typeof DAYS_7 | typeof DAYS_30>(DAYS_7)
 
   useEffect(() => {
-    api.get<Product[]>('/api/products').then(r => setProducts(r.data)).catch(() => setProducts([]))
+    api.get<Product[]>('/api/products', { silentError: true }).then(r => setProducts(r.data)).catch(() => setProducts([]))
   }, [])
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export default function Page() {
     // flips true, rather than racing it on mount.
     if (!loggedIn) return
     function fetchOrders() {
-      api.get<Order[]>('/api/orders').then(r => setOrders(r.data)).catch(() => setOrders(null))
+      api.get<Order[]>('/api/orders', { silentError: true }).then(r => setOrders(r.data)).catch(() => setOrders(null))
     }
     fetchOrders()
     // v3 replan (Phase J, ADR-010): polls the same existing endpoint the
@@ -162,7 +162,7 @@ export default function Page() {
   const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null)
   useEffect(() => {
     if (!loggedIn) return
-    api.get<ShopSettings>('/api/shop-settings').then(r => setShopSettings(r.data)).catch(() => setShopSettings(null))
+    api.get<ShopSettings>('/api/shop-settings', { silentError: true }).then(r => setShopSettings(r.data)).catch(() => setShopSettings(null))
   }, [loggedIn])
 
   const drafts = useMemo(() => (orders ?? []).filter(o => o.status === 'DRAFT'), [orders])

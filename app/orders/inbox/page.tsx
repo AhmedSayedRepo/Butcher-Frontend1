@@ -125,8 +125,9 @@ export default function OrdersInboxPage() {
       } else if (matched.length === 0) {
         setNotice(t('inbox_page.parse_no_matches'))
       }
-    } catch (err) {
-      setError(translateApiError(err, t, t('inbox_page.error_parse')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setParsing(false)
     }
@@ -148,8 +149,9 @@ export default function OrdersInboxPage() {
         items: cart.map(l => ({ productId: l.productId, kg: l.kg }))
       }, { headers: { 'Idempotency-Key': crypto.randomUUID() } })
       router.push('/orders')
-    } catch (err) {
-      setError(translateApiError(err, t, t('new_order_page.error_submit')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setSaving(false)
     }

@@ -54,7 +54,7 @@ function LoginForm() {
     setError(null)
     setLoading(true)
     try {
-      await api.post('/auth/login', { email, password })
+      await api.post('/auth/login', { email, password }, { silentError: true })
       // Full page load, not router.push(): the session is read once by
       // AuthProvider in the root layout (lib/authContext.tsx), and a
       // client-side push reuses that already-resolved "logged out" value —

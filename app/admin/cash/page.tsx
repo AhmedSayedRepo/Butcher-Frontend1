@@ -13,6 +13,7 @@ import { useAuth, useAuthLoading } from '../../../lib/useAuth'
 import Spinner from '../../../components/Spinner'
 import { CashSummary, CashTransaction, CashTransactionType, DailyClosing } from '../../../lib/types'
 import { cashCategoryLabel, cashNoteLabel } from '../../../lib/cashLabels'
+import { useToast } from '../../../components/ToastProvider'
 
 const RANGES = ['day', 'week', 'month', 'year'] as const
 // v3 follow-up: each summary card now links to the records that make up its
@@ -25,6 +26,7 @@ type CardFilter = 'ALL' | 'IN' | 'OUT'
 
 export default function CashManagementPage() {
   const { t } = useTranslation()
+  const toast = useToast()
   const user = useAuth()
   const authLoading = useAuthLoading()
   const canManageCash = user != null && Array.isArray(user.caps) && user.caps.includes('manage_cash')
@@ -117,9 +119,11 @@ export default function CashManagementPage() {
       setCategory('')
       setAmount('')
       setNote('')
+      toast.success(t('toast.entry_added'))
       load()
-    } catch (err) {
-      setError(translateApiError(err, t, t('cash_page.error_save')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setSaving(false)
     }

@@ -72,13 +72,13 @@ export default function InboundOrderAlert() {
 
   useEffect(() => {
     if (user === null || user === undefined) return
-    api.get<ShopSettings>('/api/shop-settings')
+    api.get<ShopSettings>('/api/shop-settings', { silentError: true })
       .then(r => setSoundEnabled(r.data.alertSoundEnabled))
       .catch(() => setSoundEnabled(false))
   }, [user])
 
   const check = useCallback(() => {
-    api.get<Order[]>('/api/orders')
+    api.get<Order[]>('/api/orders', { silentError: true })
       .then((r) => {
         const inbound = r.data.filter(o => o.status === 'DRAFT' && INBOUND_SOURCES.has(o.source))
 

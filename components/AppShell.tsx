@@ -6,6 +6,7 @@ import AuthGate from './AuthGate'
 import IdleLogout from './IdleLogout'
 import InboundOrderAlert from './InboundOrderAlert'
 import { PUBLIC_PATHS } from '../lib/publicPaths'
+import ToastProvider from './ToastProvider'
 
 // v3.1 follow-up 10i — two chromes, one layout.
 //
@@ -30,13 +31,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   if (isPublic) {
     return (
-      <div className="min-h-screen">
-        <AuthGate>{children}</AuthGate>
-      </div>
+      <ToastProvider>
+        <div className="min-h-screen">
+          <AuthGate>{children}</AuthGate>
+        </div>
+      </ToastProvider>
     )
   }
 
   return (
+    <ToastProvider>
     <div className="flex min-h-screen flex-col lg:flex-row">
       <Sidebar />
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
@@ -50,5 +54,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
           where the old stale-draft alert wasn't. */}
       <InboundOrderAlert />
     </div>
+    </ToastProvider>
   )
 }

@@ -18,6 +18,7 @@ import { ShopSettings } from '../../lib/types'
 import ReceiptSettings from '../../components/ReceiptSettings'
 import ScaleBarcodeSettings from '../../components/ScaleBarcodeSettings'
 import InfoHint from '../../components/InfoHint'
+import { useToast } from '../../components/ToastProvider'
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -126,6 +127,7 @@ function SettingsFieldCard({ label, badge, hint, value, type = 'text', placehold
 
 export default function SettingsPage() {
   const { t } = useTranslation()
+  const toast = useToast()
   const user = useAuth()
   const authLoading = useAuthLoading()
   const isAdmin = user != null && user.role === 'admin'
@@ -177,8 +179,10 @@ export default function SettingsPage() {
       })
       setSettings(r.data)
       setSaved(true)
-    } catch (err) {
-      setError(translateApiError(err, t, t('settings_page.error_save')))
+      toast.success(t('toast.settings_saved'))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setSaving(false)
     }
@@ -194,14 +198,17 @@ export default function SettingsPage() {
   async function updateBrevoSenderEmail(nextValue: string): Promise<void> {
     const r = await api.patch<ShopSettings>('/api/shop-settings', { brevoSenderEmail: nextValue.trim() })
     setSettings(r.data)
+    toast.success(t('toast.settings_saved'))
   }
   async function updateSenderName(nextValue: string): Promise<void> {
     const r = await api.patch<ShopSettings>('/api/shop-settings', { mailSenderName: nextValue.trim() })
     setSettings(r.data)
+    toast.success(t('toast.settings_saved'))
   }
   async function updateBrevoApiKey(nextValue: string): Promise<void> {
     const r = await api.patch<ShopSettings>('/api/shop-settings', { brevoApiKey: nextValue.trim() })
     setSettings(r.data)
+    toast.success(t('toast.settings_saved'))
   }
 
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'

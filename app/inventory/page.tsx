@@ -21,6 +21,7 @@ import { translateApiError } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import Spinner from '../../components/Spinner'
 import { Product, ShopSettings } from '../../lib/types'
+import { useToast } from '../../components/ToastProvider'
 
 type Draft = { name: string, unit: string, category: string, pricePerKg: string, stockKg: string, lowStockAlertKg: string, barcode: string, scaleItemCode: string }
 
@@ -37,6 +38,7 @@ function effectiveThreshold(p: Product, shopDefaultKg: number): number {
 
 export default function InventoryPage() {
   const { t } = useTranslation()
+  const toast = useToast()
   // v3.1 follow-up 10k: "no rows yet" and "haven't asked yet" are different
   // answers. Starts true — the fetch fires on mount, so loading is the truth
   // on the very first render.
@@ -60,7 +62,7 @@ export default function InventoryPage() {
   const shopDefaultThresholdKg = shopSettings === null ? FALLBACK_LOW_STOCK_THRESHOLD_KG : Number(shopSettings.defaultLowStockThresholdKg)
 
   useEffect(() => {
-    api.get<ShopSettings>('/api/shop-settings').then(r => setShopSettings(r.data)).catch(() => setShopSettings(null))
+    api.get<ShopSettings>('/api/shop-settings', { silentError: true }).then(r => setShopSettings(r.data)).catch(() => setShopSettings(null))
   }, [])
 
   function load() {
@@ -106,9 +108,11 @@ export default function InventoryPage() {
         scaleItemCode: newDraft.scaleItemCode === '' ? undefined : newDraft.scaleItemCode
       })
       setNewDraft(EMPTY_DRAFT)
+      toast.success(t('toast.created'))
       load()
-    } catch (err) {
-      setError(translateApiError(err, t, t('inventory_page.error_create')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setCreating(false)
     }
@@ -153,9 +157,11 @@ export default function InventoryPage() {
         reason: stockWillChange(p) ? editReason.trim() : undefined
       })
       setEditingId(null)
+      toast.success(t('toast.product_saved'))
       load()
-    } catch (err) {
-      setError(translateApiError(err, t, t('inventory_page.error_save')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setSaving(false)
     }

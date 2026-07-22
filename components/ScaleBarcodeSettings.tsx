@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import { translateApiError } from '../lib/apiError'
 import { ScaleBarcodeConfig, ShopSettings } from '../lib/types'
+import { useToast } from './ToastProvider'
 
 // A sensible EAN-13 starting point: prefix 2, a 5-digit item code, a 5-digit
 // weight in grams, EAN check digit on. A shop with a different scale changes
@@ -47,6 +48,7 @@ export default function ScaleBarcodeSettings({
   onSaved: (next: ShopSettings) => void
 }) {
   const { t } = useTranslation()
+  const toast = useToast()
   const [config, setConfig] = useState<ScaleBarcodeConfig>(settings.scaleBarcodeConfig ?? DEFAULT_CONFIG)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -75,8 +77,10 @@ export default function ScaleBarcodeSettings({
       const r = await api.patch<ShopSettings>('/api/shop-settings', { scaleBarcodeConfig: config })
       onSaved(r.data)
       setSaved(true)
-    } catch (err) {
-      setError(translateApiError(err, t, t('settings_page.scale_save_error')))
+      toast.success(t('toast.settings_saved'))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setSaving(false)
     }

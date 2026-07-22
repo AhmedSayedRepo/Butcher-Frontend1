@@ -7,6 +7,16 @@
 // requests (frontend and backend are different origins in dev, and different
 // sites entirely once deployed to Vercel + Railway).
 import axios from 'axios'
+import { emitToast } from './toastBus'
+
+// Lets a caller opt a request out of the automatic error toast (see the
+// response interceptor at the bottom). Declared here so `silentError` is a
+// real, typed option rather than a stringly-typed convention.
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    silentError?: boolean
+  }
+}
 
 // v3.1 follow-up 10: no timeout meant a genuinely hung backend request
 // (e.g. an SMTP connection that never resolves) left the calling UI stuck
@@ -64,5 +74,39 @@ api.interceptors.request.use((config) => {
   if (slug !== null) config.headers.set('x-organization-slug', slug)
   return config
 })
+
+// v3.5 — every failed request raises an error toast, from one place.
+//
+// The alternative was adding a toast call to ~70 catch blocks, which fails the
+// moment someone writes the 71st. Here it's structural: a request cannot fail
+// without being reported, including on screens written later.
+//
+// Two exemptions, both deliberate:
+//
+//   401 — the session expired. AuthGate is already redirecting to /login, and
+//   several polls are usually in flight, so toasting would stack "unauthorized"
+//   on top of a screen that's mid-navigation. The redirect is the message.
+//
+//   `silentError` — for background polling (the orders poll, the inbound-order
+//   check). Those run every 20–45s unprompted; on a dropped connection they'd
+//   toast forever about something the cashier didn't ask for and can't act on.
+//   Set it per-request: `api.get(url, { silentError: true })`.
+//
+// The rejection is still re-thrown, so existing catch blocks keep working —
+// this only adds the notification, it never swallows.
+const UNAUTHORIZED = 401
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error: unknown) => {
+    const failed = error as { response?: { status?: number }, config?: { silentError?: boolean } }
+    const status = failed.response?.status
+    const silent = failed.config?.silentError === true
+    if (!silent && status !== UNAUTHORIZED) {
+      emitToast({ kind: 'error', error })
+    }
+    return await Promise.reject(error instanceof Error ? error : new Error(String(error)))
+  }
+)
 
 export default api

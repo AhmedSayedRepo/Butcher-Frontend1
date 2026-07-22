@@ -9,9 +9,11 @@ import api from '../../../lib/api'
 import { translateApiError } from '../../../lib/apiError'
 import { Customer, CustomerProfile } from '../../../lib/types'
 import Spinner from '../../../components/Spinner'
+import { useToast } from '../../../components/ToastProvider'
 
 export default function CustomerProfilePage() {
   const { t } = useTranslation()
+  const toast = useToast()
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const [profile, setProfile] = useState<CustomerProfile | null>(null)
@@ -56,8 +58,10 @@ export default function CustomerProfilePage() {
       })
       setProfile(prev => prev === null ? prev : { ...prev, ...r.data })
       setEditing(false)
-    } catch (err) {
-      setError(translateApiError(err, t, t('customers_page.error_save')))
+      toast.success(t('toast.customer_saved'))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setSaving(false)
     }

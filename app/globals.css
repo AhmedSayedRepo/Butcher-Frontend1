@@ -1166,3 +1166,19 @@ body {
     inset: 0;
   }
 }
+
+/* v3.5 — toasts enter from the end edge (right in LTR, left in RTL) so they
+   read as arriving from the corner they live in, not dropping out of nowhere. */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+[dir='rtl'] .toast-in { animation-name: toastInRtl; }
+@keyframes toastInRtl {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.toast-in { animation: toastIn 0.18s cubic-bezier(0.16, 0.8, 0.24, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .toast-in { animation: none; }
+}

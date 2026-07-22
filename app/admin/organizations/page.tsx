@@ -123,8 +123,9 @@ export default function OrganizationsPage() {
     try {
       await api.patch(`/api/organizations/${id}`, body)
       load()
-    } catch (err) {
-      setError(translateApiError(err, t, t('organizations_page.error_save')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setBusyId(null)
     }
@@ -136,8 +137,9 @@ export default function OrganizationsPage() {
     try {
       await api.post(`/api/organizations/${id}/${archived ? 'archive' : 'unarchive'}`)
       load()
-    } catch (err) {
-      setError(translateApiError(err, t, t('organizations_page.error_save')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setBusyId(null)
     }

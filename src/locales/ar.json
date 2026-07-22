@@ -860,5 +860,21 @@
     "open": "فتح الطلبات",
     "dismiss": "إغلاق",
     "needs_check": "بعض الأصناف تحتاج مراجعة"
+  },
+  "toast": {
+    "generic_error": "حدث خطأ ما. حاول مرة أخرى.",
+    "dismiss": "إغلاق",
+    "saved": "تم الحفظ",
+    "created": "تم الإنشاء",
+    "updated": "تم التحديث",
+    "deleted": "تم الحذف",
+    "order_created": "تم إنشاء الطلب",
+    "draft_saved": "تم حفظ المسودة",
+    "order_updated": "تم تحديث الطلب",
+    "product_saved": "تم حفظ المنتج",
+    "customer_saved": "تم حفظ العميل",
+    "entry_added": "تمت إضافة القيد",
+    "settings_saved": "تم حفظ الإعدادات",
+    "invite_sent": "تم إرسال الدعوة"
   }
 }

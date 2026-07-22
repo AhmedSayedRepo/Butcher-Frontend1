@@ -61,7 +61,7 @@ function SetPasswordForm() {
     }
     setSubmitting(true)
     try {
-      await api.post('/auth/reset-password', { token, password })
+      await api.post('/auth/reset-password', { token, password }, { silentError: true })
       setDone(true)
     } catch (err) {
       setError(translateApiError(err, t, t('set_password_page.error_submit')))

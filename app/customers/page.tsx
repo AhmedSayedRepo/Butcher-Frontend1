@@ -7,13 +7,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import api from '../../lib/api'
-import { translateApiError } from '../../lib/apiError'
 import { useAuth } from '../../lib/useAuth'
 import Spinner from '../../components/Spinner'
 import { Customer } from '../../lib/types'
+import { useToast } from '../../components/ToastProvider'
 
 export default function CustomersPage() {
   const { t } = useTranslation()
+  const toast = useToast()
   const user = useAuth()
   const loggedIn = !!user
 
@@ -25,7 +26,6 @@ export default function CustomersPage() {
   const [loadingList, setLoadingList] = useState(true)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [query, setQuery] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -50,7 +50,6 @@ export default function CustomersPage() {
     e.preventDefault()
     if (name.trim() === '') return
     setSaving(true)
-    setError(null)
     try {
       await api.post('/api/customers', {
         name: name.trim(),
@@ -63,9 +62,11 @@ export default function CustomersPage() {
       setAddress('')
       setNotes('')
       setShowAdd(false)
+      toast.success(t('toast.customer_saved'))
       load(query)
-    } catch (err) {
-      setError(translateApiError(err, t, t('customers_page.error_save')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setSaving(false)
     }
@@ -84,7 +85,6 @@ export default function CustomersPage() {
         </button>
       </div>
 
-      {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       {showAdd && (
         <form onSubmit={addCustomer} className="mb-4 grid grid-cols-1 gap-3 rounded-xl border border-stone-200 bg-surface p-5 shadow-card sm:grid-cols-3">

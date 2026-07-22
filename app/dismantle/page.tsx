@@ -142,8 +142,9 @@ export default function DismantlePage() {
       setInputWeightKg('')
       setCutInputs({})
       loadEvents()
-    } catch (err) {
-      setError(translateApiError(err, t, t('dismantle_page.error_submit')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setSubmitting(false)
     }
@@ -172,8 +173,9 @@ export default function DismantlePage() {
       })
       setEditingEventId(null)
       loadEvents()
-    } catch (err) {
-      setError(translateApiError(err, t, t('dismantle_page.error_edit_event')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setEventBusyId(null)
     }
@@ -186,8 +188,9 @@ export default function DismantlePage() {
     try {
       await api.delete(`/api/dismantle-events/${ev.id}`)
       loadEvents()
-    } catch (err) {
-      setError(translateApiError(err, t, t('dismantle_page.error_delete_event')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setEventBusyId(null)
     }

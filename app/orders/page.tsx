@@ -32,6 +32,7 @@ import { Order, OrderStatus, Product, ShopSettings } from '../../lib/types'
 import Receipt from '../../components/Receipt'
 import Spinner from '../../components/Spinner'
 import { formatElapsed, minutesSince, statusEnteredAt } from '../../lib/elapsed'
+import { useToast } from '../../components/ToastProvider'
 
 const COLUMNS: { status: OrderStatus, key: string }[] = [
   { status: 'CREATED', key: 'created' },
@@ -75,6 +76,7 @@ const UNAUTHORIZED_STATUS = 401
 
 export default function OrdersPage() {
   const { t } = useTranslation()
+  const toast = useToast()
   const user = useAuth()
   const loggedIn = !!user
   const canManageOrders = user != null && Array.isArray(user.caps) && user.caps.includes('manage_orders')
@@ -102,7 +104,7 @@ export default function OrdersPage() {
   }, [])
 
   function load() {
-    api.get<Order[]>('/api/orders')
+    api.get<Order[]>('/api/orders', { silentError: true })
       .then(r => setOrders(r.data))
       .catch((e) => {
         setOrders([])
@@ -119,8 +121,8 @@ export default function OrdersPage() {
 
   useEffect(() => {
     load()
-    api.get<Product[]>('/api/products').then(r => setProducts(r.data)).catch(() => setProducts([]))
-    api.get<ShopSettings>('/api/shop-settings').then(r => setShopSettings(r.data)).catch(() => setShopSettings(null))
+    api.get<Product[]>('/api/products', { silentError: true }).then(r => setProducts(r.data)).catch(() => setProducts([]))
+    api.get<ShopSettings>('/api/shop-settings', { silentError: true }).then(r => setShopSettings(r.data)).catch(() => setShopSettings(null))
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `load` is defined fresh each render but only needs to run once on mount.
   }, [])
 
@@ -205,9 +207,11 @@ export default function OrdersPage() {
     setBusyId(order.id)
     try {
       await api.patch(`/api/orders/${order.id}/status`, { status: next })
+      toast.success(t('toast.order_updated'))
       load()
-    } catch (err) {
-      setError(translateApiError(err, t, t('orders_page.error_status')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setBusyId(null)
     }
@@ -218,9 +222,11 @@ export default function OrdersPage() {
     setBusyId(order.id)
     try {
       await api.patch(`/api/orders/${order.id}/status`, { status: 'CANCELLED' })
+      toast.success(t('toast.order_updated'))
       load()
-    } catch (err) {
-      setError(translateApiError(err, t, t('orders_page.error_status')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setBusyId(null)
     }
@@ -231,9 +237,11 @@ export default function OrdersPage() {
     setBusyId(order.id)
     try {
       await api.post(`/api/orders/${order.id}/promote`)
+      toast.success(t('toast.order_created'))
       load()
-    } catch (err) {
-      setError(translateApiError(err, t, t('orders_page.error_promote')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setBusyId(null)
     }

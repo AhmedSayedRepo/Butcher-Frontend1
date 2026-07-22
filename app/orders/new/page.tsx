@@ -25,6 +25,7 @@ import api from '../../../lib/api'
 import { translateApiError } from '../../../lib/apiError'
 import { Customer, Order, Product, ScanResult, ShopSettings } from '../../../lib/types'
 import Receipt from '../../../components/Receipt'
+import { useToast } from '../../../components/ToastProvider'
 
 type CartLine = { productId: string, name: string, pricePerKg: number, kg: number }
 
@@ -35,6 +36,7 @@ const CUSTOMER_SEARCH_DEBOUNCE_MS = 300
 
 export default function NewOrderPage() {
   const { t } = useTranslation()
+  const toast = useToast()
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [customer, setCustomer] = useState('')
@@ -86,7 +88,7 @@ export default function NewOrderPage() {
   // settings request must never stand between finishing a sale and handing
   // over the slip. Receipt falls back to defaults if this is still null.
   useEffect(() => {
-    api.get<ShopSettings>('/api/shop-settings')
+    api.get<ShopSettings>('/api/shop-settings', { silentError: true })
       .then(r => setShopSettings(r.data))
       .catch(() => setShopSettings(null))
   }, [])
@@ -97,7 +99,7 @@ export default function NewOrderPage() {
       return
     }
     const handle = setTimeout(() => {
-      api.get<Customer[]>('/api/customers', { params: { q: customerQuery } })
+      api.get<Customer[]>('/api/customers', { params: { q: customerQuery }, silentError: true })
         .then(r => setCustomerResults(r.data))
         .catch(() => setCustomerResults([]))
     }, CUSTOMER_SEARCH_DEBOUNCE_MS)
@@ -141,7 +143,7 @@ export default function NewOrderPage() {
       // weighing-scale label. For a scale label it returns the exact weight
       // (kg); for a plain barcode kg is null and we fall back to the 1 kg
       // default the cashier then adjusts.
-      const res = await api.get<ScanResult>(`/api/products/scan/${encodeURIComponent(code)}`)
+      const res = await api.get<ScanResult>(`/api/products/scan/${encodeURIComponent(code)}`, { silentError: true })
       addProductToCart(res.data.product, res.data.kg ?? BARCODE_DEFAULT_KG)
     } catch (err) {
       // translateApiError surfaces the specific case — scale item not found,
@@ -213,13 +215,15 @@ export default function NewOrderPage() {
       // deliberately keeps the same key, so a retry of the *same* click
       // still dedupes against whatever the server already did with it.
       idempotencyKeyRef.current = crypto.randomUUID()
+      toast.success(asDraft ? t('toast.draft_saved') : t('toast.order_created'))
       if (asDraft) {
         router.push('/orders')
       } else {
         setReceipt(res.data)
       }
-    } catch (err) {
-      setError(translateApiError(err, t, t('new_order_page.error_submit')))
+    } catch {
+      // Reported by the global error toast — see the response
+      // interceptor in lib/api.ts. A second inline copy would be noise.
     } finally {
       setBusy(false)
     }
