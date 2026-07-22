@@ -199,6 +199,27 @@
         "body": "If the app says it can't reach the server, that's the connection, not your data — nothing has been lost and nothing was half-saved. Check the shop's internet and try again.",
         "tip": "Error messages that name a specific thing (\"that code belongs to a different order\") are the app telling you something real. \"Can't reach the server\" is the network.",
         "keywords": "offline network error connection loading failed server down"
+      },
+      {
+        "category": "stock",
+        "heading": "Scanning scale labels",
+        "body": "If your scale prints its own labels, scanning one adds the product at its exact weight — no keying the kg. Set the label layout once in Settings → Scale barcodes, and give each product its scale item code in Inventory. Ordinary product barcodes still scan as before.",
+        "tip": "Use the tester in Settings with a real label before trusting it. A wrong digit position reads the wrong weight or the wrong product, and the tester shows both.",
+        "keywords": "scale label weight embedded plu variable measure barcode scan ean"
+      },
+      {
+        "category": "admin",
+        "heading": "Setting up outgoing email",
+        "body": "Invite and password-reset emails go out one of two ways. If you've connected an automation (Make or similar) to the webhook, they send through it — from your linked Google account, which is what makes them arrive reliably. If no automation is connected, they fall back to Brevo, set up under Settings → Email fallback: a verified sender address, a sender name, and a Brevo API key. Each field there carries an ⓘ with the details.",
+        "tip": "Never use a free @gmail.com address as the Brevo sender — mail 'from' a gmail address sent through Brevo fails authentication and is treated as spam. Use an address on a domain you own and verify it in Brevo. On the Make path that field is only the reply-to, so a gmail address there is harmless.",
+        "keywords": "email invite password reset brevo make sender api key smtp spam dmarc reply-to setup configure"
+      },
+      {
+        "category": "admin",
+        "heading": "Setting up scale barcodes",
+        "body": "Under Settings → Scale barcodes, describe your scale's label layout: the prefix that marks a scale label, the total length, and which digit positions hold the item code and the value. Choose whether the value is a weight or a price, and the divisor (weight in grams → 1000, price with 2 decimals → 100). Then give each product its scale item code in Inventory. A scan on New Order adds the item at its exact weight.",
+        "tip": "Don't count digit positions by eye — paste a real printed label into the tester on that screen. It shows the item code, the weight or price it read, and which product it matched, so a wrong position is obvious before it reaches the counter.",
+        "keywords": "scale setup configure prefix position item code weight price divisor tester plu inventory ean"
       }
     ]
   },
@@ -335,7 +356,9 @@
     "error_save": "Failed to save product.",
     "error_reason_required": "A reason is required when changing stock.",
     "low_stock_tag": "low stock",
-    "barcode_label": "Barcode"
+    "barcode_label": "Barcode",
+    "scale_item_code_label": "Scale item code",
+    "scale_item_code_hint": "PLU from your scale"
   },
   "login_page": {
     "title": "Sign in",
@@ -484,7 +507,37 @@
       "file_too_large": "File is over {{mb}} MB. Pick a smaller one.",
       "too_small": "Image is smaller than {{px}}×{{px}} px — it would look blurry.",
       "limits": "PNG, JPG, WebP or SVG · up to {{mb}} MB · at least {{px}}px · resized automatically"
-    }
+    },
+    "scale_section_title": "Scale barcodes",
+    "scale_section_note": "If your weighing scale prints its own labels, describe their layout here and a scan on the New Order screen will add the exact weight. Positions are counted from the first digit. Not sure of the layout? Fill in your best guess and use the tester below with a real label.",
+    "scale_enabled_label": "Enable scale barcode scanning",
+    "scale_prefix_label": "Prefix",
+    "scale_prefix_hint": "e.g. 2",
+    "scale_total_length_label": "Total length",
+    "scale_item_start_label": "Item code — start",
+    "scale_item_length_label": "Item code — length",
+    "scale_value_start_label": "Value — start",
+    "scale_value_length_label": "Value — length",
+    "scale_value_type_label": "Value is",
+    "scale_value_type_weight": "Weight",
+    "scale_value_type_price": "Price",
+    "scale_divisor_label": "Divisor",
+    "scale_divisor_hint": "Divide the value digits by this. Weight in grams → 1000 (12340 → 12.340 kg). Price with 2 decimals → 100 (04599 → 45.99).",
+    "scale_check_digit_label": "Validate EAN-13 check digit",
+    "scale_save": "Save scheme",
+    "scale_saving": "Saving…",
+    "scale_saved": "Saved",
+    "scale_save_error": "Couldn't save the scale scheme.",
+    "scale_test_title": "Test a label",
+    "scale_test_placeholder": "Paste a barcode from a printed label",
+    "scale_test_button": "Test",
+    "scale_test_error": "Couldn't test that barcode.",
+    "scale_test_no_match": "Not read as a scale label — check the prefix and total length.",
+    "scale_test_matched": "Item code: {{code}}",
+    "scale_test_value_weight": "Weight: {{value}} kg",
+    "scale_test_value_price": "Price: {{value}}",
+    "scale_test_product": "Matches: {{name}}",
+    "scale_test_no_product": "No product has this item code yet — add it in Inventory."
   },
   "admin_users_page": {
     "title": "User Management",
@@ -690,7 +743,9 @@
     "SLUG_TAKEN": "The subdomain \"{{slug}}\" is already taken.",
     "SLUG_INVALID": "Subdomain must be 3-40 characters of lowercase letters, digits or hyphens, and not a reserved name.",
     "SLUG_IMMUTABLE": "A subdomain can't be changed — it's in every bookmark and invite link already sent.",
-    "ORGANIZATION_HAS_DATA": "This organization has users or trading history. Archive it instead of deleting it."
+    "ORGANIZATION_HAS_DATA": "This organization has users or trading history. Archive it instead of deleting it.",
+    "SCALE_ITEM_NOT_FOUND": "No product matches that scale item code. Add the code in Inventory.",
+    "SCALE_PRICE_UNRESOLVABLE": "This product has no price per kg, so a weight can't be worked out from the label's price."
   },
   "public": {
     "badge": "Built for butcher shops · Arabic & English",

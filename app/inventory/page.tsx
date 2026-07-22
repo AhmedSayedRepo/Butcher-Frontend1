@@ -22,9 +22,9 @@ import { useAuth } from '../../lib/useAuth'
 import Spinner from '../../components/Spinner'
 import { Product, ShopSettings } from '../../lib/types'
 
-type Draft = { name: string, unit: string, category: string, pricePerKg: string, stockKg: string, lowStockAlertKg: string, barcode: string }
+type Draft = { name: string, unit: string, category: string, pricePerKg: string, stockKg: string, lowStockAlertKg: string, barcode: string, scaleItemCode: string }
 
-const EMPTY_DRAFT: Draft = { name: '', unit: 'kg', category: '', pricePerKg: '', stockKg: '', lowStockAlertKg: '', barcode: '' }
+const EMPTY_DRAFT: Draft = { name: '', unit: 'kg', category: '', pricePerKg: '', stockKg: '', lowStockAlertKg: '', barcode: '', scaleItemCode: '' }
 // v3.1 follow-up 5 (Settings page): fallback only, for the brief window
 // before GET /api/shop-settings resolves — the real default now lives at
 // ShopSettings.defaultLowStockThresholdKg, editable at /settings.
@@ -102,7 +102,8 @@ export default function InventoryPage() {
         pricePerKg: Number(newDraft.pricePerKg),
         stockKg: Number(newDraft.stockKg),
         lowStockAlertKg: newDraft.lowStockAlertKg === '' ? undefined : Number(newDraft.lowStockAlertKg),
-        barcode: newDraft.barcode === '' ? undefined : newDraft.barcode
+        barcode: newDraft.barcode === '' ? undefined : newDraft.barcode,
+        scaleItemCode: newDraft.scaleItemCode === '' ? undefined : newDraft.scaleItemCode
       })
       setNewDraft(EMPTY_DRAFT)
       load()
@@ -123,7 +124,8 @@ export default function InventoryPage() {
       pricePerKg: p.pricePerKg,
       stockKg: p.stockKg,
       lowStockAlertKg: p.lowStockAlertKg ?? '',
-      barcode: p.barcode ?? ''
+      barcode: p.barcode ?? '',
+      scaleItemCode: p.scaleItemCode ?? ''
     })
   }
 
@@ -147,6 +149,7 @@ export default function InventoryPage() {
         stockKg: Number(editDraft.stockKg),
         lowStockAlertKg: editDraft.lowStockAlertKg === '' ? undefined : Number(editDraft.lowStockAlertKg),
         barcode: editDraft.barcode === '' ? undefined : editDraft.barcode,
+        scaleItemCode: editDraft.scaleItemCode === '' ? undefined : editDraft.scaleItemCode,
         reason: stockWillChange(p) ? editReason.trim() : undefined
       })
       setEditingId(null)
@@ -228,6 +231,12 @@ export default function InventoryPage() {
               <input className={inputClasses} value={newDraft.barcode}
                 onChange={e => setNewDraft({ ...newDraft, barcode: e.target.value })} />
             </label>
+            <label>
+              <span className={labelClasses}>{t('inventory_page.scale_item_code_label')}</span>
+              <input className={inputClasses} value={newDraft.scaleItemCode}
+                placeholder={t('inventory_page.scale_item_code_hint')}
+                onChange={e => setNewDraft({ ...newDraft, scaleItemCode: e.target.value })} />
+            </label>
           </div>
           <datalist id="inventory-categories">
             {categories.map(c => <option key={c} value={c} />)}
@@ -291,12 +300,19 @@ export default function InventoryPage() {
                         placeholder={t('inventory_page.threshold_label')}
                         onChange={e => setEditDraft({ ...editDraft, lowStockAlertKg: e.target.value })} />
                     </label>
-                    <label className="col-span-2">
+                    <label>
                       <span className={editLabelClasses}>{t('inventory_page.barcode_label')}</span>
                       <input className={inputClasses} value={editDraft.barcode}
                         title={t('inventory_page.barcode_label')}
                         placeholder={t('inventory_page.barcode_label')}
                         onChange={e => setEditDraft({ ...editDraft, barcode: e.target.value })} />
+                    </label>
+                    <label>
+                      <span className={editLabelClasses}>{t('inventory_page.scale_item_code_label')}</span>
+                      <input className={inputClasses} value={editDraft.scaleItemCode}
+                        title={t('inventory_page.scale_item_code_label')}
+                        placeholder={t('inventory_page.scale_item_code_hint')}
+                        onChange={e => setEditDraft({ ...editDraft, scaleItemCode: e.target.value })} />
                     </label>
                     {stockWillChange(p) && (
                       <label className="col-span-2">

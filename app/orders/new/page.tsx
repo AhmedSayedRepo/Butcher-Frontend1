@@ -23,7 +23,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import api from '../../../lib/api'
 import { translateApiError } from '../../../lib/apiError'
-import { Customer, Order, Product, ShopSettings } from '../../../lib/types'
+import { Customer, Order, Product, ScanResult, ShopSettings } from '../../../lib/types'
 import Receipt from '../../../components/Receipt'
 
 type CartLine = { productId: string, name: string, pricePerKg: number, kg: number }
@@ -137,10 +137,17 @@ export default function NewOrderPage() {
     if (code === '') return
     setBarcodeError(null)
     try {
-      const res = await api.get<Product>(`/api/products/by-barcode/${encodeURIComponent(code)}`)
-      addProductToCart(res.data, BARCODE_DEFAULT_KG)
-    } catch {
-      setBarcodeError(t('new_order_page.error_barcode_not_found', { code }))
+      // v3.3: the /scan endpoint handles both a plain product barcode and a
+      // weighing-scale label. For a scale label it returns the exact weight
+      // (kg); for a plain barcode kg is null and we fall back to the 1 kg
+      // default the cashier then adjusts.
+      const res = await api.get<ScanResult>(`/api/products/scan/${encodeURIComponent(code)}`)
+      addProductToCart(res.data.product, res.data.kg ?? BARCODE_DEFAULT_KG)
+    } catch (err) {
+      // translateApiError surfaces the specific case — scale item not found,
+      // price-mode with no rate, or plain barcode not found — via the
+      // `errors.*` keys, falling back to the generic not-found message.
+      setBarcodeError(translateApiError(err, t, t('new_order_page.error_barcode_not_found', { code })))
     }
   }
 

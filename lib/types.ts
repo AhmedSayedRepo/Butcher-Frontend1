@@ -11,8 +11,34 @@ export type Product = {
   lowStockAlertKg: string | null
   // v3 replan (Phase I.1 — barcode scanning, ADR-008).
   barcode: string | null
+  // v3.3 — the item/PLU code a weighing scale embeds in its labels.
+  scaleItemCode: string | null
   createdAt: string
   updatedAt: string
+}
+
+// v3.3 — the weighing-scale barcode scheme, mirrored from the backend's
+// ScaleBarcodeConfigSchema. Positions are 1-based digit indices.
+export type ScaleBarcodeConfig = {
+  enabled: boolean
+  prefix: string
+  totalLength: number
+  itemStart: number
+  itemLength: number
+  valueStart: number
+  valueLength: number
+  valueType: 'weight' | 'price'
+  valueDivisor: number
+  validateCheckDigit: boolean
+}
+
+// The result of scanning a code at the counter: a product plus the resolved
+// weight (null for a plain barcode, where the client uses its default), and
+// which path resolved it.
+export type ScanResult = {
+  product: Product
+  kg: number | null
+  mode: 'weight' | 'price' | 'plain'
 }
 
 export type OrderItem = {
@@ -189,6 +215,8 @@ export type ShopSettings = {
   // v3.1 follow-up 10b: what this shop calls the person who takes a delivery
   // out (Driver / Courier / …). Display label only.
   deliveryNameLabel: string
+  // v3.3 — the weighing-scale barcode scheme, null until configured.
+  scaleBarcodeConfig: ScaleBarcodeConfig | null
 }
 
 // v2 replan (Phase B): audit trail row for a direct stock edit.

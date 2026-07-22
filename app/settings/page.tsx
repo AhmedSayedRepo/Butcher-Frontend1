@@ -16,6 +16,8 @@ import { useAuth, useAuthLoading } from '../../lib/useAuth'
 import Spinner from '../../components/Spinner'
 import { ShopSettings } from '../../lib/types'
 import ReceiptSettings from '../../components/ReceiptSettings'
+import ScaleBarcodeSettings from '../../components/ScaleBarcodeSettings'
+import InfoHint from '../../components/InfoHint'
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -87,11 +89,13 @@ function SettingsFieldCard({ label, badge, hint, value, type = 'text', placehold
     <div className="rounded-lg border border-stone-200 p-4">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium text-stone-700">{label}</span>
+        {/* The hint moved from an always-visible paragraph into this ⓘ tooltip
+            — the form reads as a list of fields, not a wall of grey text. */}
+        {hint !== undefined && <InfoHint text={hint} label={label} />}
         {badge !== undefined && (
           <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-500">{badge}</span>
         )}
       </div>
-      {hint !== undefined && <p className="mb-2 text-xs text-stone-400">{hint}</p>}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <input
@@ -285,13 +289,13 @@ export default function SettingsPage() {
               rather than sharing the form above — matches a reference design
               shared for this section specifically. */}
           <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
-            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_email')}</h2>
-            {/* v3.2: this section is now the Brevo *fallback* path. When a Make
-                (or other) automation webhook is configured, invite/reset emails
-                send through it instead, and only the reply-to applies — so the
-                note keeps these fields from looking like live config that isn't
-                doing anything. */}
-            <p className="mb-3 text-xs leading-relaxed text-stone-500">{t('settings_page.section_email_note')}</p>
+            {/* v3.3: the long section note and the per-field hints are now
+                ⓘ tooltips, not paragraphs — the full step-by-step lives in Help
+                → "Setting up outgoing email". */}
+            <div className="mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_email')}</h2>
+              <InfoHint text={t('settings_page.section_email_note')} />
+            </div>
             <div className="space-y-3">
               <SettingsFieldCard
                 label={t('settings_page.brevo_sender_label')}
@@ -324,6 +328,8 @@ export default function SettingsPage() {
           </div>
 
           <ReceiptSettings settings={settings} onSaved={setSettings} />
+
+          <ScaleBarcodeSettings settings={settings} onSaved={setSettings} />
         </div>
       )}
     </div>
