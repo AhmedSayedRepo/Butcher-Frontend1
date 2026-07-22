@@ -426,7 +426,11 @@ export default function Page() {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {inProgressColumns.map(col => (
-                <div key={col.status}>
+                // Recessed column, matching the real orders board — this
+                // section is a mirror of it, so the cards inside need the same
+                // frame (a stone-tinted well) that separates a surface card
+                // from the surface panel it sits on.
+                <div key={col.status} className="rounded-xl border border-stone-200 bg-stone-100/60 p-2.5">
                   <h3 className="mb-2 flex items-center gap-2">
                     <span className="tabular flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-100 text-[11px] font-bold text-brand-800">
                       {col.orders.length}
@@ -437,11 +441,13 @@ export default function Page() {
                   </h3>
                   <div className="space-y-2">
                     {col.orders.slice(0, DASHBOARD_COLUMN_LIMIT).map(o => (
-                      // v3.2: same hover gesture as the rest of the app, in
-                      // the compact variant — these are cards inside a card,
-                      // and a dozen of them in a grid.
+                      // v3.2: the exact card recipe the orders board uses —
+                      // surface fill, shadow, full card-hover lift — so this
+                      // mirror is indistinguishable from the board it reflects,
+                      // and picks up the same glass treatment as every other
+                      // card in the app.
                       <Link key={o.id} href="/orders"
-                        className="card-hover-sm block rounded-lg border border-stone-200 bg-stone-50 px-3 py-2">
+                        className="card-hover block rounded-lg border border-stone-200 bg-surface p-3 shadow-card">
                         <p className="flex items-baseline gap-2 text-sm font-semibold text-stone-900">
                           {o.dailyNumber !== null && <span className="tabular text-xs text-stone-400">#{o.dailyNumber}</span>}
                           <span className="min-w-0 flex-1 truncate" title={o.customer ?? undefined}>
@@ -734,9 +740,15 @@ function StatCard({
       href={href}
       className="block rounded-xl border border-stone-200 bg-surface p-5 shadow-card card-hover"
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-stone-500">{label}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          {/* One line, always. The Arabic low-stock label carries a threshold
+              suffix — "تنبيهات نقص المخزون (أقل من 5 كجم)" — long enough to wrap
+              to two lines and knock that card taller than its three siblings.
+              Truncating keeps the row of cards even; the native `title` tooltip
+              restores the full text on hover, matching the tooltips used
+              elsewhere for the same reason. */}
+          <p className="truncate text-sm font-medium text-stone-500" title={label}>{label}</p>
           {/* Revamp: KPI figures are the thing this screen exists to show, so
               they follow the mockups — heavier weight, tighter tracking, and
               `tabular`, which selects Plex Mono under the dark theme (the UI

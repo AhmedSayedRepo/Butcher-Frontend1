@@ -67,7 +67,12 @@ const SECONDARY_ITEMS = [
   { href: '/help', key: 'help' },
 ] as const
 
-const ROW = 'rail-item flex items-center gap-3 px-3 py-2.5 text-base font-medium'
+// Type scale matched to the qa-studio reference rail: its nav labels are
+// 13.5px bold, not the 16px medium this used to run at — which read larger and
+// lighter than the source design. `text-sm` (14px) semibold is the closest
+// web equivalent and lines the primary rows up with the footer rows, which
+// were already at this size.
+const ROW = 'rail-item flex items-center gap-3 px-3 py-2.5 text-sm font-semibold'
 const ROW_COLLAPSED = 'rail-item flex items-center justify-center px-2 py-2.5'
 const IX_CHIP_COLLAPSED = 'rail-ix flex h-8 w-8 shrink-0 items-center justify-center text-xs font-bold'
 const FOOTER_ROW = 'rail-item flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold'
@@ -235,7 +240,9 @@ export default function Sidebar() {
       <div className={`rail-brand mb-6 flex items-center ${collapsed ? 'flex-col gap-2' : 'gap-2.5'} px-2 py-1`}>
         <Link href="/" className="flex min-w-0 items-center gap-2.5" title={collapsed ? railTitle : undefined}>
           {logoUrl === null ? <BrandMark /> : <ShopMark src={logoUrl} />}
-          {!collapsed && <span className="truncate text-lg font-extrabold tracking-tight">{railTitle}</span>}
+          {/* Brand at 16px, down from 18px — the reference wordmark is 15px, so
+              this sits it closer to the nav scale instead of towering over it. */}
+          {!collapsed && <span className="truncate text-base font-extrabold tracking-tight">{railTitle}</span>}
         </Link>
         {/* Collapse control. Hidden on the mobile drawer (`lg:inline-flex`),
             where the rail is already full-width and closing it is what the

@@ -230,6 +230,19 @@ body {
   /* Theme swaps shouldn't strobe. Deliberately not on `*` — animating every
      element's colours makes hover states feel laggy. */
   transition: background-color 0.2s ease, color 0.2s ease;
+  /* Faint corner glows (cyan + violet, the public-surface accents) so the card
+     backdrop-blur above has something to sample — a blur over a flat fill
+     shows nothing. Very low alpha so it never competes with content on a
+     glance-fast POS; `fixed` so it stays put as pages scroll. */
+  background-image:
+    radial-gradient(1000px 560px at 100% -6%, rgba(18, 181, 206, 0.05), transparent 62%),
+    radial-gradient(820px 520px at 0% 6%, rgba(124, 108, 246, 0.045), transparent 62%);
+  background-attachment: fixed;
+}
+[data-theme='dark'] body {
+  background-image:
+    radial-gradient(1000px 560px at 100% -6%, rgba(18, 181, 206, 0.10), transparent 62%),
+    radial-gradient(820px 520px at 0% 6%, rgba(124, 108, 246, 0.09), transparent 62%);
 }
 
 /* Figures are set in JetBrains Mono (qa-studio's F_MONO) in both themes —
@@ -535,6 +548,9 @@ body {
   --pub-cyan2: #0e9cc0;
   --pub-violet: #7c6cf6;
   --pub-card: rgba(20, 27, 50, 0.55);
+  /* Same glass, a touch brighter — the panel reads as catching light on hover
+     rather than changing colour. */
+  --pub-card-hover: rgba(28, 38, 66, 0.72);
   --pub-line: rgba(124, 140, 255, 0.14);
 }
 
@@ -616,6 +632,39 @@ body {
   border: 1px solid var(--pub-line);
   border-radius: var(--radius-card);
   backdrop-filter: blur(14px);
+}
+
+/* Hover treatment for the interactive landing cards (features, steps) — NOT
+   the hero preview, which is a static mockup and would look strange lifting.
+   Written in the public surface's own neon-glass language rather than reusing
+   the app's `.card-hover`: that one lifts to a solid brand-tinted border on a
+   light stone card, which is the wrong palette entirely here. This lifts the
+   glass panel, warms its hairline to cyan, and adds a soft cyan glow so the
+   card reads as raised light rather than a bordered box. */
+.pub-card-hover {
+  transition: transform 0.18s cubic-bezier(0.16, 0.8, 0.24, 1),
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+.pub-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(18, 181, 206, 0.45);
+  background: var(--pub-card-hover);
+  box-shadow: 0 16px 44px -20px rgba(18, 181, 206, 0.5),
+    0 0 0 1px rgba(18, 181, 206, 0.12);
+}
+.pub-card-hover:active {
+  transform: translateY(-1px);
+  transition-duration: 0.06s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pub-card-hover,
+  .pub-card-hover:hover,
+  .pub-card-hover:active {
+    transform: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  }
 }
 
 .pub-pill {
@@ -759,6 +808,37 @@ body {
   .card-hover-sm:active {
     transform: none;
     transition: box-shadow 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+  }
+}
+
+/* ── Subtle glass on app cards ("both modes, subtle") ───────────────────────
+   The app has no single card class — cards are utility strings across 22 files
+   — but every one carries BOTH `bg-surface` and `shadow-card`. That compound
+   is a precise hook: it catches cards and misses the mobile header
+   (`bg-surface/90`, a different token), inputs (no shadow), and the small stone
+   tiles. The fill goes translucent and gains a modest backdrop blur; the
+   corner glows on `body` below give that blur something to sample, without
+   which it's invisible over a flat fill.
+
+   Borders are left untouched on purpose, so semantic ones — the amber
+   late-orders panel, brand-tinted hovers — keep their meaning. Blur is kept
+   modest (9px) because a dashboard can show a dozen of these at once and
+   backdrop-filter is not free on a low-end counter terminal. */
+.bg-surface.shadow-card {
+  background-color: rgb(var(--surface) / 0.82);
+  -webkit-backdrop-filter: blur(9px) saturate(1.04);
+  backdrop-filter: blur(9px) saturate(1.04);
+}
+[data-theme='dark'] .bg-surface.shadow-card {
+  background-color: rgb(var(--surface) / 0.76);
+}
+/* Honour a reduced-transparency preference — and it doubles as the legibility
+   escape hatch for the counter: fully opaque cards, no blur cost. */
+@media (prefers-reduced-transparency: reduce) {
+  .bg-surface.shadow-card {
+    background-color: rgb(var(--surface));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
 

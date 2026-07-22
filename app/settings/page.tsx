@@ -285,7 +285,13 @@ export default function SettingsPage() {
               rather than sharing the form above — matches a reference design
               shared for this section specifically. */}
           <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_email')}</h2>
+            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_email')}</h2>
+            {/* v3.2: this section is now the Brevo *fallback* path. When a Make
+                (or other) automation webhook is configured, invite/reset emails
+                send through it instead, and only the reply-to applies — so the
+                note keeps these fields from looking like live config that isn't
+                doing anything. */}
+            <p className="mb-3 text-xs leading-relaxed text-stone-500">{t('settings_page.section_email_note')}</p>
             <div className="space-y-3">
               <SettingsFieldCard
                 label={t('settings_page.brevo_sender_label')}

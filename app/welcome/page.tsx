@@ -123,7 +123,7 @@ export default function WelcomePage() {
         <h2 className="mb-9 text-2xl font-extrabold tracking-tight sm:text-3xl">{t('public.features_title')}</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURE_KEYS.map(key => (
-            <div key={key} className="pub-card p-5">
+            <div key={key} className="pub-card pub-card-hover p-5">
               <div className="mb-3.5 flex h-10 w-10 items-center justify-center rounded-xl border border-[color:var(--pub-line)] bg-[rgba(18,181,206,0.1)]">
                 <FeatureIcon name={key} />
               </div>
@@ -142,7 +142,7 @@ export default function WelcomePage() {
         <h2 className="mb-9 text-2xl font-extrabold tracking-tight sm:text-3xl">{t('public.steps_title')}</h2>
         <ol className="grid gap-4 sm:grid-cols-3">
           {STEP_KEYS.map((key, index) => (
-            <li key={key} className="pub-card p-5">
+            <li key={key} className="pub-card pub-card-hover p-5">
               <span className="mb-3 inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[color:var(--pub-cyan)] to-[color:var(--pub-violet)] text-sm font-extrabold text-[#04121a]">
                 {index + 1}
               </span>
