@@ -171,7 +171,15 @@ export default function NewOrderPage() {
     setCart(prev => prev.filter(l => l.productId !== productId))
   }
 
-  const total = cart.reduce((sum, l) => sum + l.pricePerKg * l.kg, 0)
+  const itemsTotal = cart.reduce((sum, l) => sum + l.pricePerKg * l.kg, 0)
+  // v3.4 — mirror the server's delivery-fee rule in the live total. The server
+  // is still the authority (it recomputes on save); this exists so the figure
+  // the cashier reads out loud matches the one that prints. Without it the
+  // screen said 8.90 and the receipt said 18.90.
+  const deliveryFee = isDelivery && shopSettings?.deliveryFeeEnabled === true
+    ? Number(shopSettings.deliveryFee)
+    : 0
+  const total = itemsTotal + deliveryFee
   const recentProducts = recentIds
     .map(id => products.find(p => p.id === id))
     .filter((p): p is Product => p !== undefined)
@@ -194,6 +202,10 @@ export default function NewOrderPage() {
         // already-supported source value — same one /orders/inbox uses.
         source: isDelivery ? 'phone' : undefined,
         deliveryAddress: isDelivery ? (deliveryAddress || undefined) : undefined,
+        // Stated outright rather than inferred from the address — an address is
+        // often blank on a delivery for a known customer, and inferring it was
+        // why the fee silently didn't apply.
+        isDelivery: isDelivery ? true : undefined,
         items: cart.map(l => ({ productId: l.productId, kg: l.kg }))
       }, { headers: { 'Idempotency-Key': idempotencyKeyRef.current } })
       // Attempt settled successfully — the next submit is a genuinely new

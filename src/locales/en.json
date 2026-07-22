@@ -220,6 +220,27 @@
         "body": "Under Settings → Scale barcodes, describe your scale's label layout: the prefix that marks a scale label, the total length, and which digit positions hold the item code and the value. Choose whether the value is a weight or a price, and the divisor (weight in grams → 1000, price with 2 decimals → 100). Then give each product its scale item code in Inventory. A scan on New Order adds the item at its exact weight.",
         "tip": "Don't count digit positions by eye — paste a real printed label into the tester on that screen. It shows the item code, the weight or price it read, and which product it matched, so a wrong position is obvious before it reaches the counter.",
         "keywords": "scale setup configure prefix position item code weight price divisor tester plu inventory ean"
+      },
+      {
+        "category": "admin",
+        "heading": "What a scale PLU is",
+        "body": "A PLU (Price Look-Up) is the short number your scale uses to identify a product — it is not the shelf barcode. Each product is programmed on the scale with a PLU, a name and a price per kilo. The scale bakes that PLU into the label's barcode, which is how the app knows which product you weighed. Put the same number in that product's \"Scale item code\" in Inventory — that field is the link between the two systems.",
+        "tip": "Copy the item code exactly as the tester shows it, leading zeros and all: the match is character-for-character, so 00021 and 21 are not the same thing. And never reuse the shelf barcode as a PLU — they're different numbers.",
+        "keywords": "plu price look up scale item code product match inventory link plu list programming"
+      },
+      {
+        "category": "admin",
+        "heading": "Working out your scale's barcode layout",
+        "body": "Print a label for a product whose PLU and weight (or price) you already know. Write the barcode's digits out and number them from 1. Now hunt for the number you already know — a 1.234 kg weight appears as 1234 — and where it starts and how many digits it spans are your value start and length. Do the same for the PLU to get the item code start and length. The divisor puts the decimal point back: grams → 1000, price with two decimals → 100.",
+        "tip": "Don't work from a sample label in a brochure. Demo labels almost always carry an all-zero item code and invented figures, so they can't show you where the PLU sits — only a real label off your own scale can.",
+        "keywords": "layout positions digits find work out prefix divisor sample demo label decode map"
+      },
+      {
+        "category": "admin",
+        "heading": "Weight labels vs price labels",
+        "body": "A scale can embed either the weight or the total price in its barcode. Weight is the better choice: the app prices it from the product's own rate. With price, the app has to work the weight back out as price ÷ price-per-kg, so if the scale's rate and the app's ever drift apart, the weight it records is wrong.",
+        "tip": "If your scale can print weight-embedded labels, pick Weight and set the divisor to 1000 (grams). Only choose Price if the scale can't do weight — and then keep the scale's price-per-kg and the app's in step.",
+        "keywords": "weight price embedded mode divisor grams decimals choose which"
       }
     ]
   },
