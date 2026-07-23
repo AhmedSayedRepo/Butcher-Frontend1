@@ -141,6 +141,7 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     if (!isAdmin) return
@@ -219,6 +220,24 @@ export default function SettingsPage() {
   const inputClasses = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
   const labelClasses = 'mb-1 block text-sm font-medium text-stone-700'
 
+  // v3.6 — filter the settings sections by a search query. Each section
+  // declares a small bag of searchable text: its own visible title/labels via
+  // t() (so search works in whatever language is active), plus a few bilingual
+  // synonyms. Every typed word must appear somewhere in the bag, so "delivery
+  // fee" narrows to the receipt section rather than matching any one word.
+  const q = search.trim().toLowerCase()
+  const matchesSection = (...parts: string[]): boolean => {
+    if (q === '') return true
+    const hay = parts.join(' ').toLowerCase()
+    return q.split(/\s+/u).every(word => hay.includes(word))
+  }
+  const showAlerts = matchesSection(t('settings_page.section_alerts'), t('settings_page.pending_order_minutes_label'), t('settings_page.delivery_name_label'), t('settings_page.alert_sound_label'), t('settings_page.low_stock_threshold_label'), 'alerts sound delivery threshold stock تنبيهات صوت توصيل حد مخزون')
+  const showEmail = matchesSection(t('settings_page.section_email'), t('settings_page.brevo_sender_label'), t('settings_page.sender_name_label'), t('settings_page.brevo_api_key_label'), 'email brevo make sender fallback بريد مرسل')
+  const showNotify = matchesSection(t('settings_page.section_notifications'), t('settings_page.notify_email_label'), 'notifications orders alerts إشعارات بريد طلبات')
+  const showReceipt = matchesSection(t('settings_page.receipt.title'), 'receipt width height logo shop name phone address delivery fee إيصال شعار توصيل رسوم عنوان هاتف عرض')
+  const showScale = matchesSection(t('settings_page.scale_section_title'), 'scale barcode plu weight price ميزان باركود وزن سعر')
+  const anySection = showAlerts || showEmail || showNotify || showReceipt || showScale
+
   // v3.1 follow-up 10h: "still checking" is not "denied". Without this the
   // permission check below is false while GET /auth/me is in flight, so the
   // page announced no access and then replaced it with the real content.
@@ -242,7 +261,19 @@ export default function SettingsPage() {
            instead of a dashed box containing the word "loading". */
         <Spinner label={t('settings_page.loading')} />
       ) : (
-        <div className="max-w-4xl space-y-6">
+        <div className="max-w-4xl space-y-8">
+          <label className="block">
+            <span className="sr-only">{t('settings_page.search_placeholder')}</span>
+            <input
+              type="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={t('settings_page.search_placeholder')}
+              className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            />
+          </label>
+
+          {showAlerts && (
           <form onSubmit={onSubmit} className="space-y-4 rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
             {error && (
               <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
@@ -252,7 +283,7 @@ export default function SettingsPage() {
             )}
 
             <div>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_alerts')}</h2>
+              <h2 className="mb-4 border-b border-stone-200 pb-3 text-base font-bold tracking-tight text-stone-900">{t('settings_page.section_alerts')}</h2>
               <div className="space-y-4">
                 <label>
                   <span className={labelClasses}>{t('settings_page.pending_order_minutes_label')}</span>
@@ -294,18 +325,20 @@ export default function SettingsPage() {
               {saving ? t('customers_page.saving') : t('customers_page.save')}
             </button>
           </form>
+          )}
 
           {/* v3.1 follow-up 9 (ADR-016), relabeled by ADR-017 (Gmail SMTP ->
               Brevo — Render's free tier blocks outbound SMTP ports entirely):
               each field below saves independently (its own "Update" button)
               rather than sharing the form above — matches a reference design
               shared for this section specifically. */}
+          {showEmail && (
           <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
             {/* v3.3: the long section note and the per-field hints are now
                 ⓘ tooltips, not paragraphs — the full step-by-step lives in Help
                 → "Setting up outgoing email". */}
-            <div className="mb-3 flex items-center gap-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_email')}</h2>
+            <div className="mb-4 flex items-center gap-2 border-b border-stone-200 pb-3">
+              <h2 className="text-base font-bold tracking-tight text-stone-900">{t('settings_page.section_email')}</h2>
               <InfoHint text={t('settings_page.section_email_note')} />
             </div>
             <div className="space-y-3">
@@ -338,14 +371,16 @@ export default function SettingsPage() {
               />
             </div>
           </div>
+          )}
 
           {/* v3.5 — per-shop notification recipient. Its own section, not part
               of the Brevo block: these alerts go out through the order webhook
               (your Make scenario), independent of the Brevo fallback, and each
               shop's alerts land in its own inbox. */}
+          {showNotify && (
           <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
-            <div className="mb-3 flex items-center gap-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_notifications')}</h2>
+            <div className="mb-4 flex items-center gap-2 border-b border-stone-200 pb-3">
+              <h2 className="text-base font-bold tracking-tight text-stone-900">{t('settings_page.section_notifications')}</h2>
               <InfoHint text={t('settings_page.notify_email_hint')} />
             </div>
             <SettingsFieldCard
@@ -358,10 +393,17 @@ export default function SettingsPage() {
               onUpdate={updateNotifyEmail}
             />
           </div>
+          )}
 
-          <ReceiptSettings settings={settings} onSaved={setSettings} />
+          {showReceipt && <ReceiptSettings settings={settings} onSaved={setSettings} />}
 
-          <ScaleBarcodeSettings settings={settings} onSaved={setSettings} />
+          {showScale && <ScaleBarcodeSettings settings={settings} onSaved={setSettings} />}
+
+          {!anySection && (
+            <p className="rounded-xl border border-stone-200 bg-surface p-6 text-center text-sm text-stone-500 shadow-card">
+              {t('settings_page.search_no_results')}
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -102,7 +102,7 @@ export default function ScaleBarcodeSettings({
 
   return (
     <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
-      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.scale_section_title')}</h2>
+      <h2 className="mb-1 text-base font-bold tracking-tight text-stone-900">{t('settings_page.scale_section_title')}</h2>
       <p className="mb-4 text-xs leading-relaxed text-stone-500">{t('settings_page.scale_section_note')}</p>
 
       <label className="mb-4 flex items-center gap-2">

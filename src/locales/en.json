@@ -565,7 +565,9 @@
     "scale_test_no_product": "No product has this item code yet — add it in Inventory.",
     "section_notifications": "Notifications",
     "notify_email_label": "Notification email",
-    "notify_email_hint": "Where this shop's order and low-stock alerts are emailed. Each shop has its own, so alerts land in the right inbox. Leave blank to use the automation's default recipient. (These go out through your order webhook, not Brevo.)"
+    "notify_email_hint": "Where this shop's order and low-stock alerts are emailed. Each shop has its own, so alerts land in the right inbox. Leave blank to use the automation's default recipient. (These go out through your order webhook, not Brevo.)",
+    "search_placeholder": "Search settings…",
+    "search_no_results": "No settings match your search."
   },
   "admin_users_page": {
     "title": "User Management",

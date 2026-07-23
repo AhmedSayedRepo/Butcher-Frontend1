@@ -67,12 +67,11 @@ const SECONDARY_ITEMS = [
   { href: '/help', key: 'help' },
 ] as const
 
-// Type scale matched to the qa-studio reference rail: its nav labels are
-// 13.5px bold, not the 16px medium this used to run at — which read larger and
-// lighter than the source design. `text-sm` (14px) semibold is the closest
-// web equivalent and lines the primary rows up with the footer rows, which
-// were already at this size.
-const ROW = 'rail-item flex items-center gap-3 px-3 py-2.5 text-sm font-semibold'
+// v3.6 — nav labels at 16px medium, following a new reference rail (leading
+// icons + a larger, airier type scale). This reverses the earlier match to
+// qa-studio's compact 13.5px: the shop wanted the bigger, more legible size at
+// the counter.
+const ROW = 'rail-item flex items-center gap-3 px-3 py-2.5 text-base font-medium'
 const ROW_COLLAPSED = 'rail-item flex items-center justify-center px-2 py-2.5'
 const IX_CHIP_COLLAPSED = 'rail-ix flex h-8 w-8 shrink-0 items-center justify-center text-xs font-bold'
 const FOOTER_ROW = 'rail-item flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold'
@@ -102,6 +101,34 @@ function BrandMark() {
           <stop offset="1" stopColor="#0891B2" />
         </linearGradient>
       </defs>
+    </svg>
+  )
+}
+
+// v3.6 — a leading icon per nav row, keyed by the item's translation key so the
+// item arrays stay data-only. Line icons (stroke: currentColor) so they inherit
+// the row's ink/active colour with no per-icon theming, and stay legible on the
+// dark rail. `shrink-0` keeps them from squashing when a long Arabic label
+// wraps tight. Falls back to a neutral dot for any key without a mapping.
+function RailIcon({ name }: { name: string }) {
+  const paths: Record<string, string> = {
+    dashboard: 'M4 13h6V4H4zM14 20h6V4h-6zM4 20h6v-5H4z',
+    orders: 'M8 6h11M8 12h11M8 18h11M3 6h.01M3 12h.01M3 18h.01',
+    new_order: 'M12 8v8M8 12h8',
+    inbox: 'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z',
+    customers: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+    inventory: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12',
+    batches: 'M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12',
+    cash: 'M2 8h20v10H2zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6',
+    admin: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+    organizations: 'M3 21h18M5 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M15 21v-9h3a1 1 0 0 1 1 1v8M8 7h2M8 11h2M8 15h2',
+    settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
+    help: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01'
+  }
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0">
+      <path d={paths[name] ?? 'M12 12h.01'} />
     </svg>
   )
 }
@@ -226,10 +253,11 @@ export default function Sidebar() {
         title={collapsed ? label : undefined}
         className={collapsed ? ROW_COLLAPSED : ROW}
       >
+        {/* v3.6 — leading icon replaces the trailing letter chip on nav rows,
+            matching the new reference rail. The chip lookup stays in the item
+            data (unused now) rather than being ripped out. */}
+        <RailIcon name={item.key} />
         {!collapsed && <span className="truncate">{label}</span>}
-        {item.ix !== undefined && (
-          <span aria-hidden="true" className={collapsed ? IX_CHIP_COLLAPSED : IX_CHIP}>{item.ix}</span>
-        )}
         {collapsed && <span className="sr-only">{label}</span>}
       </Link>
     )

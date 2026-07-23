@@ -113,7 +113,7 @@ export default function ReceiptSettings({
 
   return (
     <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
-      <h2 className="mb-1 text-sm font-bold uppercase tracking-[0.08em] text-stone-500">
+      <h2 className="mb-1 text-base font-bold tracking-tight text-stone-900">
         {t('settings_page.receipt.title')}
       </h2>
       <p className="mb-4 text-xs text-stone-400">{t('settings_page.receipt.hint')}</p>
