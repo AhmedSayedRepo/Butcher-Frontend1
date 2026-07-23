@@ -223,6 +223,8 @@ export type ShopSettings = {
   deliveryFee: string
   // v3.3 — the weighing-scale barcode scheme, null until configured.
   scaleBarcodeConfig: ScaleBarcodeConfig | null
+  // v3.5 — per-shop recipient for order/stock notification emails, null until set.
+  notifyEmail: string | null
 }
 
 // v2 replan (Phase B): audit trail row for a direct stock edit.

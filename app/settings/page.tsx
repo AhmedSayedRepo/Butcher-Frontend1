@@ -205,6 +205,11 @@ export default function SettingsPage() {
     setSettings(r.data)
     toast.success(t('toast.settings_saved'))
   }
+  async function updateNotifyEmail(nextValue: string): Promise<void> {
+    const r = await api.patch<ShopSettings>('/api/shop-settings', { notifyEmail: nextValue.trim() })
+    setSettings(r.data)
+    toast.success(t('toast.settings_saved'))
+  }
   async function updateBrevoApiKey(nextValue: string): Promise<void> {
     const r = await api.patch<ShopSettings>('/api/shop-settings', { brevoApiKey: nextValue.trim() })
     setSettings(r.data)
@@ -332,6 +337,26 @@ export default function SettingsPage() {
                 skipEmptyUpdate
               />
             </div>
+          </div>
+
+          {/* v3.5 — per-shop notification recipient. Its own section, not part
+              of the Brevo block: these alerts go out through the order webhook
+              (your Make scenario), independent of the Brevo fallback, and each
+              shop's alerts land in its own inbox. */}
+          <div className="rounded-xl border border-stone-200 bg-surface p-5 shadow-card">
+            <div className="mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">{t('settings_page.section_notifications')}</h2>
+              <InfoHint text={t('settings_page.notify_email_hint')} />
+            </div>
+            <SettingsFieldCard
+              label={t('settings_page.notify_email_label')}
+              badge={t('settings_page.optional_badge')}
+              hint={t('settings_page.notify_email_hint')}
+              value={settings.notifyEmail ?? ''}
+              type="email"
+              placeholder="orders@yourshop.com"
+              onUpdate={updateNotifyEmail}
+            />
           </div>
 
           <ReceiptSettings settings={settings} onSaved={setSettings} />

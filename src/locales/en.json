@@ -562,7 +562,10 @@
     "scale_test_value_weight": "Weight: {{value}} kg",
     "scale_test_value_price": "Price: {{value}}",
     "scale_test_product": "Matches: {{name}}",
-    "scale_test_no_product": "No product has this item code yet — add it in Inventory."
+    "scale_test_no_product": "No product has this item code yet — add it in Inventory.",
+    "section_notifications": "Notifications",
+    "notify_email_label": "Notification email",
+    "notify_email_hint": "Where this shop's order and low-stock alerts are emailed. Each shop has its own, so alerts land in the right inbox. Leave blank to use the automation's default recipient. (These go out through your order webhook, not Brevo.)"
   },
   "admin_users_page": {
     "title": "User Management",
